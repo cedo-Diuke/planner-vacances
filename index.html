@@ -5,14 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🌍 Planner Vacances Famille</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Vacances">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="theme-color" content="#f0a500">
-  <meta name="mobile-web-app-capable" content="yes">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -341,6 +333,11 @@ const INTERESTS_LIST=["Culture & Musées","Gastronomie","Nature & Randonnée","P
 let interests=[],suggestions=null,selected=[],currentStep=1,flightsVisible=true,hotels=[],cars=[];
 
 renderInterests();renderHotels();renderCars();renderSteps();
+// Load saved data on startup
+loadAll();
+// Autosave on any input change
+document.addEventListener('input', ()=>saveAll());
+document.addEventListener('change', ()=>saveAll());
 
 function toggleFlights(){
   flightsVisible=!flightsVisible;
@@ -621,6 +618,7 @@ JSON valide uniquement, sans markdown:
     selected=suggestions.activites.map((_,i)=>i).filter(i=>suggestions.activites[i].type!=='repos');
     renderFlightSummary(flights, ds, de);
     renderPlan();showStep(2);
+    saveAll();
   }catch(e){showError("Erreur de génération. Réessayez.");}
   btn.disabled=false;btn.innerHTML='✨ Générer mon planning optimisé';
 }
@@ -804,7 +802,7 @@ function resetApp(){
   document.getElementById("addrCounter").textContent='0 adresse(s)';
   hotels=[];renderHotels();cars=[];renderCars();
   document.getElementById("budget").value='moyen';
-  renderInterests();showStep(1);
+  renderInterests();localStorage.removeItem('planner_vacances');showStep(1);
 }
 function openMaps(address){
   const encoded=encodeURIComponent(address);
@@ -817,37 +815,126 @@ function openMaps(address){
     window.open(`https://maps.apple.com/?q=${encoded}`,'_blank');
   }
 }
+// ─── SAUVEGARDE LOCALE ───
+function saveAll(){
+  try {
+    const data = {
+      destination: document.getElementById('destination')?.value||'',
+      dateStart: document.getElementById('dateStart')?.value||'',
+      dateEnd: document.getElementById('dateEnd')?.value||'',
+      logement: document.getElementById('logement')?.value||'',
+      budget: document.getElementById('budget')?.value||'moyen',
+      addresses: document.getElementById('addressesInput')?.value||'',
+      reposFreq: document.getElementById('reposFreq')?.value||'auto',
+      reposType: document.getElementById('reposType')?.value||'libre',
+      volAllerNum: document.getElementById('volAllerNum')?.value||'',
+      volAllerDepAero: document.getElementById('volAllerDepAero')?.value||'',
+      volAllerArrAero: document.getElementById('volAllerArrAero')?.value||'',
+      volAllerHDep: document.getElementById('volAllerHDep')?.value||'',
+      volAllerHArr: document.getElementById('volAllerHArr')?.value||'',
+      volAllerTerminal: document.getElementById('volAllerTerminal')?.value||'',
+      volAllerCompagnie: document.getElementById('volAllerCompagnie')?.value||'',
+      volRetNum: document.getElementById('volRetNum')?.value||'',
+      volRetDepAero: document.getElementById('volRetDepAero')?.value||'',
+      volRetArrAero: document.getElementById('volRetArrAero')?.value||'',
+      volRetHDep: document.getElementById('volRetHDep')?.value||'',
+      volRetHArr: document.getElementById('volRetHArr')?.value||'',
+      volRetTerminal: document.getElementById('volRetTerminal')?.value||'',
+      volRetCompagnie: document.getElementById('volRetCompagnie')?.value||'',
+      interests: interests,
+      hotels: hotels,
+      cars: cars,
+      suggestions: suggestions,
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem('planner_vacances', JSON.stringify(data));
+    showSaveIndicator();
+  } catch(e){ console.warn('Save error', e); }
+}
+
+function loadAll(){
+  try {
+    const raw = localStorage.getItem('planner_vacances');
+    if(!raw) return;
+    const data = JSON.parse(raw);
+    // Restore form fields
+    const fields = ['destination','dateStart','dateEnd','logement','budget','addresses',
+      'reposFreq','reposType','volAllerNum','volAllerDepAero','volAllerArrAero',
+      'volAllerHDep','volAllerHArr','volAllerTerminal','volAllerCompagnie',
+      'volRetNum','volRetDepAero','volRetArrAero','volRetHDep','volRetHArr',
+      'volRetTerminal','volRetCompagnie'];
+    const idMap = {addresses:'addressesInput'};
+    fields.forEach(f => {
+      const el = document.getElementById(idMap[f]||f);
+      if(el && data[f] !== undefined) el.value = data[f];
+    });
+    // Restore arrays
+    if(data.interests) { interests = data.interests; renderInterests(); }
+    if(data.hotels) { hotels = data.hotels; renderHotels(); }
+    if(data.cars) { cars = data.cars; renderCars(); }
+    // Restore planning
+    if(data.suggestions) {
+      suggestions = data.suggestions;
+      selected = suggestions.activites.map((_,i)=>i).filter(i=>suggestions.activites[i].type!=='repos'&&suggestions.activites[i].type!=='vol');
+    }
+    // Update counter
+    updateCounter();
+    // Show restore banner if data exists
+    if(data.savedAt) showRestoreBanner(data);
+  } catch(e){ console.warn('Load error', e); }
+}
+
+function showSaveIndicator(){
+  let el = document.getElementById('saveIndicator');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'saveIndicator';
+    el.style.cssText = 'position:fixed;bottom:20px;right:16px;background:#00c9a7;color:#001a16;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;z-index:9999;transition:opacity .5s;pointer-events:none';
+    document.body.appendChild(el);
+  }
+  el.textContent = '✅ Sauvegardé';
+  el.style.opacity = '1';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.style.opacity = '0', 2000);
+}
+
+function showRestoreBanner(data){
+  const date = new Date(data.savedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+  let banner = document.getElementById('restoreBanner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'restoreBanner';
+    banner.style.cssText = 'background:#f0a50015;border:1px solid #f0a50033;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px';
+    const form = document.getElementById('step1');
+    if(form) form.insertBefore(banner, form.firstChild);
+  }
+  const dest = data.destination ? `· ${data.destination}` : '';
+  const hasPlan = data.suggestions ? '· Planning généré ✅' : '';
+  banner.innerHTML = `
+    <div>
+      <p style="font-size:12px;color:#f0a500;font-weight:600">📂 Données restaurées ${dest} ${hasPlan}</p>
+      <p style="font-size:11px;color:#7a7f9a">Dernière sauvegarde : ${date}</p>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+      ${data.suggestions ? `<button onclick="showPlanning()" style="background:#00c9a722;border:1px solid #00c9a744;color:#00c9a7;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Voir planning</button>` : ''}
+      <button onclick="clearSave()" style="background:#ff6b6b22;border:1px solid #ff6b6b44;color:#ff6b6b;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Effacer</button>
+    </div>
+  `;
+}
+
+function showPlanning(){
+  if(suggestions){ renderPlan(); showStep(2); }
+}
+
+function clearSave(){
+  localStorage.removeItem('planner_vacances');
+  const b = document.getElementById('restoreBanner');
+  if(b) b.remove();
+  suggestions = null;
+}
+
 function showError(msg){const e=document.getElementById("errorMsg");e.textContent=msg;e.classList.remove("hidden")}
 function hideError(){document.getElementById("errorMsg").classList.add("hidden")}
-</script>
-<script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(r => console.log('SW registered'))
-      .catch(e => console.log('SW error', e));
-  });
-}
-// iOS install banner
-window.addEventListener('load', () => {
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  const isStandalone = window.navigator.standalone;
-  if(isIOS && !isStandalone && !localStorage.getItem('pwa-dismissed')){
-    setTimeout(() => {
-      const banner = document.createElement('div');
-      banner.style.cssText = 'position:fixed;bottom:20px;left:16px;right:16px;background:#1a1d2e;border:1px solid #f0a500;border-radius:14px;padding:14px 16px;z-index:9999;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px #00000066';
-      banner.innerHTML = `
-        <span style="font-size:28px">🌍</span>
-        <div style="flex:1">
-          <p style="font-size:13px;font-weight:600;color:#f0f0f0;margin-bottom:2px">Installer l'app</p>
-          <p style="font-size:11px;color:#7a7f9a">Appuyez sur <strong style="color:#f0a500">⬆️ Partager</strong> puis <strong style="color:#f0a500">Sur l'écran d'accueil</strong></p>
-        </div>
-        <button onclick="this.parentNode.remove();localStorage.setItem('pwa-dismissed','1')" style="background:none;border:none;color:#7a7f9a;font-size:20px;cursor:pointer;padding:0">×</button>
-      `;
-      document.body.appendChild(banner);
-    }, 2000);
-  }
-});
 </script>
 </body>
 </html>
