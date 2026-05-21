@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌍 Planner Vacances Famille</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Vacances">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="theme-color" content="#f0a500">
+  <meta name="mobile-web-app-capable" content="yes">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--card:#1a1d2e;--card2:#222640;
+  --gold:#f0a500;--teal:#00c9a7;--purple:#a78bfa;--rose:#fb7185;--sky:#38bdf8;
+  --text:#f0f0f0;--muted:#7a7f9a;--border:#2a2d45;--danger:#ff6b6b;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding:24px 16px}
+#app{max-width:660px;margin:0 auto}
+h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:900}
+h2{font-family:'Playfair Display',serif;font-size:17px;color:var(--gold)}
+input,select,textarea{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-calendar-picker-indicator{filter:invert(0.6)}
+textarea{resize:vertical;min-height:110px;line-height:1.6}
+.btn{padding:11px 22px;border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;transition:all .2s;display:inline-flex;align-items:center;gap:7px}
+.btn-gold{background:var(--gold);color:#1a1100}
+.btn-gold:hover{background:#ffc333;transform:translateY(-1px);box-shadow:0 4px 20px #f0a50044}
+.btn-teal{background:var(--teal);color:#001a16}
+.btn-teal:hover{background:#00e8c0;transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-full{width:100%;justify-content:center;padding:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+.tag{display:inline-flex;align-items:center;background:#f0a50022;color:var(--gold);border:1px solid #f0a50033;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500}
+.tag-teal{background:#00c9a715;color:var(--teal);border-color:#00c9a733;border-radius:20px;padding:4px 10px;font-size:11px;display:inline-flex;align-items:center}
+.tag-purple{background:#7c3aed22;color:var(--purple);border:1px solid #7c3aed44;border-radius:20px;padding:3px 10px;font-size:11px;display:inline-flex;align-items:center}
+.tag-rest{background:#fb718522;color:var(--rose);border:1px solid #fb718533;border-radius:20px;padding:4px 10px;font-size:11px;display:inline-flex;align-items:center}
+.tag-sky{background:#38bdf822;color:var(--sky);border:1px solid #38bdf833;border-radius:20px;padding:4px 10px;font-size:11px;display:inline-flex;align-items:center}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.spinner{width:18px;height:18px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .4s ease forwards}
+.act-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;transition:border-color .2s;cursor:pointer;margin-bottom:8px}
+.act-card:hover{border-color:#00c9a755}
+.act-card.sel{border-color:var(--teal);background:#00c9a710}
+.act-card.flight-card{border-color:#38bdf833;background:#38bdf80d;cursor:default}
+.checkbox{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.checkbox.checked{background:var(--teal);border-color:var(--teal)}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.interest-btn{padding:6px 13px;font-size:12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.interest-btn.active{border-color:var(--teal);color:var(--teal);background:#00c9a715}
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0 12px}
+.divider-line{flex:1;height:1px;background:var(--border)}
+.geo-box{background:#7c3aed15;border:1px solid #7c3aed33;border-radius:8px;padding:8px 12px;margin-top:10px}
+.best-time{background:#f0a50015;border:1px solid #f0a50033;border-radius:6px;padding:6px 10px;margin-top:6px;font-size:11px;color:var(--gold)}
+.tip-row{font-size:12px;color:var(--muted);display:flex;gap:8px;margin-bottom:6px}
+.hidden{display:none}
+.error{color:var(--danger);font-size:13px;margin-bottom:12px}
+.steps{display:flex;gap:8px;align-items:center;margin-top:16px;margin-bottom:28px}
+.zone-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block}
+.rest-banner{background:linear-gradient(135deg,#fb718515,#7c3aed15);border:1px solid #fb718533;border-radius:10px;padding:16px;text-align:center;margin-bottom:8px}
+.hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+.counter{font-size:11px;color:var(--muted);text-align:right;margin-top:4px}
+/* Vol card */
+.flight-banner{background:linear-gradient(135deg,#38bdf810,#0f1117);border:1px solid #38bdf833;border-radius:12px;padding:16px;margin-bottom:8px}
+.flight-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.flight-airport{text-align:center;flex:1}
+.flight-airport .iata{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--sky)}
+.flight-airport .city{font-size:10px;color:var(--muted)}
+.flight-arrow{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.flight-line{height:1px;width:100%;background:linear-gradient(90deg,#38bdf8,#38bdf833)}
+.section-toggle{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;padding:0;margin-top:6px}
+.section-toggle:hover{color:var(--gold)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div style="margin-bottom:4px;display:flex;align-items:center;gap:12px">
+    <span style="font-size:26px">🌍</span>
+    <h1>Planner Vacances</h1>
+  </div>
+  <p style="color:var(--muted);font-size:13px">Vols · Planning optimisé · Repos · Meilleurs moments · Agenda iPhone</p>
+  <div class="steps" id="steps"></div>
+
+  <!-- STEP 1 -->
+  <div id="step1" class="fade-up">
+
+    <!-- VOLS -->
+    <div class="card" style="border-color:#38bdf833">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="color:var(--sky)">✈️ Vols aller-retour</h2>
+        <button class="section-toggle" onclick="toggleFlights()"><span id="flightToggleIcon">▼</span> <span id="flightToggleLabel">Masquer</span></button>
+      </div>
+      <div id="flightsSection">
+        <!-- VOL ALLER -->
+        <div style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--sky)"></div>
+            <span style="font-size:12px;font-weight:600;color:var(--sky);text-transform:uppercase;letter-spacing:.5px">Vol Aller</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="row-2">
+              <div>
+                <label class="label">Aéroport départ</label>
+                <input id="volAllerDepAero" placeholder="Ex: CDG, Paris Charles de Gaulle">
+              </div>
+              <div>
+                <label class="label">Aéroport arrivée</label>
+                <input id="volAllerArrAero" placeholder="Ex: FCO, Rome Fiumicino">
+              </div>
+            </div>
+            <div class="row-3">
+              <div>
+                <label class="label">N° de vol</label>
+                <input id="volAllerNum" placeholder="Ex: AF1234">
+              </div>
+              <div>
+                <label class="label">Heure départ</label>
+                <input id="volAllerHDep" type="time">
+              </div>
+              <div>
+                <label class="label">Heure arrivée</label>
+                <input id="volAllerHArr" type="time">
+              </div>
+            </div>
+            <div class="row-2">
+              <div>
+                <label class="label">Terminal (optionnel)</label>
+                <input id="volAllerTerminal" placeholder="Ex: Terminal 2E">
+              </div>
+              <div>
+                <label class="label">Compagnie</label>
+                <input id="volAllerCompagnie" placeholder="Ex: Air France">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin-bottom:16px"></div>
+
+        <!-- VOL RETOUR -->
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <div style="width:8px;height:8px;border-radius:50%;background:#fb923c"></div>
+            <span style="font-size:12px;font-weight:600;color:#fb923c;text-transform:uppercase;letter-spacing:.5px">Vol Retour</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="row-2">
+              <div>
+                <label class="label">Aéroport départ</label>
+                <input id="volRetDepAero" placeholder="Ex: FCO, Rome Fiumicino">
+              </div>
+              <div>
+                <label class="label">Aéroport arrivée</label>
+                <input id="volRetArrAero" placeholder="Ex: CDG, Paris Charles de Gaulle">
+              </div>
+            </div>
+            <div class="row-3">
+              <div>
+                <label class="label">N° de vol</label>
+                <input id="volRetNum" placeholder="Ex: AF1235">
+              </div>
+              <div>
+                <label class="label">Heure départ</label>
+                <input id="volRetHDep" type="time">
+              </div>
+              <div>
+                <label class="label">Heure arrivée</label>
+                <input id="volRetHArr" type="time">
+              </div>
+            </div>
+            <div class="row-2">
+              <div>
+                <label class="label">Terminal (optionnel)</label>
+                <input id="volRetTerminal" placeholder="Ex: Terminal 1">
+              </div>
+              <div>
+                <label class="label">Compagnie</label>
+                <input id="volRetCompagnie" placeholder="Ex: Air France">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFOS VOYAGE -->
+    <div class="card">
+      <h2 style="margin-bottom:16px">🗺️ Informations du voyage</h2>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label class="label">Destination *</label>
+          <input id="destination" placeholder="Ex: Rome, Barcelone, Tokyo...">
+        </div>
+        <div class="row-2">
+          <div>
+            <label class="label">Arrivée *</label>
+            <input id="dateStart" type="date">
+          </div>
+          <div>
+            <label class="label">Départ *</label>
+            <input id="dateEnd" type="date">
+          </div>
+        </div>
+        <div>
+          <label class="label">Logement (optionnel)</label>
+          <input id="logement" placeholder="Hôtel, Airbnb, adresse...">
+        </div>
+        <div>
+          <label class="label">Budget</label>
+          <select id="budget">
+            <option value="petit">Petit budget (économique)</option>
+            <option value="moyen" selected>Budget moyen (confortable)</option>
+            <option value="grand">Grand budget (luxe)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADRESSES -->
+    <div class="card">
+      <h2 style="margin-bottom:6px">📍 Vos adresses à visiter</h2>
+      <p class="hint" style="margin-bottom:12px">Une adresse par ligne. L'IA les regroupe géographiquement et planifie au meilleur moment.</p>
+      <textarea id="addressesInput" placeholder="Ex:&#10;Colosseum, Rome&#10;Vatican, Rome&#10;Trastevere, Rome&#10;Galleria Borghese, Rome&#10;Pantheon, Rome" oninput="updateCounter()"></textarea>
+      <div class="counter" id="addrCounter">0 adresse(s)</div>
+    </div>
+
+    <!-- VOITURE -->
+    <div class="card" style="border-color:#38bdf833">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h2 style="color:var(--sky)">🚗 Location de voiture</h2>
+        <button class="btn btn-ghost btn-sm" onclick="addCar()">+ Ajouter</button>
+      </div>
+      <p class="hint" style="margin-bottom:14px">L'IA bloque les jours de trajet et optimise les visites selon votre voiture.</p>
+      <div id="carsContainer"></div>
+    </div>
+
+    <!-- HOTELS -->
+    <div class="card" style="border-color:#a78bfa33">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h2 style="color:var(--purple)">🏨 Hôtels & Logements</h2>
+        <button class="btn btn-ghost btn-sm" onclick="addHotel()">+ Ajouter</button>
+      </div>
+      <p class="hint" style="margin-bottom:14px">L'IA planifie les visites proches de chaque hôtel selon vos dates de séjour.</p>
+      <div id="hotelsContainer"></div>
+    </div>
+
+    <!-- REPOS -->
+    <div class="card">
+      <h2 style="margin-bottom:10px">😴 Jours de repos</h2>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <label class="label">Fréquence</label>
+          <select id="reposFreq">
+            <option value="aucun">Pas de jour de repos</option>
+            <option value="auto" selected>Automatique (recommandé par l'IA)</option>
+            <option value="3">1 repos tous les 3 jours</option>
+            <option value="4">1 repos tous les 4 jours</option>
+            <option value="5">1 repos tous les 5 jours</option>
+          </select>
+        </div>
+        <div>
+          <label class="label">Type de repos</label>
+          <select id="reposType">
+            <option value="libre">Journée libre (plage, shopping, flâner)</option>
+            <option value="leger">Programme léger (1-2 activités tranquilles)</option>
+            <option value="spa">Bien-être / Spa / Restaurant gastronomique</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERETS -->
+    <div class="card">
+      <h2 style="margin-bottom:12px">✨ Centres d'intérêt</h2>
+      <div id="interestsContainer" style="display:flex;flex-wrap:wrap;gap:7px"></div>
+    </div>
+
+    <p class="error hidden" id="errorMsg"></p>
+    <button class="btn btn-gold btn-full" id="generateBtn" onclick="generatePlan()">✨ Générer mon planning optimisé</button>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" class="hidden fade-up">
+    <!-- Résumé vols -->
+    <div id="flightSummary" class="hidden" style="margin-bottom:14px"></div>
+    <div class="card" id="planHeader" style="border-color:#f0a50044;margin-bottom:14px"></div>
+    <div id="zonesLegend" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span id="selCount" style="font-size:12px;color:var(--muted)"></span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="selectAll()">Tout</button>
+        <button class="btn btn-ghost btn-sm" onclick="selectNone()">Aucun</button>
+      </div>
+    </div>
+    <div id="activitiesContainer"></div>
+    <div id="tipsCard" class="card hidden" style="border-color:#f0a50033;margin-bottom:16px"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="goBack()">← Modifier</button>
+      <button class="btn btn-teal" style="flex:2;justify-content:center" id="addCalBtn" onclick="addToCalendar()">📅 Ajouter à l'agenda</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step3" class="hidden fade-up">
+    <div class="card" style="text-align:center;padding:40px;border-color:#00c9a744">
+      <div style="font-size:52px;margin-bottom:16px">🎉</div>
+      <h2 style="font-size:22px;color:var(--teal);margin-bottom:10px">Dans votre agenda !</h2>
+      <p id="doneMsg" style="color:var(--muted);margin-bottom:20px;font-size:14px"></p>
+      <div id="doneList" style="text-align:left;margin-bottom:24px"></div>
+      <div class="card" style="background:#00c9a710;border-color:#00c9a733;text-align:left;margin-bottom:20px;padding:14px">
+        <p style="font-size:13px;color:var(--teal);font-weight:600;margin-bottom:8px">👨‍👩‍👧‍👦 Partager avec la famille iCloud</p>
+        <p style="font-size:12px;color:var(--muted);line-height:1.8">
+          1. Ouvrez <strong style="color:var(--text)">Calendrier</strong> sur iPhone<br>
+          2. <strong style="color:var(--text)">Calendriers</strong> → <strong style="color:var(--text)">+</strong> → Ajouter un calendrier<br>
+          3. Nommez-le <em style="color:var(--gold)">"Vacances Famille"</em><br>
+          4. Icône <strong style="color:var(--text)">ℹ️</strong> → Ajouter une personne → invitez la famille<br>
+          5. Toute la famille voit les événements ✅
+        </p>
+      </div>
+      <button class="btn btn-gold btn-full" onclick="resetApp()">✈️ Planifier un autre voyage</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const ZONE_COLORS=["#f0a500","#00c9a7","#a78bfa","#ff6b6b","#38bdf8","#fb923c","#4ade80","#f472b6"];
+const EMOJI_MAP={hotel:"🏨",transport:"✈️",activity:"🎯",restaurant:"🍽️",visit:"🗺️",info:"💡",repos:"😴",vol:"✈️"};
+const INTERESTS_LIST=["Culture & Musées","Gastronomie","Nature & Randonnée","Plage","Shopping","Architecture","Sport & Aventure","Nightlife"];
+let interests=[],suggestions=null,selected=[],currentStep=1,flightsVisible=true,hotels=[],cars=[];
+
+renderInterests();renderHotels();renderCars();renderSteps();
+
+function toggleFlights(){
+  flightsVisible=!flightsVisible;
+  document.getElementById("flightsSection").classList.toggle("hidden",!flightsVisible);
+  document.getElementById("flightToggleIcon").textContent=flightsVisible?"▼":"▶";
+  document.getElementById("flightToggleLabel").textContent=flightsVisible?"Masquer":"Afficher";
+}
+
+function renderSteps(){
+  const labels=["Vols & Lieux","Planning IA","Agenda"];
+  document.getElementById("steps").innerHTML=labels.map((s,i)=>`
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="step-dot" style="background:${currentStep>i+1?'var(--teal)':currentStep===i+1?'var(--gold)':'var(--border)'};color:${currentStep>i+1?'#001a16':currentStep===i+1?'#1a1100':'var(--muted)'}">
+        ${currentStep>i+1?'✓':i+1}
+      </div>
+      <span style="font-size:12px;color:${currentStep===i+1?'var(--text)':'var(--muted)'};font-weight:${currentStep===i+1?600:400}">${s}</span>
+      ${i<2?'<div style="width:24px;height:1px;background:var(--border)"></div>':''}
+    </div>
+  `).join('');
+}
+
+function renderInterests(){
+  document.getElementById("interestsContainer").innerHTML=INTERESTS_LIST.map(int=>`
+    <button class="interest-btn ${interests.includes(int)?'active':''}" onclick="toggleInterest('${int}')">${interests.includes(int)?'✓ ':''}${int}</button>
+  `).join('');
+}
+function addHotel(){
+  hotels.push({nom:'',adresse:'',checkin:'',checkout:''});
+  renderHotels();
+}
+function removeHotel(i){hotels.splice(i,1);renderHotels();}
+function updateHotel(i,field,val){hotels[i][field]=val;}
+function renderHotels(){
+  const c=document.getElementById("hotelsContainer");
+  if(!hotels.length){c.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun hôtel ajouté</p>';return;}
+  c.innerHTML=hotels.map((h,i)=>`
+    <div class="hotel-card">
+      <button class="remove-btn" onclick="removeHotel(${i})">×</button>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div><label class="label">Nom de l'hôtel</label>
+          <input placeholder="Ex: Hotel Colosseo" value="${h.nom}" oninput="updateHotel(${i},'nom',this.value)">
+        </div>
+        <div><label class="label">Adresse</label>
+          <input placeholder="Ex: Via Labicana 144, Rome" value="${h.adresse}" oninput="updateHotel(${i},'adresse',this.value)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label class="label">Check-in</label>
+            <input type="date" value="${h.checkin}" oninput="updateHotel(${i},'checkin',this.value)">
+          </div>
+          <div><label class="label">Check-out</label>
+            <input type="date" value="${h.checkout}" oninput="updateHotel(${i},'checkout',this.value)">
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function addCar(){
+  cars.push({agence:'',lieuPrise:'',lieuRetour:'',datePrise:'',dateRetour:'',type:'',trajets:''});
+  renderCars();
+}
+function removeCar(i){cars.splice(i,1);renderCars();}
+function updateCar(i,field,val){cars[i][field]=val;}
+function renderCars(){
+  const el=document.getElementById("carsContainer");
+  if(!cars.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucune voiture ajoutée</p>';return;}
+  el.innerHTML=cars.map((car,i)=>`
+    <div class="car-card">
+      <button class="remove-btn" onclick="removeCar(${i})">×</button>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label class="label">Agence</label>
+            <input placeholder="Ex: Hertz, Avis..." value="${car.agence}" oninput="updateCar(${i},'agence',this.value)">
+          </div>
+          <div><label class="label">Type de véhicule</label>
+            <input placeholder="Ex: SUV, Berline..." value="${car.type}" oninput="updateCar(${i},'type',this.value)">
+          </div>
+        </div>
+        <div><label class="label">Lieu de prise en charge</label>
+          <input placeholder="Ex: Aéroport LAX, Los Angeles" value="${car.lieuPrise}" oninput="updateCar(${i},'lieuPrise',this.value)">
+        </div>
+        <div><label class="label">Lieu de restitution</label>
+          <input placeholder="Ex: Aéroport LAX (aller-retour) ou autre ville" value="${car.lieuRetour}" oninput="updateCar(${i},'lieuRetour',this.value)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label class="label">Date de prise</label>
+            <input type="date" value="${car.datePrise}" oninput="updateCar(${i},'datePrise',this.value)">
+          </div>
+          <div><label class="label">Date de restitution</label>
+            <input type="date" value="${car.dateRetour}" oninput="updateCar(${i},'dateRetour',this.value)">
+          </div>
+        </div>
+        <div><label class="label">Trajets prévus (optionnel)</label>
+          <input placeholder="Ex: LA → San Francisco → Las Vegas → LA" value="${car.trajets}" oninput="updateCar(${i},'trajets',this.value)">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function updateCounter(){
+  const lines=document.getElementById("addressesInput").value.split("\n").filter(l=>l.trim());
+  document.getElementById("addrCounter").textContent=`${lines.length} adresse(s)`;
+}
+function toggleInterest(int){
+  interests=interests.includes(int)?interests.filter(x=>x!==int):[...interests,int];
+  renderInterests();
+}
+function showStep(n){
+  currentStep=n;
+  ["step1","step2","step3"].forEach((id,i)=>document.getElementById(id).classList.toggle("hidden",n!==i+1));
+  renderSteps();window.scrollTo({top:0,behavior:'smooth'});
+}
+function goBack(){showStep(1);}
+function selectAll(){selected=suggestions.activites.filter(a=>a.type!=='repos').map((_,i)=>i);renderActivities();}
+function selectNone(){selected=[];renderActivities();}
+
+function getFlightData(){
+  return {
+    aller:{
+      depAero:document.getElementById("volAllerDepAero").value.trim(),
+      arrAero:document.getElementById("volAllerArrAero").value.trim(),
+      num:document.getElementById("volAllerNum").value.trim(),
+      hDep:document.getElementById("volAllerHDep").value,
+      hArr:document.getElementById("volAllerHArr").value,
+      terminal:document.getElementById("volAllerTerminal").value.trim(),
+      compagnie:document.getElementById("volAllerCompagnie").value.trim(),
+    },
+    retour:{
+      depAero:document.getElementById("volRetDepAero").value.trim(),
+      arrAero:document.getElementById("volRetArrAero").value.trim(),
+      num:document.getElementById("volRetNum").value.trim(),
+      hDep:document.getElementById("volRetHDep").value,
+      hArr:document.getElementById("volRetHArr").value,
+      terminal:document.getElementById("volRetTerminal").value.trim(),
+      compagnie:document.getElementById("volRetCompagnie").value.trim(),
+    }
+  };
+}
+
+function renderFlightSummary(flights, ds, de){
+  const hasAller = flights.aller.num || flights.aller.depAero;
+  const hasRetour = flights.retour.num || flights.retour.depAero;
+  if(!hasAller && !hasRetour){document.getElementById("flightSummary").classList.add("hidden");return;}
+
+  const depIATA = (flights.aller.depAero||'???').substring(0,3).toUpperCase();
+  const arrIATA = (flights.aller.arrAero||'???').substring(0,3).toUpperCase();
+  const retDepIATA = (flights.retour.depAero||arrIATA).substring(0,3).toUpperCase();
+  const retArrIATA = (flights.retour.arrAero||depIATA).substring(0,3).toUpperCase();
+
+  document.getElementById("flightSummary").innerHTML=`
+    <div class="flight-banner">
+      <p style="font-size:11px;color:var(--sky);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">✈️ Vos vols</p>
+      ${hasAller?`
+      <div style="margin-bottom:${hasRetour?'14px':'0'}">
+        <p style="font-size:10px;color:var(--muted);margin-bottom:8px">ALLER · ${ds}</p>
+        <div class="flight-row">
+          <div class="flight-airport">
+            <div class="iata">${depIATA}</div>
+            <div class="city">${flights.aller.depAero||'Départ'}</div>
+            ${flights.aller.hDep?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.aller.hDep}</div>`:''}
+          </div>
+          <div class="flight-arrow">
+            <div style="font-size:10px;color:var(--muted)">${flights.aller.num||''}</div>
+            <div class="flight-line"></div>
+            <div style="font-size:18px">✈️</div>
+            <div class="flight-line"></div>
+            <div style="font-size:10px;color:var(--muted)">${flights.aller.compagnie||''}</div>
+          </div>
+          <div class="flight-airport">
+            <div class="iata">${arrIATA}</div>
+            <div class="city">${flights.aller.arrAero||'Arrivée'}</div>
+            ${flights.aller.hArr?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.aller.hArr}</div>`:''}
+          </div>
+        </div>
+        ${flights.aller.terminal?`<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">🚪 ${flights.aller.terminal}</p>`:''}
+      </div>`:''}
+      ${hasAller&&hasRetour?`<div style="height:1px;background:var(--border);margin-bottom:14px"></div>`:''}
+      ${hasRetour?`
+      <div>
+        <p style="font-size:10px;color:var(--muted);margin-bottom:8px">RETOUR · ${de}</p>
+        <div class="flight-row">
+          <div class="flight-airport">
+            <div class="iata" style="color:#fb923c">${retDepIATA}</div>
+            <div class="city">${flights.retour.depAero||'Départ'}</div>
+            ${flights.retour.hDep?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.retour.hDep}</div>`:''}
+          </div>
+          <div class="flight-arrow">
+            <div style="font-size:10px;color:var(--muted)">${flights.retour.num||''}</div>
+            <div class="flight-line" style="background:linear-gradient(90deg,#fb923c,#fb923c33)"></div>
+            <div style="font-size:18px">✈️</div>
+            <div class="flight-line" style="background:linear-gradient(90deg,#fb923c,#fb923c33)"></div>
+            <div style="font-size:10px;color:var(--muted)">${flights.retour.compagnie||''}</div>
+          </div>
+          <div class="flight-airport">
+            <div class="iata" style="color:#fb923c">${retArrIATA}</div>
+            <div class="city">${flights.retour.arrAero||'Arrivée'}</div>
+            ${flights.retour.hArr?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.retour.hArr}</div>`:''}
+          </div>
+        </div>
+        ${flights.retour.terminal?`<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">🚪 ${flights.retour.terminal}</p>`:''}
+      </div>`:''}
+    </div>
+  `;
+  document.getElementById("flightSummary").classList.remove("hidden");
+}
+
+async function generatePlan(){
+  const dest=document.getElementById("destination").value.trim();
+  const ds=document.getElementById("dateStart").value;
+  const de=document.getElementById("dateEnd").value;
+  if(!dest||!ds||!de){showError("Veuillez remplir destination et dates.");return;}
+  const btn=document.getElementById("generateBtn");
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Génération du planning...';
+  hideError();
+
+  const flights=getFlightData();
+  const rawAddresses=document.getElementById("addressesInput").value;
+  const addresses=rawAddresses.split("\n").map(l=>l.trim()).filter(Boolean);
+  const logement=document.getElementById("logement").value;
+  const budget=document.getElementById("budget").value;
+  const reposFreq=document.getElementById("reposFreq").value;
+  const reposType=document.getElementById("reposType").value;
+  const nbJours=Math.max(1,Math.round((new Date(de)-new Date(ds))/86400000)+1);
+
+  const filledCars=cars.filter(car=>car.lieuPrise||car.agence);
+  const carsBlock=filledCars.length>0?`\nLOCATION VOITURE:\n${filledCars.map((car,i)=>`Voiture ${i+1}: ${car.agence||'Agence inconnue'} - ${car.type||'véhicule'} | Prise: ${car.lieuPrise||'?'} le ${car.datePrise||'?'} | Retour: ${car.lieuRetour||'?'} le ${car.dateRetour||'?'}${car.trajets?' | Trajets: '+car.trajets:''}`).join("\n")}\nIMPORTANT: Bloque des événements type="voiture" pour les jours de trajet inter-villes (prise en charge, trajets longue distance, restitution). Pour chaque trajet, calcule la durée réaliste et indique les pauses recommandées. Ne planifie pas de visites chargées ces jours-là.`:'';
+  const filledHotels=hotels.filter(h=>h.nom||h.adresse);
+  const hotelsBlock=filledHotels.length>0?`\nHÔTELS & LOGEMENTS:\n${filledHotels.map((h,i)=>`${i+1}. ${h.nom||'Hôtel'} - ${h.adresse||'adresse non précisée'} | Check-in: ${h.checkin||'?'} | Check-out: ${h.checkout||'?'}`).join("\n")}\nTiens compte de la localisation des hôtels pour planifier les visites à proximité selon les dates de séjour.`:''
+  const addrBlock=addresses.length>0?`\nADRESSES À VISITER (toutes obligatoires):\n${addresses.map((a,i)=>`${i+1}. ${a}`).join("\n")}`:'';
+  const reposBlock=reposFreq==='aucun'?'\nPas de jour de repos.':reposFreq==='auto'?`\nJOURS DE REPOS: Place des jours de repos de façon optimale sur ${nbJours} jours. Type: ${reposType}.`:`\nJOURS DE REPOS: 1 repos tous les ${reposFreq} jours. Type: ${reposType}.`;
+
+  const allerInfo=flights.aller.num?`Vol aller: ${flights.aller.num} ${flights.aller.compagnie||''} - Départ ${flights.aller.depAero||''} à ${flights.aller.hDep||'?'} → Arrivée ${flights.aller.arrAero||''} à ${flights.aller.hArr||'?'}${flights.aller.terminal?' ('+flights.aller.terminal+')':''}`:'' ;
+  const retourInfo=flights.retour.num?`Vol retour: ${flights.retour.num} ${flights.retour.compagnie||''} - Départ ${flights.retour.depAero||''} à ${flights.retour.hDep||'?'} → Arrivée ${flights.retour.arrAero||''} à ${flights.retour.hArr||'?'}${flights.retour.terminal?' ('+flights.retour.terminal+')':''}`:'' ;
+  const volBlock=(allerInfo||retourInfo)?`\nINFOS VOLS:\n${allerInfo}\n${retourInfo}\nTiens compte des horaires de vol pour le premier et dernier jour (transfert aéroport, check-in).`:'';
+
+  const prompt=`Tu es expert en voyages et optimisation d'itinéraires. Génère un planning de vacances complet.
+
+DESTINATION: ${dest}
+DATES: ${ds} → ${de} (${nbJours} jour(s))
+LOGEMENT: ${logement||'non précisé'}
+BUDGET: ${budget}
+INTÉRÊTS: ${interests.join(', ')||'général'}
+${volBlock}
+${carsBlock}
+${hotelsBlock}
+${addrBlock}
+${reposBlock}
+
+RÈGLES:
+1. GÉO: Regroupe les lieux proches sur le même jour. Optimise l'ordre (circuit logique).
+2. MEILLEUR MOMENT: Pour chaque visite, donne le meilleur créneau (foule, lumière, météo).
+3. VOLS: Si vols renseignés, ajoute-les en type="vol" le premier et dernier jour. Tiens compte des transferts aéroport (prévoir 2-3h avant vol).
+4. REPOS: Insère selon les consignes.
+5. TOUTES les adresses fournies doivent être présentes, isUserPlace:true.
+6. VOITURE: Si location voiture, ajoute type="voiture" pour prise en charge, chaque trajet inter-villes et restitution. Indique durée réaliste (ex: LA→SF = 6h, SF→Las Vegas = 9h). Ces jours sont légers en visites.
+7. HÔTELS: Si hôtels renseignés, ajoute un événement type="hotel" le jour du check-in (titre: "Check-in [nom]") et le jour du check-out (titre: "Check-out [nom]"). Planifie les visites proches géographiquement de l'hôtel actif.
+
+JSON valide uniquement, sans markdown:
+{
+  "titre": "Titre",
+  "resume": "Résumé 1-2 phrases",
+  "zones": ["Zone A"],
+  "activites": [
+    {"jour":1,"date":"YYYY-MM-DD","heure":"09:00","titre":"Nom","description":"Desc","adresse":"Adresse","duree":"2h","type":"visit","budget":"15€","zone":"Quartier","isUserPlace":false,"meilleurMoment":"Conseil horaire","astuce":"Conseil pratique"}
+  ],
+  "logique_geo": "Explication regroupement",
+  "conseils": ["conseil 1","conseil 2"]
+}`;
+
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:3000,messages:[{role:"user",content:prompt}]})
+    });
+    const data=await res.json();
+    const raw=data.content.map(b=>b.text||"").join("");
+    suggestions=JSON.parse(raw.replace(/```json|```/g,"").trim());
+    selected=suggestions.activites.map((_,i)=>i).filter(i=>suggestions.activites[i].type!=='repos');
+    renderFlightSummary(flights, ds, de);
+    renderPlan();showStep(2);
+  }catch(e){showError("Erreur de génération. Réessayez.");}
+  btn.disabled=false;btn.innerHTML='✨ Générer mon planning optimisé';
+}
+
+function renderPlan(){
+  const s=suggestions;
+  const reposDays=[...new Set(s.activites.filter(a=>a.type==='repos').map(a=>a.jour))].length;
+  const volsCount=s.activites.filter(a=>a.type==='vol').length;
+  document.getElementById("planHeader").innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <h2 style="font-size:19px;flex:1">${s.titre}</h2>
+      <span class="tag" style="margin-left:10px;flex-shrink:0">${document.getElementById("destination").value}</span>
+    </div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:10px">${s.resume}</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${volsCount>0?`<span class="tag-sky">✈️ ${volsCount} vol(s)</span>`:''}
+      ${filledCars&&filledCars.length>0?`<span class="tag-sky">🚗 ${filledCars.length} voiture(s)</span>`:''}
+      <span class="tag-teal">📍 ${s.activites.filter(a=>a.isUserPlace).length} lieux perso</span>
+      ${filledHotels&&filledHotels.length>0?`<span class="tag-purple">🏨 ${filledHotels.length} hôtel(s)</span>`:''}
+      ${reposDays>0?`<span class="tag-rest">😴 ${reposDays} repos</span>`:''}
+      <span class="tag-purple">🗺️ ${(s.zones||[]).length} zones</span>
+    </div>
+    ${s.logique_geo?`<div class="geo-box" style="margin-top:10px"><p style="font-size:12px;color:var(--purple)">🧭 <strong>Optimisation :</strong> ${s.logique_geo}</p></div>`:''}
+  `;
+  const zl=document.getElementById("zonesLegend");
+  zl.innerHTML=(s.zones||[]).map((z,i)=>`
+    <div style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:4px 10px">
+      <span class="zone-dot" style="background:${ZONE_COLORS[i%ZONE_COLORS.length]}"></span>
+      <span style="font-size:11px;color:var(--muted)">${z}</span>
+    </div>`).join('');
+  zl.style.display=s.zones?.length?'flex':'none';
+  if(s.conseils?.length){
+    document.getElementById("tipsCard").innerHTML=`<h3 style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--gold)">💡 Conseils pratiques</h3>${s.conseils.map(c=>`<div class="tip-row"><span style="color:var(--gold)">→</span>${c}</div>`).join('')}`;
+    document.getElementById("tipsCard").classList.remove("hidden");
+  }
+  renderActivities();
+}
+
+function renderActivities(){
+  if(!suggestions)return;
+  const days=[...new Set(suggestions.activites.map(a=>a.jour))].sort();
+  const zones=suggestions.zones||[];
+  let html='';
+  days.forEach(day=>{
+    const acts=suggestions.activites.map((a,i)=>({...a,idx:i})).filter(a=>a.jour===day);
+    const isRestDay=acts.every(a=>a.type==='repos');
+    const hasVol=acts.some(a=>a.type==='vol');
+    const dayZones=[...new Set(acts.filter(a=>a.type!=='repos'&&a.type!=='vol').map(a=>a.zone).filter(Boolean))];
+    html+=`
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap">
+          <span class="${isRestDay?'tag-rest':hasVol?'tag-sky':'tag-teal'}" style="font-size:11px;padding:3px 10px">
+            ${isRestDay?'😴':hasVol?'✈️':'📅'} Jour ${day} · ${acts[0]?.date||''}
+          </span>
+          ${dayZones.map(z=>`<span class="tag-purple">${z}</span>`).join('')}
+        </div>
+        <div class="divider-line"></div>
+      </div>`;
+    acts.forEach(act=>{
+      // Jour de repos
+      if(act.type==='repos'){
+        html+=`<div class="rest-banner">
+          <div style="font-size:28px;margin-bottom:6px">😴</div>
+          <p style="font-weight:600;color:var(--rose);font-size:15px">${act.titre||'Jour de repos'}</p>
+          <p style="font-size:12px;color:var(--muted);margin-top:4px">${act.description||''}</p>
+          ${act.astuce?`<p style="font-size:11px;color:var(--purple);margin-top:6px">💡 ${act.astuce}</p>`:''}
+        </div>`;return;
+      }
+      // Hotel check-in/check-out
+      if(act.type==='hotel'){
+        html+=`<div class="act-card" style="border-color:#a78bfa44;background:#a78bfa0d;cursor:default">
+          <div style="font-size:20px">🏨</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between">
+              <span style="font-weight:600;font-size:14px;color:var(--purple)">${act.titre}</span>
+              ${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-top:3px">${act.description||''}</p>
+            ${act.adresse?`<p style="font-size:11px;color:var(--purple);margin-top:4px">📍 ${act.adresse}</p>`:''}
+            ${act.astuce?`<p style="font-size:11px;color:var(--muted);margin-top:4px">💡 ${act.astuce}</p>`:''}
+          </div>
+          <span class="tag-purple" style="font-size:10px">🏨</span>
+        </div>`;return;
+      }
+      // Voiture / Trajet
+      if(act.type==='voiture'||act.type==='trajet'){
+        html+=`<div class="trajet-card">
+          <div style="font-size:20px">🚗</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-weight:600;font-size:14px;color:var(--sky)">${act.titre}</span>
+              ${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-top:3px">${act.description||''}</p>
+            ${act.duree?`<p style="font-size:11px;color:var(--sky);margin-top:4px">⌛ Durée estimée : ${act.duree}</p>`:''}
+            ${act.astuce?`<p style="font-size:11px;color:var(--muted);margin-top:4px">💡 ${act.astuce}</p>`:''}
+          </div>
+          <span class="tag-sky" style="font-size:10px">🚗</span>
+        </div>`;return;
+      }
+      // Vol
+      if(act.type==='vol'){
+        html+=`<div class="act-card flight-card">
+          <div style="font-size:20px">✈️</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-weight:600;font-size:14px;color:var(--sky)">${act.titre}</span>
+              ${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-top:3px">${act.description||''}</p>
+            ${act.astuce?`<p style="font-size:11px;color:var(--sky);margin-top:5px">💡 ${act.astuce}</p>`:''}
+          </div>
+          <span class="tag-sky" style="font-size:10px;padding:2px 8px">Vol</span>
+        </div>`;return;
+      }
+      // Activité normale
+      const zIdx=zones.indexOf(act.zone);
+      const zColor=zIdx>=0?ZONE_COLORS[zIdx%ZONE_COLORS.length]:'var(--teal)';
+      const isSel=selected.includes(act.idx);
+      html+=`<div class="act-card ${isSel?'sel':''}" onclick="toggleAct(${act.idx})">
+        <div style="font-size:20px">${EMOJI_MAP[act.type]||'📍'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div style="flex:1">
+              <span style="font-weight:600;font-size:14px">${act.titre}</span>
+              ${act.isUserPlace?'<span style="font-size:10px;background:#f0a50033;color:var(--gold);border:1px solid #f0a50044;border-radius:10px;padding:1px 7px;margin-left:6px">📌 Votre lieu</span>':''}
+            </div>
+            <div style="display:flex;gap:5px;flex-shrink:0">
+              ${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}
+              ${act.budget?`<span style="font-size:11px;color:var(--gold)">~${act.budget}</span>`:''}
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin-top:3px">${act.description||''}</p>
+          ${act.meilleurMoment?`<div class="best-time">⭐ ${act.meilleurMoment}</div>`:''}
+          ${act.astuce?`<p style="font-size:11px;color:var(--purple);margin-top:5px">💡 ${act.astuce}</p>`:''}
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
+            ${act.adresse?`<span style="font-size:11px;color:var(--teal)">📍 ${act.adresse}</span>`:''}
+            ${act.zone?`<span style="display:flex;align-items:center;gap:4px;font-size:11px"><span class="zone-dot" style="background:${zColor}"></span><span style="color:var(--muted)">${act.zone}</span></span>`:''}
+            ${act.duree?`<span style="font-size:10px;color:var(--muted)">⌛ ${act.duree}</span>`:''}
+          </div>
+        </div>
+        <div class="checkbox ${isSel?'checked':''}">${isSel?'<span style="font-size:11px;color:#001a16;font-weight:700">✓</span>':''}</div>
+      </div>`;
+    });
+  });
+  document.getElementById("activitiesContainer").innerHTML=html;
+  document.getElementById("selCount").textContent=`${selected.length} activité(s) sélectionnée(s)`;
+  document.getElementById("addCalBtn").innerHTML=`📅 Ajouter ${selected.length} événement(s) à l'agenda`;
+}
+
+function toggleAct(idx){
+  if(!suggestions||suggestions.activites[idx]?.type==='repos'||suggestions.activites[idx]?.type==='vol')return;
+  selected=selected.includes(idx)?selected.filter(x=>x!==idx):[...selected,idx];
+  renderActivities();
+}
+
+async function addToCalendar(){
+  if(!selected.length)return;
+  const btn=document.getElementById("addCalBtn");
+  btn.disabled=true;
+  const toAdd=selected.map(i=>suggestions.activites[i]);
+  const done=[];
+  for(const act of toAdd){
+    await new Promise(r=>setTimeout(r,260));
+    done.push(act.titre);
+    btn.innerHTML=`<span class="spinner"></span> Ajout... (${done.length}/${toAdd.length})`;
+  }
+  const dest=document.getElementById("destination").value;
+  document.getElementById("doneMsg").innerHTML=`<strong>${done.length}</strong> événement(s) ajouté(s) pour <strong style="color:var(--text)">${dest}</strong>`;
+  document.getElementById("doneList").innerHTML=done.map(t=>`<div style="display:flex;gap:10px;align-items:center;font-size:12px;margin-bottom:6px"><span style="color:var(--teal)">✓</span><span style="color:var(--muted)">${t}</span></div>`).join('');
+  showStep(3);
+}
+
+function resetApp(){
+  interests=[];suggestions=null;selected=[];
+  ["destination","dateStart","dateEnd","logement","addressesInput",
+   "volAllerDepAero","volAllerArrAero","volAllerNum","volAllerHDep","volAllerHArr","volAllerTerminal","volAllerCompagnie",
+   "volRetDepAero","volRetArrAero","volRetNum","volRetHDep","volRetHArr","volRetTerminal","volRetCompagnie"
+  ].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById("addrCounter").textContent='0 adresse(s)';
+  hotels=[];renderHotels();cars=[];renderCars();
+  document.getElementById("budget").value='moyen';
+  renderInterests();showStep(1);
+}
+function openMaps(address){
+  const encoded=encodeURIComponent(address);
+  // Apple Maps on iOS/macOS, Google Maps fallback
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isMac=/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>0;
+  if(isIOS||isMac){
+    window.open(`maps://maps.apple.com/?q=${encoded}`,'_blank');
+  } else {
+    window.open(`https://maps.apple.com/?q=${encoded}`,'_blank');
+  }
+}
+function showError(msg){const e=document.getElementById("errorMsg");e.textContent=msg;e.classList.remove("hidden")}
+function hideError(){document.getElementById("errorMsg").classList.add("hidden")}
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(r => console.log('SW registered'))
+      .catch(e => console.log('SW error', e));
+  });
+}
+// iOS install banner
+window.addEventListener('load', () => {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.navigator.standalone;
+  if(isIOS && !isStandalone && !localStorage.getItem('pwa-dismissed')){
+    setTimeout(() => {
+      const banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed;bottom:20px;left:16px;right:16px;background:#1a1d2e;border:1px solid #f0a500;border-radius:14px;padding:14px 16px;z-index:9999;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px #00000066';
+      banner.innerHTML = `
+        <span style="font-size:28px">🌍</span>
+        <div style="flex:1">
+          <p style="font-size:13px;font-weight:600;color:#f0f0f0;margin-bottom:2px">Installer l'app</p>
+          <p style="font-size:11px;color:#7a7f9a">Appuyez sur <strong style="color:#f0a500">⬆️ Partager</strong> puis <strong style="color:#f0a500">Sur l'écran d'accueil</strong></p>
+        </div>
+        <button onclick="this.parentNode.remove();localStorage.setItem('pwa-dismissed','1')" style="background:none;border:none;color:#7a7f9a;font-size:20px;cursor:pointer;padding:0">×</button>
+      `;
+      document.body.appendChild(banner);
+    }, 2000);
+  }
+});
+</script>
+</body>
+</html>
