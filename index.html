@@ -19,7 +19,7 @@ h2{font-family:'Playfair Display',serif;font-size:17px;color:var(--gold)}
 input,select,textarea{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;width:100%}
 input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-calendar-picker-indicator{filter:invert(0.6)}
-textarea{resize:vertical;min-height:110px;line-height:1.6}
+textarea{resize:vertical;min-height:80px;line-height:1.6}
 .btn{padding:11px 22px;border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;transition:all .2s;display:inline-flex;align-items:center;gap:7px}
 .btn-gold{background:var(--gold);color:#1a1100}
 .btn-gold:hover{background:#ffc333;transform:translateY(-1px);box-shadow:0 4px 20px #f0a50044}
@@ -44,6 +44,8 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
 .act-card:hover{border-color:#00c9a755}
 .act-card.sel{border-color:var(--teal);background:#00c9a710}
 .act-card.flight-card{border-color:#38bdf833;background:#38bdf80d;cursor:default}
+.act-card.pass-included{border-color:#4ade8044;background:#4ade8008}
+.act-card.dup-warn{border-color:#f0a50055;background:#f0a50008}
 .checkbox{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
 .checkbox.checked{background:var(--teal);border-color:var(--teal)}
 .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -69,29 +71,19 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
 .flight-airport .city{font-size:10px;color:var(--muted)}
 .flight-arrow{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
 .flight-line{height:1px;width:100%;background:linear-gradient(90deg,#38bdf8,#38bdf833)}
-.section-toggle{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;padding:0;margin-top:6px}
+.section-toggle{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;padding:0}
 .section-toggle:hover{color:var(--gold)}
-
-/* ── Item cards (hôtel, voiture, pass) ── */
-.hotel-card,.car-card,.pass-card{
-  background:var(--card2);border:1px solid var(--border);border-radius:10px;
-  padding:14px 16px;margin-bottom:10px;position:relative;
-}
+.hotel-card,.car-card,.pass-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;position:relative}
 .hotel-card{border-color:#a78bfa33}
 .car-card{border-color:#38bdf833}
 .pass-card{border-color:#4ade8033}
-.remove-btn{
-  position:absolute;top:10px;right:10px;
-  background:none;border:none;color:var(--muted);cursor:pointer;
-  font-size:20px;line-height:1;padding:0 4px;
-}
+.remove-btn{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:0 4px}
 .remove-btn:hover{color:var(--danger)}
-
-/* trajet card */
 .trajet-card{background:var(--card2);border:1px solid #38bdf833;border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}
-
-/* pass badge inline */
 .pass-badge{background:#4ade8022;color:#4ade80;border:1px solid #4ade8033;border-radius:20px;padding:3px 10px;font-size:11px;display:inline-flex;align-items:center}
+.inclus-badge{background:#4ade8022;color:#4ade80;border:1px solid #4ade8044;border-radius:12px;padding:2px 8px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.dup-badge{background:#f0a50022;color:var(--gold);border:1px solid #f0a50044;border-radius:12px;padding:2px 8px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.warn-box{background:#f0a50010;border:1px solid #f0a50033;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--gold)}
 </style>
 </head>
 <body>
@@ -101,7 +93,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
     <span style="font-size:26px">🌍</span>
     <h1>Planner Vacances</h1>
   </div>
-  <p style="color:var(--muted);font-size:13px">Vols · Planning optimisé · Repos · Meilleurs moments · Agenda iPhone</p>
+  <p style="color:var(--muted);font-size:13px">Vols · Planning optimisé · Pass inclus · Géo sans doublons · Agenda iPhone</p>
   <div class="steps" id="steps"></div>
 
   <!-- STEP 1 -->
@@ -122,7 +114,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
           <div style="display:flex;flex-direction:column;gap:10px">
             <div class="row-2">
               <div><label class="label">Aéroport départ</label><input id="volAllerDepAero" placeholder="Ex: CDG, Paris Charles de Gaulle"></div>
-              <div><label class="label">Aéroport arrivée</label><input id="volAllerArrAero" placeholder="Ex: FCO, Rome Fiumicino"></div>
+              <div><label class="label">Aéroport arrivée</label><input id="volAllerArrAero" placeholder="Ex: LAX, Los Angeles"></div>
             </div>
             <div class="row-3">
               <div><label class="label">N° de vol</label><input id="volAllerNum" placeholder="Ex: AF1234"></div>
@@ -143,7 +135,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
           </div>
           <div style="display:flex;flex-direction:column;gap:10px">
             <div class="row-2">
-              <div><label class="label">Aéroport départ</label><input id="volRetDepAero" placeholder="Ex: FCO, Rome Fiumicino"></div>
+              <div><label class="label">Aéroport départ</label><input id="volRetDepAero" placeholder="Ex: LAX, Los Angeles"></div>
               <div><label class="label">Aéroport arrivée</label><input id="volRetArrAero" placeholder="Ex: CDG, Paris Charles de Gaulle"></div>
             </div>
             <div class="row-3">
@@ -164,7 +156,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
     <div class="card">
       <h2 style="margin-bottom:16px">🗺️ Informations du voyage</h2>
       <div style="display:flex;flex-direction:column;gap:12px">
-        <div><label class="label">Destination *</label><input id="destination" placeholder="Ex: Rome, Barcelone, Tokyo..."></div>
+        <div><label class="label">Destination *</label><input id="destination" placeholder="Ex: Los Angeles, Rome, Tokyo..."></div>
         <div class="row-2">
           <div><label class="label">Arrivée *</label><input id="dateStart" type="date"></div>
           <div><label class="label">Départ *</label><input id="dateEnd" type="date"></div>
@@ -186,7 +178,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
         <h2 style="color:#4ade80">🎡 Pass & Abonnements</h2>
         <button class="btn btn-ghost btn-sm" onclick="addPass()">+ Ajouter</button>
       </div>
-      <p class="hint" style="margin-bottom:14px">L'IA optimise les visites selon vos pass — entrées illimitées ou limitées.</p>
+      <p class="hint" style="margin-bottom:14px">L'IA planifie <strong style="color:#4ade80">chaque attraction incluse</strong> comme activité distincte avec badge <strong style="color:#4ade80">Inclus ✅</strong>.</p>
       <div id="passesContainer"></div>
     </div>
 
@@ -196,7 +188,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
         <h2>📍 Lieux à visiter</h2>
         <button class="btn btn-ghost btn-sm" onclick="addAddr()">+ Ajouter</button>
       </div>
-      <p class="hint" style="margin-bottom:14px">L'IA regroupe les adresses proches sur le même jour.</p>
+      <p class="hint" style="margin-bottom:14px">L'IA regroupe les adresses proches sur le <strong style="color:var(--teal)">même jour</strong> — jamais le même lieu à 16 jours d'écart.</p>
       <div id="addrContainer"></div>
     </div>
 
@@ -206,7 +198,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
         <h2 style="color:var(--sky)">🚗 Location de voiture</h2>
         <button class="btn btn-ghost btn-sm" onclick="addCar()">+ Ajouter</button>
       </div>
-      <p class="hint" style="margin-bottom:14px">L'IA bloque les jours de trajet et optimise les visites selon votre voiture.</p>
+      <p class="hint" style="margin-bottom:14px">L'IA bloque les jours de trajet et optimise selon votre voiture.</p>
       <div id="carsContainer"></div>
     </div>
 
@@ -216,7 +208,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
         <h2 style="color:var(--purple)">🏨 Hôtels & Logements</h2>
         <button class="btn btn-ghost btn-sm" onclick="addHotel()">+ Ajouter</button>
       </div>
-      <p class="hint" style="margin-bottom:14px">L'IA planifie les visites proches de chaque hôtel selon vos dates de séjour.</p>
+      <p class="hint" style="margin-bottom:14px">L'IA planifie les visites proches de chaque hôtel selon vos dates.</p>
       <div id="hotelsContainer"></div>
     </div>
 
@@ -255,6 +247,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
 
   <!-- STEP 2 -->
   <div id="step2" class="hidden fade-up">
+    <div id="dupWarning" class="hidden warn-box" style="margin-bottom:10px"></div>
     <div id="flightSummary" class="hidden" style="margin-bottom:14px"></div>
     <div class="card" id="planHeader" style="border-color:#f0a50044;margin-bottom:14px"></div>
     <div id="zonesLegend" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
@@ -294,43 +287,30 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
     </div>
   </div>
 
-</div><!-- /#app -->
+</div>
 
 <script>
 // ═══════════════════════════════════════════════════
-// ÉTAT GLOBAL — toutes les variables partagées ici
+// ÉTAT GLOBAL
 // ═══════════════════════════════════════════════════
 const ZONE_COLORS = ["#f0a500","#00c9a7","#a78bfa","#ff6b6b","#38bdf8","#fb923c","#4ade80","#f472b6"];
-const EMOJI_MAP   = {hotel:"🏨",transport:"✈️",activity:"🎯",restaurant:"🍽️",visit:"🗺️",info:"💡",repos:"😴",vol:"✈️"};
+const EMOJI_MAP   = {hotel:"🏨",transport:"✈️",activity:"🎯",restaurant:"🍽️",visit:"🗺️",info:"💡",repos:"😴",vol:"✈️",attraction:"🎡"};
 const INTERESTS_LIST = ["Culture & Musées","Gastronomie","Nature & Randonnée","Plage","Shopping","Architecture","Sport & Aventure","Nightlife"];
 const GROQ_KEY = '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';
 const GROQ_URL  = 'https://api.groq.com/openai/v1/chat/completions';
-const SAVE_KEY  = 'planner_vacances_v2';
+const SAVE_KEY  = 'planner_vacances_v4';
 
-let interests  = [];
+let interests   = [];
 let suggestions = null;
-let selected   = [];
+let selected    = [];
 let currentStep = 1;
 let flightsVisible = true;
-
-// Tableaux — GLOBAUX, modifiés par add/remove/update
-let hotels = [];
-let cars   = [];
-let passes = [];
-let addrs  = [];
+let hotels = [], cars = [], passes = [], addrs = [];
 
 // ═══════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════
-renderInterests();
-renderAddrs();
-renderHotels();
-renderCars();
-renderPasses();
-renderSteps();
-loadAll();
-
-// Autosave sur toute modification de champ
+renderInterests(); renderAddrs(); renderHotels(); renderCars(); renderPasses(); renderSteps(); loadAll();
 document.addEventListener('input',  () => saveAll());
 document.addEventListener('change', () => saveAll());
 
@@ -342,56 +322,46 @@ function renderSteps() {
   document.getElementById("steps").innerHTML = labels.map((s,i) => `
     <div style="display:flex;align-items:center;gap:8px">
       <div class="step-dot" style="background:${currentStep>i+1?'var(--teal)':currentStep===i+1?'var(--gold)':'var(--border)'};color:${currentStep>i+1?'#001a16':currentStep===i+1?'#1a1100':'var(--muted)'}">
-        ${currentStep>i+1?'✓':i+1}
-      </div>
+        ${currentStep>i+1?'✓':i+1}</div>
       <span style="font-size:12px;color:${currentStep===i+1?'var(--text)':'var(--muted)'};font-weight:${currentStep===i+1?600:400}">${s}</span>
       ${i<2?'<div style="width:24px;height:1px;background:var(--border)"></div>':''}
-    </div>
-  `).join('');
+    </div>`).join('');
 }
-
 function showStep(n) {
-  currentStep = n;
-  ["step1","step2","step3"].forEach((id,i) =>
-    document.getElementById(id).classList.toggle("hidden", n!==i+1));
-  renderSteps();
-  window.scrollTo({top:0,behavior:'smooth'});
+  currentStep=n;
+  ["step1","step2","step3"].forEach((id,i)=>document.getElementById(id).classList.toggle("hidden",n!==i+1));
+  renderSteps(); window.scrollTo({top:0,behavior:'smooth'});
 }
-function goBack()  { showStep(1); }
+function goBack() { showStep(1); }
 
 // ═══════════════════════════════════════════════════
 // VOLS
 // ═══════════════════════════════════════════════════
 function toggleFlights() {
-  flightsVisible = !flightsVisible;
+  flightsVisible=!flightsVisible;
   document.getElementById("flightsSection").classList.toggle("hidden",!flightsVisible);
   document.getElementById("flightToggleIcon").textContent  = flightsVisible?"▼":"▶";
   document.getElementById("flightToggleLabel").textContent = flightsVisible?"Masquer":"Afficher";
 }
-
 function getFlightData() {
-  const g = id => (document.getElementById(id)||{}).value||'';
+  const g=id=>(document.getElementById(id)||{}).value||'';
   return {
-    aller:  { depAero:g("volAllerDepAero"), arrAero:g("volAllerArrAero"), num:g("volAllerNum"),
-              hDep:g("volAllerHDep"), hArr:g("volAllerHArr"), terminal:g("volAllerTerminal"), compagnie:g("volAllerCompagnie") },
-    retour: { depAero:g("volRetDepAero"),   arrAero:g("volRetArrAero"),   num:g("volRetNum"),
-              hDep:g("volRetHDep"),   hArr:g("volRetHArr"),   terminal:g("volRetTerminal"),   compagnie:g("volRetCompagnie") }
+    aller:  {depAero:g("volAllerDepAero"),arrAero:g("volAllerArrAero"),num:g("volAllerNum"),hDep:g("volAllerHDep"),hArr:g("volAllerHArr"),terminal:g("volAllerTerminal"),compagnie:g("volAllerCompagnie")},
+    retour: {depAero:g("volRetDepAero"),  arrAero:g("volRetArrAero"),  num:g("volRetNum"), hDep:g("volRetHDep"), hArr:g("volRetHArr"), terminal:g("volRetTerminal"), compagnie:g("volRetCompagnie")}
   };
 }
 
 // ═══════════════════════════════════════════════════
-// CENTRES D'INTÉRÊT
+// INTÉRÊTS
 // ═══════════════════════════════════════════════════
 function renderInterests() {
-  document.getElementById("interestsContainer").innerHTML = INTERESTS_LIST.map(int => `
+  document.getElementById("interestsContainer").innerHTML = INTERESTS_LIST.map(int=>`
     <button class="interest-btn ${interests.includes(int)?'active':''}" onclick="toggleInterest('${int}')">
-      ${interests.includes(int)?'✓ ':''}${int}
-    </button>`).join('');
+      ${interests.includes(int)?'✓ ':''}${int}</button>`).join('');
 }
 function toggleInterest(int) {
-  interests = interests.includes(int) ? interests.filter(x=>x!==int) : [...interests,int];
-  renderInterests();
-  saveAll();
+  interests=interests.includes(int)?interests.filter(x=>x!==int):[...interests,int];
+  renderInterests(); saveAll();
 }
 
 // ═══════════════════════════════════════════════════
@@ -399,19 +369,14 @@ function toggleInterest(int) {
 // ═══════════════════════════════════════════════════
 function addAddr()         { addrs.push(''); renderAddrs(); saveAll(); }
 function removeAddr(i)     { addrs.splice(i,1); renderAddrs(); saveAll(); }
-function updateAddr(i,val) { addrs[i] = val; saveAll(); }
-
+function updateAddr(i,val) { addrs[i]=val; saveAll(); }
 function renderAddrs() {
-  const el = document.getElementById('addrContainer');
-  if (!addrs.length) {
-    el.innerHTML = '<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun lieu ajouté — cliquez sur + Ajouter</p>';
-    return;
-  }
-  el.innerHTML = addrs.map((a,i) => `
+  const el=document.getElementById('addrContainer');
+  if(!addrs.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun lieu — cliquez sur + Ajouter</p>';return;}
+  el.innerHTML=addrs.map((a,i)=>`
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
       <div style="width:26px;height:26px;border-radius:50%;background:${ZONE_COLORS[i%ZONE_COLORS.length]}33;border:2px solid ${ZONE_COLORS[i%ZONE_COLORS.length]};color:${ZONE_COLORS[i%ZONE_COLORS.length]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</div>
-      <input placeholder="Ex: Colosseum, Via Sacra, Rome" value="${escHtml(a)}"
-        oninput="updateAddr(${i},this.value)" style="flex:1">
+      <input placeholder="Ex: Santa Monica Pier, Santa Monica CA" value="${escHtml(a)}" oninput="updateAddr(${i},this.value)" style="flex:1">
       <button onclick="removeAddr(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:0 4px">×</button>
     </div>`).join('');
 }
@@ -419,35 +384,21 @@ function renderAddrs() {
 // ═══════════════════════════════════════════════════
 // HÔTELS
 // ═══════════════════════════════════════════════════
-function addHotel() {
-  hotels.push({nom:'',adresse:'',checkin:'',checkout:''});
-  renderHotels();
-  saveAll();
-}
-function removeHotel(i) { hotels.splice(i,1); renderHotels(); saveAll(); }
-function updateHotel(i,field,val) { if(hotels[i]) hotels[i][field]=val; saveAll(); }
-
-function renderHotels() {
-  const c = document.getElementById("hotelsContainer");
-  if (!hotels.length) {
-    c.innerHTML = '<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun hôtel — cliquez sur + Ajouter</p>';
-    return;
-  }
-  c.innerHTML = hotels.map((h,i) => `
+function addHotel(){hotels.push({nom:'',adresse:'',checkin:'',checkout:''});renderHotels();saveAll();}
+function removeHotel(i){hotels.splice(i,1);renderHotels();saveAll();}
+function updateHotel(i,f,v){if(hotels[i])hotels[i][f]=v;saveAll();}
+function renderHotels(){
+  const c=document.getElementById("hotelsContainer");
+  if(!hotels.length){c.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun hôtel — cliquez sur + Ajouter</p>';return;}
+  c.innerHTML=hotels.map((h,i)=>`
     <div class="hotel-card">
       <button class="remove-btn" onclick="removeHotel(${i})">×</button>
       <div style="display:flex;flex-direction:column;gap:8px">
-        <div><label class="label">Nom de l'hôtel</label>
-          <input placeholder="Ex: Hotel Colosseo" value="${escHtml(h.nom)}"
-            oninput="updateHotel(${i},'nom',this.value)"></div>
-        <div><label class="label">Adresse</label>
-          <input placeholder="Ex: Via Labicana 144, Rome" value="${escHtml(h.adresse)}"
-            oninput="updateHotel(${i},'adresse',this.value)"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div><label class="label">Check-in</label>
-            <input type="date" value="${h.checkin}" oninput="updateHotel(${i},'checkin',this.value)"></div>
-          <div><label class="label">Check-out</label>
-            <input type="date" value="${h.checkout}" oninput="updateHotel(${i},'checkout',this.value)"></div>
+        <div><label class="label">Nom de l'hôtel</label><input placeholder="Ex: Hotel Colosseo" value="${escHtml(h.nom)}" oninput="updateHotel(${i},'nom',this.value)"></div>
+        <div><label class="label">Adresse</label><input placeholder="Ex: Via Labicana 144, Rome" value="${escHtml(h.adresse)}" oninput="updateHotel(${i},'adresse',this.value)"></div>
+        <div class="row-2">
+          <div><label class="label">Check-in</label><input type="date" value="${h.checkin}" oninput="updateHotel(${i},'checkin',this.value)"></div>
+          <div><label class="label">Check-out</label><input type="date" value="${h.checkout}" oninput="updateHotel(${i},'checkout',this.value)"></div>
         </div>
       </div>
     </div>`).join('');
@@ -456,47 +407,31 @@ function renderHotels() {
 // ═══════════════════════════════════════════════════
 // VOITURES
 // ═══════════════════════════════════════════════════
-function addCar() {
-  cars.push({agence:'',lieuPrise:'',lieuRetour:'',datePrise:'',dateRetour:'',type:'',trajets:''});
-  renderCars();
-  saveAll();
-}
-function removeCar(i) { cars.splice(i,1); renderCars(); saveAll(); }
-function updateCar(i,field,val) { if(cars[i]) cars[i][field]=val; saveAll(); }
-
-function renderCars() {
-  const el = document.getElementById("carsContainer");
-  if (!cars.length) {
-    el.innerHTML = '<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucune voiture — cliquez sur + Ajouter</p>';
-    return;
-  }
-  el.innerHTML = cars.map((car,i) => `
+function addCar(){cars.push({agence:'',lieuPrise:'',lieuRetour:'',datePrise:'',dateRetour:'',type:'',trajets:'',arrets:''});renderCars();saveAll();}
+function removeCar(i){cars.splice(i,1);renderCars();saveAll();}
+function updateCar(i,f,v){if(cars[i])cars[i][f]=v;saveAll();}
+function renderCars(){
+  const el=document.getElementById("carsContainer");
+  if(!cars.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucune voiture — cliquez sur + Ajouter</p>';return;}
+  el.innerHTML=cars.map((car,i)=>`
     <div class="car-card">
       <button class="remove-btn" onclick="removeCar(${i})">×</button>
       <div style="display:flex;flex-direction:column;gap:8px">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div><label class="label">Agence</label>
-            <input placeholder="Ex: Hertz, Avis..." value="${escHtml(car.agence)}"
-              oninput="updateCar(${i},'agence',this.value)"></div>
-          <div><label class="label">Type de véhicule</label>
-            <input placeholder="Ex: SUV, Berline..." value="${escHtml(car.type)}"
-              oninput="updateCar(${i},'type',this.value)"></div>
+        <div class="row-2">
+          <div><label class="label">Agence</label><input placeholder="Ex: Hertz" value="${escHtml(car.agence)}" oninput="updateCar(${i},'agence',this.value)"></div>
+          <div><label class="label">Type</label><input placeholder="Ex: SUV" value="${escHtml(car.type)}" oninput="updateCar(${i},'type',this.value)"></div>
         </div>
-        <div><label class="label">Lieu de prise en charge</label>
-          <input placeholder="Ex: Aéroport LAX, Los Angeles" value="${escHtml(car.lieuPrise)}"
-            oninput="updateCar(${i},'lieuPrise',this.value)"></div>
-        <div><label class="label">Lieu de restitution</label>
-          <input placeholder="Ex: Aéroport LAX (aller-retour)" value="${escHtml(car.lieuRetour)}"
-            oninput="updateCar(${i},'lieuRetour',this.value)"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div><label class="label">Date de prise</label>
-            <input type="date" value="${car.datePrise}" oninput="updateCar(${i},'datePrise',this.value)"></div>
-          <div><label class="label">Date de restitution</label>
-            <input type="date" value="${car.dateRetour}" oninput="updateCar(${i},'dateRetour',this.value)"></div>
+        <div><label class="label">Lieu de prise</label><input placeholder="Ex: Aéroport LAX" value="${escHtml(car.lieuPrise)}" oninput="updateCar(${i},'lieuPrise',this.value)"></div>
+        <div><label class="label">Lieu de restitution</label><input placeholder="Ex: Aéroport LAX" value="${escHtml(car.lieuRetour)}" oninput="updateCar(${i},'lieuRetour',this.value)"></div>
+        <div class="row-2">
+          <div><label class="label">Date prise</label><input type="date" value="${car.datePrise}" oninput="updateCar(${i},'datePrise',this.value)"></div>
+          <div><label class="label">Date retour</label><input type="date" value="${car.dateRetour}" oninput="updateCar(${i},'dateRetour',this.value)"></div>
         </div>
-        <div><label class="label">Trajets prévus (optionnel)</label>
-          <input placeholder="Ex: LA → San Francisco → Las Vegas → LA" value="${escHtml(car.trajets)}"
-            oninput="updateCar(${i},'trajets',this.value)"></div>
+        <div><label class="label">Trajets prévus</label><input placeholder="Ex: LA → San Francisco → Las Vegas → LA" value="${escHtml(car.trajets)}" oninput="updateCar(${i},'trajets',this.value)"></div>
+        <div><label class="label">Route & arrêts souhaités <span style="color:var(--sky)">(optionnel)</span></label>
+          <input placeholder="Ex: Via Highway 1, Big Sur, Carmel. Ou: Via I-15, Joshua Tree" value="${escHtml(car.arrets||'')}" oninput="updateCar(${i},'arrets',this.value)">
+          <p style="font-size:10px;color:var(--sky);margin-top:3px">⚡ L'IA planifie chaque arrêt comme une activité avec horaire et durée</p>
+        </div>
       </div>
     </div>`).join('');
 }
@@ -504,220 +439,304 @@ function renderCars() {
 // ═══════════════════════════════════════════════════
 // PASS
 // ═══════════════════════════════════════════════════
-function addPass() {
-  passes.push({nom:'',type:'illimite',nbEntrees:'',dateDebut:'',dateFin:'',inclus:'',moment:''});
-  renderPasses();
-  saveAll();
-}
-function removePass(i) { passes.splice(i,1); renderPasses(); saveAll(); }
-function updatePass(i,field,val) { if(passes[i]) { passes[i][field]=val; renderPasses(); saveAll(); } }
-
-function renderPasses() {
-  const el = document.getElementById("passesContainer");
-  if (!passes.length) {
-    el.innerHTML = '<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun pass — cliquez sur + Ajouter</p>';
-    return;
-  }
-  el.innerHTML = passes.map((p,i) => `
+function addPass(){passes.push({nom:'',type:'illimite',nbEntrees:'',dateDebut:'',dateFin:'',inclus:'',moment:''});renderPasses();saveAll();}
+function removePass(i){passes.splice(i,1);renderPasses();saveAll();}
+function updatePass(i,f,v){if(passes[i]){passes[i][f]=v;renderPasses();saveAll();}}
+function renderPasses(){
+  const el=document.getElementById("passesContainer");
+  if(!passes.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun pass — cliquez sur + Ajouter</p>';return;}
+  el.innerHTML=passes.map((p,i)=>`
     <div class="pass-card">
       <button class="remove-btn" onclick="removePass(${i})">×</button>
       <div style="display:flex;flex-direction:column;gap:8px">
-        <div><label class="label">Nom du pass / attraction</label>
-          <input placeholder="Ex: CityPASS Los Angeles, SeaWorld..." value="${escHtml(p.nom)}"
-            oninput="updatePass(${i},'nom',this.value)"></div>
+        <div><label class="label">Nom du pass</label>
+          <input placeholder="Ex: Go Los Angeles Card, CityPASS..." value="${escHtml(p.nom)}" oninput="updatePass(${i},'nom',this.value)"></div>
         <div><label class="label">Type</label>
           <select onchange="updatePass(${i},'type',this.value)">
             <option value="illimite" ${p.type==='illimite'?'selected':''}>♾️ Illimité (entrées illimitées)</option>
             <option value="limite"   ${p.type==='limite'?'selected':''}>🎟️ Limité (nombre d'entrées fixe)</option>
-            <option value="multi"    ${p.type==='multi'?'selected':''}>🎡 Multi-attractions (X attractions incluses)</option>
+            <option value="multi"    ${p.type==='multi'?'selected':''}>🎡 Multi (X attractions au choix)</option>
           </select></div>
-        ${p.type!=='illimite'?`<div><label class="label">${p.type==='limite'?"Nombre d'entrées":"Nombre d'attractions incluses"}</label>
-          <input type="number" placeholder="Ex: 3" value="${p.nbEntrees||''}"
-            oninput="updatePass(${i},'nbEntrees',this.value)" min="1"></div>`:''}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div><label class="label">Valable du</label>
-            <input type="date" value="${p.dateDebut||''}" oninput="updatePass(${i},'dateDebut',this.value)"></div>
-          <div><label class="label">Au</label>
-            <input type="date" value="${p.dateFin||''}"   oninput="updatePass(${i},'dateFin',this.value)"></div>
+        ${p.type!=='illimite'?`<div><label class="label">${p.type==='limite'?"Nb d'entrées":"Nb d'attractions incluses"}</label>
+          <input type="number" placeholder="Ex: 3" value="${p.nbEntrees||''}" oninput="updatePass(${i},'nbEntrees',this.value)" min="1"></div>`:''}
+        <div class="row-2">
+          <div><label class="label">Valable du</label><input type="date" value="${p.dateDebut||''}" oninput="updatePass(${i},'dateDebut',this.value)"></div>
+          <div><label class="label">Au</label><input type="date" value="${p.dateFin||''}" oninput="updatePass(${i},'dateFin',this.value)"></div>
         </div>
-        <div><label class="label">Ce qui est inclus (optionnel)</label>
-          <input placeholder="Ex: Universal, Getty Museum, Warner Bros..." value="${escHtml(p.inclus)}"
-            oninput="updatePass(${i},'inclus',this.value)"></div>
-        <div><label class="label">⭐ Meilleur moment de visite</label>
+        <div>
+          <label class="label">Attractions incluses <span style="color:#4ade80">★ liste complète</span></label>
+          <textarea placeholder="Ex: Universal Studios Hollywood&#10;Warner Bros Studio Tour&#10;Getty Museum&#10;Aquarium of the Pacific&#10;LACMA..." oninput="updatePass(${i},'inclus',this.value)">${escHtml(p.inclus)}</textarea>
+          <p style="font-size:10px;color:#4ade80;margin-top:3px">⚡ Chaque ligne = une activité dans le planning avec badge Inclus ✅</p>
+        </div>
+        <div><label class="label">⭐ Meilleur moment</label>
           <select onchange="updatePass(${i},'moment',this.value)">
-            <option value=""        ${!p.moment?'selected':''}>🤖 IA décide</option>
-            <option value="matin"   ${p.moment==='matin'?'selected':''}>🌅 Matin</option>
-            <option value="aprem"   ${p.moment==='aprem'?'selected':''}>☀️ Après-midi</option>
-            <option value="findaprem" ${p.moment==='findaprem'?'selected':''}>🌇 Fin après-midi</option>
-            <option value="journee" ${p.moment==='journee'?'selected':''}>🌞 Journée entière</option>
-            <option value="soir"    ${p.moment==='soir'?'selected':''}>🌆 Soirée</option>
-            <option value="flexible"${p.moment==='flexible'?'selected':''}>🔄 Flexible / plusieurs fois</option>
+            <option value=""         ${!p.moment?'selected':''}>🤖 IA décide</option>
+            <option value="matin"    ${p.moment==='matin'?'selected':''}>🌅 Matin (ouverture)</option>
+            <option value="aprem"    ${p.moment==='aprem'?'selected':''}>☀️ Après-midi</option>
+            <option value="findaprem"${p.moment==='findaprem'?'selected':''}>🌇 Fin après-midi</option>
+            <option value="journee"  ${p.moment==='journee'?'selected':''}>🌞 Journée entière</option>
+            <option value="soir"     ${p.moment==='soir'?'selected':''}>🌆 Soirée</option>
+            <option value="flexible" ${p.moment==='flexible'?'selected':''}>🔄 Flexible</option>
           </select></div>
       </div>
     </div>`).join('');
 }
 
 // ═══════════════════════════════════════════════════
-// SAUVEGARDE LOCALE
+// SAUVEGARDE
 // ═══════════════════════════════════════════════════
-function getFormVals() {
-  const g = id => { const el=document.getElementById(id); return el?el.value:''; };
-  return {
-    destination: g('destination'), dateStart: g('dateStart'), dateEnd: g('dateEnd'),
-    logement: g('logement'), budget: g('budget'),
-    reposFreq: g('reposFreq'), reposType: g('reposType'),
-    volAllerNum: g('volAllerNum'), volAllerDepAero: g('volAllerDepAero'), volAllerArrAero: g('volAllerArrAero'),
-    volAllerHDep: g('volAllerHDep'), volAllerHArr: g('volAllerHArr'),
-    volAllerTerminal: g('volAllerTerminal'), volAllerCompagnie: g('volAllerCompagnie'),
-    volRetNum: g('volRetNum'), volRetDepAero: g('volRetDepAero'), volRetArrAero: g('volRetArrAero'),
-    volRetHDep: g('volRetHDep'), volRetHArr: g('volRetHArr'),
-    volRetTerminal: g('volRetTerminal'), volRetCompagnie: g('volRetCompagnie'),
-  };
+function getFormVals(){
+  const g=id=>{const el=document.getElementById(id);return el?el.value:''};
+  return {destination:g('destination'),dateStart:g('dateStart'),dateEnd:g('dateEnd'),logement:g('logement'),budget:g('budget'),reposFreq:g('reposFreq'),reposType:g('reposType'),
+    volAllerNum:g('volAllerNum'),volAllerDepAero:g('volAllerDepAero'),volAllerArrAero:g('volAllerArrAero'),volAllerHDep:g('volAllerHDep'),volAllerHArr:g('volAllerHArr'),volAllerTerminal:g('volAllerTerminal'),volAllerCompagnie:g('volAllerCompagnie'),
+    volRetNum:g('volRetNum'),volRetDepAero:g('volRetDepAero'),volRetArrAero:g('volRetArrAero'),volRetHDep:g('volRetHDep'),volRetHArr:g('volRetHArr'),volRetTerminal:g('volRetTerminal'),volRetCompagnie:g('volRetCompagnie')};
 }
-
-function saveAll() {
-  try {
-    const data = {
-      ...getFormVals(),
-      interests, hotels, cars, passes, addrs, suggestions,
-      savedAt: new Date().toISOString()
-    };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-    showSaveIndicator();
-  } catch(e) { console.warn('saveAll error', e); }
+function saveAll(){
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({...getFormVals(),interests,hotels,cars,passes,addrs,suggestions,savedAt:new Date().toISOString()}));showSaveIndicator();}
+  catch(e){console.warn('saveAll',e);}
 }
-
-function loadAll() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return;
-    const data = JSON.parse(raw);
-
-    // Champs simples
-    const fields = ['destination','dateStart','dateEnd','logement','budget','reposFreq','reposType',
-      'volAllerNum','volAllerDepAero','volAllerArrAero','volAllerHDep','volAllerHArr','volAllerTerminal','volAllerCompagnie',
-      'volRetNum','volRetDepAero','volRetArrAero','volRetHDep','volRetHArr','volRetTerminal','volRetCompagnie'];
-    fields.forEach(f => { const el=document.getElementById(f); if(el && data[f]!==undefined) el.value=data[f]; });
-
-    // Tableaux
-    if (Array.isArray(data.interests)) { interests = data.interests; renderInterests(); }
-    if (Array.isArray(data.hotels))    { hotels    = data.hotels;    renderHotels(); }
-    if (Array.isArray(data.cars))      { cars      = data.cars;      renderCars(); }
-    if (Array.isArray(data.passes))    { passes    = data.passes;    renderPasses(); }
-    if (Array.isArray(data.addrs))     { addrs     = data.addrs;     renderAddrs(); }
-
-    // Planning existant
-    if (data.suggestions) {
-      suggestions = data.suggestions;
-      selected = suggestions.activites
-        .map((_,i) => i)
-        .filter(i => !['repos','vol'].includes(suggestions.activites[i].type));
-    }
-
-    if (data.savedAt) showRestoreBanner(data);
-  } catch(e) { console.warn('loadAll error', e); }
+function loadAll(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const data=JSON.parse(raw);
+    ['destination','dateStart','dateEnd','logement','budget','reposFreq','reposType','volAllerNum','volAllerDepAero','volAllerArrAero','volAllerHDep','volAllerHArr','volAllerTerminal','volAllerCompagnie','volRetNum','volRetDepAero','volRetArrAero','volRetHDep','volRetHArr','volRetTerminal','volRetCompagnie']
+      .forEach(f=>{const el=document.getElementById(f);if(el&&data[f]!==undefined)el.value=data[f];});
+    if(Array.isArray(data.interests)){interests=data.interests;renderInterests();}
+    if(Array.isArray(data.hotels)){hotels=data.hotels;renderHotels();}
+    if(Array.isArray(data.cars)){cars=data.cars;renderCars();}
+    if(Array.isArray(data.passes)){passes=data.passes;renderPasses();}
+    if(Array.isArray(data.addrs)){addrs=data.addrs;renderAddrs();}
+    if(data.suggestions){suggestions=data.suggestions;selected=suggestions.activites.map((_,i)=>i).filter(i=>!['repos','vol'].includes(suggestions.activites[i].type));}
+    if(data.savedAt)showRestoreBanner(data);
+  }catch(e){console.warn('loadAll',e);}
 }
-
-function showSaveIndicator() {
-  let el = document.getElementById('saveIndicator');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'saveIndicator';
-    el.style.cssText = 'position:fixed;bottom:20px;right:16px;background:#00c9a7;color:#001a16;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;z-index:9999;transition:opacity .5s;pointer-events:none';
-    document.body.appendChild(el);
-  }
-  el.textContent = '✅ Sauvegardé';
-  el.style.opacity = '1';
-  clearTimeout(el._timer);
-  el._timer = setTimeout(() => el.style.opacity='0', 2000);
+function showSaveIndicator(){
+  let el=document.getElementById('saveIndicator');
+  if(!el){el=document.createElement('div');el.id='saveIndicator';el.style.cssText='position:fixed;bottom:20px;right:16px;background:#00c9a7;color:#001a16;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;z-index:9999;transition:opacity .5s;pointer-events:none';document.body.appendChild(el);}
+  el.textContent='✅ Sauvegardé';el.style.opacity='1';clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',2000);
 }
-
-function showRestoreBanner(data) {
-  const date = new Date(data.savedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
-  let banner = document.getElementById('restoreBanner');
-  if (!banner) {
-    banner = document.createElement('div');
-    banner.id = 'restoreBanner';
-    banner.style.cssText = 'background:#f0a50015;border:1px solid #f0a50033;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px';
-    const form = document.getElementById('step1');
-    if (form) form.insertBefore(banner, form.firstChild);
-  }
-  const dest   = data.destination ? `· ${data.destination}` : '';
-  const hasPlan = data.suggestions ? '· Planning généré ✅' : '';
-  banner.innerHTML = `
-    <div>
-      <p style="font-size:12px;color:#f0a500;font-weight:600">📂 Données restaurées ${dest} ${hasPlan}</p>
-      <p style="font-size:11px;color:#7a7f9a">Dernière sauvegarde : ${date}</p>
-    </div>
+function showRestoreBanner(data){
+  const date=new Date(data.savedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+  let b=document.getElementById('restoreBanner');
+  if(!b){b=document.createElement('div');b.id='restoreBanner';b.style.cssText='background:#f0a50015;border:1px solid #f0a50033;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px';const f=document.getElementById('step1');if(f)f.insertBefore(b,f.firstChild);}
+  b.innerHTML=`<div><p style="font-size:12px;color:#f0a500;font-weight:600">📂 Données restaurées ${data.destination?'· '+data.destination:''} ${data.suggestions?'· Planning ✅':''}</p><p style="font-size:11px;color:#7a7f9a">Sauvegardé : ${date}</p></div>
     <div style="display:flex;gap:6px;flex-shrink:0">
       ${data.suggestions?`<button onclick="showSavedPlanning()" style="background:#00c9a722;border:1px solid #00c9a744;color:#00c9a7;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Voir planning</button>`:''}
       <button onclick="clearSave()" style="background:#ff6b6b22;border:1px solid #ff6b6b44;color:#ff6b6b;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Effacer</button>
     </div>`;
 }
+function showSavedPlanning(){if(suggestions){renderPlan();showStep(2);}}
+function clearSave(){localStorage.removeItem(SAVE_KEY);const b=document.getElementById('restoreBanner');if(b)b.remove();suggestions=null;}
 
-function showSavedPlanning() {
-  if (suggestions) { renderPlan(); showStep(2); }
+// ═══════════════════════════════════════════════════
+// POST-TRAITEMENT : DÉTECTION ET CORRECTION DOUBLONS GÉO
+// ═══════════════════════════════════════════════════
+function normalizePlace(str){
+  return (str||'').toLowerCase()
+    .replace(/[^a-z0-9\s]/g,'')
+    .replace(/\b(the|le|la|les|de|du|des|pier|plage|beach|park|parc|museum|musée|street|rue|avenue|blvd|boulevard)\b/g,'')
+    .replace(/\s+/g,' ').trim();
 }
 
-function clearSave() {
-  localStorage.removeItem(SAVE_KEY);
-  const b = document.getElementById('restoreBanner');
-  if (b) b.remove();
-  suggestions = null;
+// Calcule similarité entre deux chaînes (ratio de mots communs)
+function similarity(a, b){
+  const wa = new Set(normalizePlace(a).split(' ').filter(w=>w.length>2));
+  const wb = new Set(normalizePlace(b).split(' ').filter(w=>w.length>2));
+  if(!wa.size || !wb.size) return 0;
+  let common = 0;
+  wa.forEach(w=>{ if(wb.has(w)) common++; });
+  return common / Math.max(wa.size, wb.size);
+}
+
+// Détecte les doublons géographiques (même lieu, jours très éloignés)
+function detectGeoDuplicates(activites){
+  const issues = [];
+  const normalActivities = activites.filter(a => !['repos','vol','hotel','voiture','trajet'].includes(a.type));
+
+  for(let i=0; i<normalActivities.length; i++){
+    for(let j=i+1; j<normalActivities.length; j++){
+      const a = normalActivities[i];
+      const b = normalActivities[j];
+      const dayDiff = Math.abs((a.jour||1) - (b.jour||1));
+      if(dayDiff < 3) continue; // OK si même jour ou jours proches
+
+      // Compare titres et adresses
+      const titleSim   = similarity(a.titre,   b.titre);
+      const addrSim    = similarity(a.adresse,  b.adresse);
+      const zoneSim    = a.zone && b.zone && similarity(a.zone, b.zone) > 0.5;
+
+      if(titleSim > 0.5 || addrSim > 0.6 || (addrSim > 0.3 && zoneSim)){
+        issues.push({
+          idxA: activites.indexOf(a),
+          idxB: activites.indexOf(b),
+          titreA: a.titre, titreB: b.titre,
+          jourA: a.jour,   jourB: b.jour,
+          dayDiff
+        });
+      }
+    }
+  }
+  return issues;
+}
+
+// Merge les doublons : garde le meilleur (plus tôt dans le séjour), marque l'autre
+function fixDuplicates(activites){
+  const dupes = detectGeoDuplicates(activites);
+  const toRemove = new Set();
+  const warnings = [];
+
+  dupes.forEach(d => {
+    // Garde le premier (jour le plus tôt), supprime le second
+    const keepIdx   = d.jourA <= d.jourB ? d.idxA : d.idxB;
+    const removeIdx = d.jourA <= d.jourB ? d.idxB : d.idxA;
+    if(!toRemove.has(keepIdx)){
+      toRemove.add(removeIdx);
+      warnings.push(`"${activites[removeIdx].titre}" (Jour ${activites[removeIdx].jour}) regroupé avec Jour ${activites[keepIdx].jour}`);
+    }
+  });
+
+  const cleaned = activites.filter((_,i) => !toRemove.has(i));
+  return { cleaned, warnings, removed: toRemove.size };
 }
 
 // ═══════════════════════════════════════════════════
 // GÉNÉRATION IA
 // ═══════════════════════════════════════════════════
-async function generatePlan() {
-  const dest  = (document.getElementById("destination")||{}).value?.trim();
-  const ds    = (document.getElementById("dateStart")||{}).value;
-  const de    = (document.getElementById("dateEnd")||{}).value;
-  if (!dest||!ds||!de) { showError("Veuillez remplir destination et dates."); return; }
+async function generatePlan(){
+  const dest=document.getElementById("destination")?.value?.trim();
+  const ds=document.getElementById("dateStart")?.value;
+  const de=document.getElementById("dateEnd")?.value;
+  if(!dest||!ds||!de){showError("Veuillez remplir destination et dates.");return;}
 
-  const btn = document.getElementById("generateBtn");
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Génération du planning...';
-  hideError();
+  const btn=document.getElementById("generateBtn");
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Génération du planning...'; hideError();
 
-  const flights    = getFlightData();
-  const addresses  = addrs.filter(a => a.trim());
-  const logement   = (document.getElementById("logement")||{}).value||'';
-  const budget     = (document.getElementById("budget")||{}).value||'moyen';
-  const reposFreq  = (document.getElementById("reposFreq")||{}).value||'auto';
-  const reposType  = (document.getElementById("reposType")||{}).value||'libre';
-  const nbJours    = Math.max(1, Math.round((new Date(de)-new Date(ds))/86400000)+1);
+  const flights   = getFlightData();
+  const addresses = addrs.filter(a=>a.trim());
+  const logement  = document.getElementById("logement")?.value||'';
+  const budget    = document.getElementById("budget")?.value||'moyen';
+  const reposFreq = document.getElementById("reposFreq")?.value||'auto';
+  const reposType = document.getElementById("reposType")?.value||'libre';
+  const nbJours   = Math.max(1,Math.round((new Date(de)-new Date(ds))/86400000)+1);
 
-  const filledPasses = passes.filter(p => p.nom);
-  const filledCars   = cars.filter(car => car.lieuPrise||car.agence);
-  const filledHotels = hotels.filter(h => h.nom||h.adresse);
+  const filledPasses = passes.filter(p=>p.nom.trim());
+  const filledCars   = cars.filter(c=>c.lieuPrise||c.agence);
+  const filledHotels = hotels.filter(h=>h.nom||h.adresse);
 
-  const passesBlock = filledPasses.length ? `\nPASS & ABONNEMENTS:\n${filledPasses.map((p,i)=>{
-    const tl = p.type==='illimite'?'ILLIMITÉ':p.type==='limite'?`LIMITÉ (${p.nbEntrees} entrée(s))`:`MULTI (${p.nbEntrees} attractions)`;
-    const ml = p.moment==='findaprem'?"FIN APRÈS-MIDI":p.moment==='matin'?"MATIN":p.moment==='aprem'?"APRÈS-MIDI":p.moment==='journee'?"JOURNÉE ENTIÈRE":p.moment==='soir'?"SOIRÉE":p.moment==='flexible'?"FLEXIBLE":"";
-    return `${i+1}. ${p.nom} | ${tl}${p.dateDebut?' | Valable: '+p.dateDebut+' → '+p.dateFin:''}${p.inclus?' | Inclus: '+p.inclus:''}${ml?' | MOMENT IDÉAL: '+ml:''}`;
-  }).join("\n")}\nIMPORTANT: Respecte ABSOLUMENT le moment idéal. Marque budget='Inclus ✅'.` : '';
+  // ── PASS BLOCK ──────────────────────────────────────────────────
+  let passesBlock='';
+  if(filledPasses.length){
+    const lines = filledPasses.map((p,i)=>{
+      const typeLabel = p.type==='illimite'
+        ? 'ILLIMITÉ — planifie TOUTES les attractions listées, chacune un jour différent'
+        : p.type==='limite'
+        ? `LIMITÉ à ${p.nbEntrees||'?'} entrée(s) — ne planifie que ce nombre`
+        : `MULTI — choisir ${p.nbEntrees||'?'} attraction(s) parmi celles listées`;
 
-  const carsBlock = filledCars.length ? `\nLOCATION VOITURE:\n${filledCars.map((car,i)=>
-    `Voiture ${i+1}: ${car.agence||'?'} ${car.type||''} | Prise: ${car.lieuPrise||'?'} le ${car.datePrise||'?'} | Retour: ${car.lieuRetour||'?'} le ${car.dateRetour||'?'}${car.trajets?' | Trajets: '+car.trajets:''}`
-  ).join("\n")}\nIMPORTANT: Bloque type="voiture" pour prise, trajets inter-villes, restitution.` : '';
+      const momentLabel = {matin:'MATIN (avant 11h)',aprem:'APRÈS-MIDI (14h-17h)',findaprem:'FIN APRÈS-MIDI (17h-19h)',journee:'JOURNÉE ENTIÈRE',soir:'SOIRÉE (après 18h)',flexible:'FLEXIBLE'}[p.moment]||'selon logique IA';
 
-  const hotelsBlock = filledHotels.length ? `\nHÔTELS:\n${filledHotels.map((h,i)=>
-    `${i+1}. ${h.nom||'Hôtel'} - ${h.adresse||'?'} | Check-in: ${h.checkin||'?'} | Check-out: ${h.checkout||'?'}`
-  ).join("\n")}\nPlanifie les visites proches géographiquement de chaque hôtel selon les dates.` : '';
+      const attractionsList = p.inclus.trim()
+        ? p.inclus.split(/[\n,]+/).map(a=>a.trim()).filter(Boolean)
+        : [];
 
-  const addrBlock = addresses.length ? `\nADRESSES À VISITER (toutes obligatoires):\n${addresses.map((a,i)=>`${i+1}. ${a}`).join("\n")}` : '';
-  const reposBlock = reposFreq==='aucun' ? '\nPas de jour de repos.' :
-    reposFreq==='auto' ? `\nJOURS DE REPOS: optimaux sur ${nbJours} jours. Type: ${reposType}.` :
-    `\nJOURS DE REPOS: 1 repos tous les ${reposFreq} jours. Type: ${reposType}.`;
+      const attractStr = attractionsList.length
+        ? `\n   ATTRACTIONS À PLANIFIER (une par jour, obligatoires):\n${attractionsList.map((a,j)=>`   ${j+1}. ${a} → type="attraction", budget="Inclus ✅ ${p.nom}", passName="${p.nom}"`).join('\n')}`
+        : `\n   (Invente 3-5 attractions populaires de ${dest} compatibles avec ce pass)`;
 
-  const volBlock = (flights.aller.num||flights.retour.num) ? `\nINFOS VOLS:\n${
-    flights.aller.num?`Vol aller: ${flights.aller.num} ${flights.aller.compagnie||''} - Départ ${flights.aller.depAero||''} ${flights.aller.hDep||''} → Arrivée ${flights.aller.arrAero||''} ${flights.aller.hArr||''}${flights.aller.terminal?' ('+flights.aller.terminal+')':''}`:''
-  }\n${
-    flights.retour.num?`Vol retour: ${flights.retour.num} ${flights.retour.compagnie||''} - Départ ${flights.retour.depAero||''} ${flights.retour.hDep||''} → Arrivée ${flights.retour.arrAero||''} ${flights.retour.hArr||''}${flights.retour.terminal?' ('+flights.retour.terminal+')':''}`:''
-  }\nTiens compte des horaires pour les jours de vol (transfert aéroport 2-3h avant).` : '';
+      return `PASS ${i+1}: "${p.nom}"
+   Type: ${typeLabel}
+   Valide: ${p.dateDebut||'?'} → ${p.dateFin||'?'}
+   Moment idéal: ${momentLabel}${attractStr}`;
+    }).join('\n\n');
 
-  const prompt = `Tu es expert en voyages et optimisation d'itinéraires. Génère un planning de vacances complet.
+    passesBlock=`
+
+╔══════════════════════════════════════════════╗
+║  PASS & ABONNEMENTS — RÈGLES ABSOLUES         ║
+╚══════════════════════════════════════════════╝
+${lines}
+
+OBLIGATIONS:
+✅ Chaque attraction = une activité SÉPARÉE dans "activites"
+✅ type="attraction", budget="Inclus ✅ [nom du pass]", passName="[nom du pass]"
+✅ Pas deux attractions du même pass le même jour (sauf justification)
+✅ Respecter le moment idéal pour chaque attraction
+✅ Ne jamais ignorer les attractions listées`;
+  }
+
+  // ── AUTRES BLOCS ──────────────────────────────────────────────
+  // Calcule le numéro de jour exact dans le séjour pour une date donnée
+  function dateToJour(dateStr) {
+    if (!dateStr || !ds) return '?';
+    const diff = Math.round((new Date(dateStr) - new Date(ds)) / 86400000);
+    return diff >= 0 ? diff + 1 : '?';
+  }
+
+  const carsBlock = filledCars.length ? (() => {
+    const carLines = filledCars.map((c, i) => {
+      const jourPrise  = dateToJour(c.datePrise);
+      const jourRetour = dateToJour(c.dateRetour);
+      return `Voiture ${i+1}: ${c.agence||'?'} ${c.type||''}
+   PRISE      : ${c.datePrise||'?'} = JOUR ${jourPrise} du séjour | lieu: ${c.lieuPrise||'?'}
+   RESTITUTION: ${c.dateRetour||'?'} = JOUR ${jourRetour} du séjour | lieu: ${c.lieuRetour||'?'}
+   Trajets    : ${c.trajets||'non précisés'}
+   Route/arrêts souhaités: ${c.arrets||'laisser l\'IA choisir les meilleurs arrêts'}`;
+    }).join('\n\n');
+    return `\n\n╔══════════════════════════════════════════════╗
+║  LOCATION VOITURE — DATES & TRAJETS           ║
+╚══════════════════════════════════════════════╝
+${carLines}
+
+RÈGLES ABSOLUES VOITURE:
+✅ La prise EST le ${filledCars[0]?.datePrise||'?'} (JOUR ${dateToJour(filledCars[0]?.datePrise)}) — IMPOSSIBLE de la déplacer
+✅ La restitution EST le ${filledCars[0]?.dateRetour||'?'} (JOUR ${dateToJour(filledCars[0]?.dateRetour)}) — IMPOSSIBLE de la déplacer
+✅ type="voiture" pour: prise, chaque trajet inter-villes, restitution
+
+═══════════════════════════════════════════════════
+RÈGLE TRAJETS ROUTIERS — ARRÊTS OBLIGATOIRES
+═══════════════════════════════════════════════════
+Quand un trajet inter-villes est indiqué (ex: LA → San Francisco, Paris → Lyon), tu DOIS:
+
+1. DÉCOUPER le trajet en ÉTAPES avec arrêts touristiques sur la route
+   Exemples de logique:
+   • LA → San Francisco via Highway 1 → arrêts: Malibu, Santa Barbara, Pismo Beach, Big Sur (McWay Falls, Bixby Bridge), Carmel-by-the-Sea, Monterey (Aquarium, Fisherman's Wharf)
+   • LA → Las Vegas → arrêts: Barstow (outlet), Calico Ghost Town, Baker (thermomètre géant), Joshua Tree si déviation
+   • San Francisco → Yosemite → arrêts: Livermore, Manteca, entrée du parc
+   • Miami → Key West → arrêts: Key Largo, Islamorada, Marathon, Seven Mile Bridge, Bahia Honda
+   • Paris → Côte d'Azur → arrêts: Lyon (déjeuner), Orange (arc de triomphe), Avignon
+   • New York → Washington DC → arrêts: Philadelphie (Liberty Bell, cheesesteak)
+
+2. FORMAT pour chaque arrêt sur la route:
+   - type="voiture" pour les segments de conduite (avec durée)
+   - type="visit" ou type="attraction" pour les arrêts touristiques (avec durée de visite)
+   - Alterner: conduite → arrêt → conduite → arrêt → destination
+
+3. EXEMPLE pour "LA → San Francisco via Hwy 1":
+   08:00 — Départ Los Angeles (type=voiture, 1h30) → Malibu
+   09:30 — Malibu Beach & Point Dume (type=visit, 45min)
+   10:30 — Route vers Santa Barbara (type=voiture, 1h)
+   11:30 — Déjeuner Santa Barbara — State Street (type=restaurant, 1h)
+   13:00 — Route vers Big Sur (type=voiture, 2h30)
+   15:30 — McWay Falls, Julia Pfeiffer Burns State Park (type=visit, 1h)
+   16:30 — Bixby Creek Bridge — photo stop (type=visit, 20min)
+   17:00 — Route vers Monterey (type=voiture, 45min)
+   17:45 — Arrivée Monterey — Fisherman's Wharf (type=visit, 1h)
+   19:00 — Route vers San Francisco (type=voiture, 2h)
+   21:00 — Arrivée San Francisco
+
+4. Adapte les arrêts selon la SAISON et les INTÉRÊTS de la famille
+5. Ne jamais écrire juste "Trajet LA → SF (6h)" sans aucun arrêt
+6. Le champ "astuce" doit mentionner: conditions de route, meilleure heure de départ, météo, parking`;
+  })() : '';
+
+  const hotelsBlock = filledHotels.length?`\n\nHÔTELS:\n${filledHotels.map((h,i)=>`${i+1}. ${h.nom||'Hôtel'} (${h.adresse||'?'}) check-in:${h.checkin||'?'} check-out:${h.checkout||'?'}`).join('\n')}\n→ Planifie les visites proches géographiquement.`:'';
+
+  const addrBlock = addresses.length?`\n\nLIEUX OBLIGATOIRES (isUserPlace:true pour tous):\n${addresses.map((a,i)=>`${i+1}. ${a}`).join('\n')}`:'';
+
+  const reposBlock = reposFreq==='aucun'?'\n\nPas de repos.' : reposFreq==='auto'?`\n\nRepos: jours optimaux sur ${nbJours} jours. Type: ${reposType}.`:`\n\nRepos: 1 tous les ${reposFreq} jours. Type: ${reposType}.`;
+
+  const volBlock = (flights.aller.num||flights.retour.num)?`\n\nVOLS:\n${flights.aller.num?`Aller: ${flights.aller.num} ${flights.aller.compagnie||''} ${flights.aller.depAero||''}${flights.aller.hDep?' '+flights.aller.hDep:''} → ${flights.aller.arrAero||''}${flights.aller.hArr?' '+flights.aller.hArr:''}`:''}\n${flights.retour.num?`Retour: ${flights.retour.num} ${flights.retour.compagnie||''} ${flights.retour.depAero||''}${flights.retour.hDep?' '+flights.retour.hDep:''} → ${flights.retour.arrAero||''}${flights.retour.hArr?' '+flights.retour.hArr:''}`:''}\n→ Transfert aéroport 2-3h avant. Peu d'activités les jours de vol.`:'';
+
+  const prompt=`Tu es expert en planification de voyages en famille. Génère un itinéraire complet et OPTIMISÉ.
 
 DESTINATION: ${dest}
 DATES: ${ds} → ${de} (${nbJours} jour(s))
@@ -726,145 +745,345 @@ BUDGET: ${budget}
 INTÉRÊTS: ${interests.join(', ')||'général'}
 ${volBlock}${passesBlock}${carsBlock}${hotelsBlock}${addrBlock}${reposBlock}
 
-RÈGLES:
-1. GÉO: Regroupe les lieux proches sur le même jour. Optimise l'ordre (circuit logique).
-2. MEILLEUR MOMENT: Pour chaque visite, donne le meilleur créneau (foule, lumière, météo).
-3. VOLS: Ajoute-les en type="vol" le premier et dernier jour si renseignés.
-4. REPOS: Insère selon les consignes.
-5. TOUTES les adresses fournies doivent être présentes avec isUserPlace:true.
-6. VOITURE: type="voiture" pour prise, trajets, restitution avec durée réaliste.
-7. HÔTELS: type="hotel" pour check-in/check-out.
+RÈGLES CRITIQUES:
+1. PASS (PRIORITÉ MAX): Chaque attraction listée = activité séparée avec type="attraction", budget="Inclus ✅ [pass]", passName="[pass]"
+2. GÉO STRICT: Regroupe les lieux proches sur le MÊME jour. Même quartier = même jour, jamais à 16 jours d'écart.
+3. ZÉRO DOUBLON: Un lieu n'apparaît qu'UNE SEULE FOIS dans tout le planning.
+4. CIRCUIT LOGIQUE: Chaque jour = circuit géographique cohérent, pas de zigzag.
+5. VOLS: type="vol" premier/dernier jour si renseignés.
+6. REPOS: selon les consignes.
+7. LIEUX PERSO: isUserPlace:true pour toutes les adresses fournies.
+8. VOITURE: type="voiture" pour prise/trajets/restitution.
+
+═══════════════════════════════════════════════════
+RÈGLE HORAIRES — VARIÉTÉ OBLIGATOIRE (CRITIQUE)
+═══════════════════════════════════════════════════
+INTERDICTION: Ne pas mettre 09:00 pour toutes les activités. Les horaires doivent être RÉALISTES et VARIÉS.
+
+LOGIQUE HORAIRE PAR TYPE:
+• Parcs d'attractions (Disney, Universal, SeaWorld, etc.) → arrivée 08:00-09:00 à l'ouverture, journée entière jusqu'à 20:00-22:00
+• Musées → 10:00-11:00 (éviter l'ouverture, files plus courtes à 10h30)
+• Monuments / sites extérieurs → 07:30-09:00 (lumière dorée, moins de monde) OU 17:00-19:00 (golden hour)
+• Shopping / marchés → 10:00-12:00 ou 14:00-17:00
+• Restaurants gastronomiques → 12:30 (déjeuner) ou 19:30-20:00 (dîner)
+• Activités de plage → 08:00-10:00 (matin frais) ou 16:00-18:00 (soleil moins fort)
+• Soirées / shows / nightlife → 19:00-21:00
+• Visites guidées → selon heure de départ réelle
+
+STRUCTURE JOURNÉE TYPE (à adapter selon les activités):
+• 08:00-12:00 : activité principale (parc, monument, musée)
+• 12:30-13:30 : pause déjeuner (inclure comme activité restaurant si pertinent)
+• 14:00-17:00 : activité secondaire proche
+• 17:30-19:30 : activité légère / golden hour / shopping
+• 20:00+ : dîner ou soirée si pertinent
+
+═══════════════════════════════════════════════════
+RÈGLE JOURS CREUX — PARCS & ATTRACTIONS (CRITIQUE)
+═══════════════════════════════════════════════════
+Pour chaque parc d'attractions, zoo, aquarium, attraction majeure :
+Tu DOIS analyser les dates du séjour (${ds} → ${de}) et choisir le MEILLEUR JOUR de la semaine.
+
+RÉFÉRENCE FRÉQUENTATION PAR TYPE:
+🟢 JOURS CREUX (planifier en priorité):
+  • Mardi et mercredi : jours les moins fréquentés pour TOUS les grands parcs (Disney, Universal, SeaWorld, Legoland...)
+  • Jeudi matin : bon compromis si mardi/mercredi pris
+  • Lundi hors vacances scolaires : souvent calme
+
+🔴 JOURS À ÉVITER pour les parcs:
+  • Samedi et dimanche : +40-60% de fréquentation, files 60-90 min
+  • Vendredi après-midi : début de weekend, bondé
+  • Jours fériés américains (4 juillet, Labor Day, Thanksgiving, Noël, Nouvel An) : EVITER ABSOLUMENT
+  • Vacances scolaires américaines (mi-juin à mi-août, semaine de Noël, spring break mars-avril)
+
+RÈGLE D'OR: Si le séjour inclut un mardi ou mercredi, planifie OBLIGATOIREMENT le(s) grand(s) parc(s) ces jours-là.
+Si le séjour n'inclut que des weekends, planifie les parcs le lundi ou jeudi, et mets l'astuce "Arriver 1h avant l'ouverture".
+
+CHAMP "meilleurMoment" OBLIGATOIRE pour parcs/attractions:
+→ Indiquer EXACTEMENT: le jour de la semaine recommandé (ex: "Mardi ou Mercredi"), l'heure d'arrivée, et pourquoi (ex: "Mardi = 30% moins de monde, arriver à 08h30 avant l'ouverture pour les premières files")
+→ Mentionner si l'attraction a un pass file prioritaire disponible
+→ Donner le conseil "meilleure saison de la journée" : certains parcs sont moins fréquentés en soirée (Disney après 18h)
 
 Réponds UNIQUEMENT en JSON valide, sans markdown ni backticks:
 {
-  "titre": "Titre du planning",
-  "resume": "Résumé court",
+  "titre": "string",
+  "resume": "string",
   "zones": ["Zone A","Zone B"],
   "activites": [
-    {"jour":1,"date":"YYYY-MM-DD","heure":"09:00","titre":"Nom","description":"Desc","adresse":"Adresse complète","duree":"2h","type":"visit","budget":"15€","zone":"Quartier","isUserPlace":false,"meilleurMoment":"Conseil horaire","astuce":"Conseil pratique"}
+    {"jour":1,"date":"${ds}","heure":"09:00","titre":"string","description":"string","adresse":"string, ${dest}","duree":"2h","type":"visit","budget":"15€","zone":"string","isUserPlace":false,"passName":null,"meilleurMoment":"Mardi ou Mercredi — arriver à 09h00 avant l'ouverture, 30% moins de monde qu'un samedi. En soirée après 18h les files diminuent aussi.","astuce":"string","jourCreux":"Mardi"}
   ],
-  "logique_geo": "Explication regroupement",
-  "conseils": ["conseil 1","conseil 2"]
+  "logique_geo": "string",
+  "conseils": ["string"]
 }`;
 
-  try {
-    const res = await fetch(GROQ_URL, {
-      method: "POST",
-      headers: {"Content-Type":"application/json","Authorization":"Bearer "+GROQ_KEY},
-      body: JSON.stringify({model:"llama-3.3-70b-versatile",max_tokens:4000,temperature:0.7,
-        messages:[{role:"user",content:prompt}]})
+  try{
+    const res=await fetch(GROQ_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+GROQ_KEY},
+      body:JSON.stringify({model:"llama-3.3-70b-versatile",max_tokens:6000,temperature:0.4,messages:[{role:"user",content:prompt}]})});
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    let raw=(data.choices?.[0]?.message?.content||'').replace(/```json|```/g,'').trim();
+    const js=raw.indexOf('{');if(js>0)raw=raw.slice(js);
+    const parsed=JSON.parse(raw);
+
+    // ═══════════════════════════════════════
+    // POST-TRAITEMENTS — filets de sécurité
+    // ═══════════════════════════════════════
+
+    // Helper: date réelle depuis numéro de jour
+    function jourToDate(j) {
+      const d = new Date(ds); d.setDate(d.getDate() + (j-1));
+      return d.toISOString().split('T')[0];
+    }
+    function jourf(dateStr) {
+      if (!dateStr || !ds) return null;
+      const diff = Math.round((new Date(dateStr) - new Date(ds)) / 86400000);
+      return diff >= 0 ? diff + 1 : null;
+    }
+
+    // FIX 1 — Corriger toutes les dates JSON (recalcul depuis numéro de jour)
+    parsed.activites.forEach(a => {
+      if (a.jour) a.date = jourToDate(a.jour);
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    const raw  = data.choices?.[0]?.message?.content || '';
-    suggestions = JSON.parse(raw.replace(/```json|```/g,'').trim());
-    selected = suggestions.activites
-      .map((_,i)=>i)
-      .filter(i=>!['repos','vol'].includes(suggestions.activites[i].type));
-    renderFlightSummary(flights, ds, de);
+
+    // FIX 2 — Injecter voitures manquantes
+    filledCars.forEach(car => {
+      if (!car.datePrise && !car.dateRetour) return;
+      const jp = jourf(car.datePrise), jr = jourf(car.dateRetour);
+      if (jp && !parsed.activites.some(a => a.type==='voiture' && a.jour===jp)) {
+        parsed.activites.push({jour:jp, date:car.datePrise, heure:'09:00',
+          titre:'Prise voiture — '+(car.agence||'Agence'),
+          description:'Récupération du '+(car.type||'véhicule')+' chez '+(car.agence||'agence')+'.',
+          adresse:car.lieuPrise||'', duree:'1h', type:'voiture', budget:'', zone:'',
+          isUserPlace:false, passName:null,
+          meilleurMoment:'Matin tôt pour bien démarrer la journée',
+          astuce:'Photographiez le véhicule avant de partir.', _injected:true});
+      }
+      if (jr && !parsed.activites.some(a => a.type==='voiture' && a.jour===jr)) {
+        parsed.activites.push({jour:jr, date:car.dateRetour, heure:'10:00',
+          titre:'Restitution voiture — '+(car.agence||'Agence'),
+          description:'Retour du véhicule chez '+(car.agence||'agence')+'.',
+          adresse:car.lieuRetour||car.lieuPrise||'', duree:'1h', type:'voiture', budget:'', zone:'',
+          isUserPlace:false, passName:null,
+          meilleurMoment:'Prévoir 1h avant le vol ou transfert',
+          astuce:'Plein fait, véhicule propre pour éviter les frais.', _injected:true});
+      }
+    });
+
+    // FIX 3 — Injecter hôtels manquants
+    filledHotels.forEach(h => {
+      const jci = jourf(h.checkin), jco = jourf(h.checkout);
+      if (jci && !parsed.activites.some(a => a.type==='hotel' && a.jour===jci)) {
+        parsed.activites.push({jour:jci, date:h.checkin, heure:'15:00',
+          titre:'Check-in — '+(h.nom||'Hôtel'),
+          description:'Arrivée et installation à '+(h.nom||'hotel')+(h.adresse?' ('+h.adresse+')':'')+'.',
+          adresse:h.adresse||'', duree:'1h', type:'hotel', budget:'', zone:'',
+          isUserPlace:false, passName:null,
+          meilleurMoment:'Check-in à partir de 15h — appelez si arrivée avant',
+          astuce:'Déposez les bagages et profitez de la journée si vous arrivez tôt.', _injected:true});
+      }
+      if (jco && !parsed.activites.some(a => a.type==='hotel' && a.jour===jco)) {
+        parsed.activites.push({jour:jco, date:h.checkout, heure:'11:00',
+          titre:'Check-out — '+(h.nom||'Hôtel'),
+          description:'Départ de '+(h.nom||'hotel')+'. Check-out avant 11h.',
+          adresse:h.adresse||'', duree:'30min', type:'hotel', budget:'', zone:'',
+          isUserPlace:false, passName:null,
+          meilleurMoment:'Check-out avant 11h — préparez vos bagages la veille',
+          astuce:'Demandez une late checkout si votre vol est en soirée.', _injected:true});
+      }
+    });
+
+    // FIX 4 — Injecter vols manquants
+    if (flights.aller.num && !parsed.activites.some(a => a.type==='vol' && a.jour===1)) {
+      parsed.activites.push({jour:1, date:ds, heure:flights.aller.hDep||'06:00',
+        titre:'Vol aller — '+flights.aller.num+(flights.aller.compagnie?' · '+flights.aller.compagnie:''),
+        description:(flights.aller.depAero||'')+'→'+(flights.aller.arrAero||'')+(flights.aller.hArr?' arr.'+flights.aller.hArr:''),
+        adresse:'', duree:'', type:'vol', budget:'', zone:'', isUserPlace:false, passName:null,
+        astuce:'Arrivée aéroport 2-3h avant.'+(flights.aller.terminal?' Terminal: '+flights.aller.terminal:''), _injected:true});
+    }
+    if (flights.retour.num && !parsed.activites.some(a => a.type==='vol' && a.jour===nbJours)) {
+      parsed.activites.push({jour:nbJours, date:de, heure:flights.retour.hDep||'10:00',
+        titre:'Vol retour — '+flights.retour.num+(flights.retour.compagnie?' · '+flights.retour.compagnie:''),
+        description:(flights.retour.depAero||'')+'→'+(flights.retour.arrAero||'')+(flights.retour.hArr?' arr.'+flights.retour.hArr:''),
+        adresse:'', duree:'', type:'vol', budget:'', zone:'', isUserPlace:false, passName:null,
+        astuce:'Arrivée aéroport 2-3h avant.'+(flights.retour.terminal?' Terminal: '+flights.retour.terminal:''), _injected:true});
+    }
+
+    // FIX 5 — Vérifier lieux perso présents
+    const missingAddrs = addresses.filter(addr => {
+      const n = addr.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12);
+      return !parsed.activites.some(a =>
+        (a.adresse||'').toLowerCase().replace(/[^a-z0-9]/g,'').includes(n) ||
+        (a.titre||'').toLowerCase().replace(/[^a-z0-9]/g,'').includes(n));
+    });
+    missingAddrs.forEach((addr, i) => {
+      const j = Math.min(2+i, nbJours);
+      parsed.activites.push({jour:j, date:jourToDate(j), heure:'10:00',
+        titre:'Visite — '+addr.split(',')[0],
+        description:'Lieu de votre liste personnelle.',
+        adresse:addr, duree:'2h', type:'visit', budget:'', zone:'',
+        isUserPlace:true, passName:null,
+        meilleurMoment:'Selon la logique de la journée',
+        astuce:'Lieu issu de votre liste personnelle.', _injected:true});
+    });
+
+    // FIX 6 — Vérifier attractions pass présentes
+    const missingAttr = [];
+    filledPasses.forEach(p => {
+      if (!p.inclus.trim()) return;
+      p.inclus.split(/[
+,]+/).map(a=>a.trim()).filter(Boolean).forEach(attr => {
+        const n = attr.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12);
+        if (!parsed.activites.some(a =>
+          (a.passName===p.nom) ||
+          (a.titre||'').toLowerCase().replace(/[^a-z0-9]/g,'').includes(n))) {
+          missingAttr.push({attr, passNom:p.nom, moment:p.moment});
+        }
+      });
+    });
+    missingAttr.forEach((m, i) => {
+      const j = Math.min(3+i, nbJours);
+      const h = {matin:'09:00',aprem:'14:00',findaprem:'17:00',journee:'09:00',soir:'19:00',flexible:'10:00'}[m.moment]||'10:00';
+      parsed.activites.push({jour:j, date:jourToDate(j), heure:h,
+        titre:m.attr,
+        description:'Attraction incluse dans votre pass '+m.passNom+'.',
+        adresse:'', duree:'3h', type:'attraction',
+        budget:'Inclus ✅ '+m.passNom, zone:'',
+        isUserPlace:false, passName:m.passNom,
+        meilleurMoment:'Selon le moment idéal de votre pass',
+        astuce:'Présentez votre pass à l'entrée.', _injected:true});
+    });
+    if (missingAttr.length) parsed._missingAttractions = missingAttr.map(m=>m.attr);
+
+    // FIX 7 — Avertissement journées surchargées (>5 activités)
+    const dayCount = {};
+    parsed.activites.forEach(a => { dayCount[a.jour] = (dayCount[a.jour]||0)+1; });
+    parsed._overloadedDays = Object.entries(dayCount).filter(([,n])=>n>5).map(([j])=>+j);
+
+    // Trier par jour puis heure
+    parsed.activites.sort((a,b) => {
+      if (a.jour !== b.jour) return (a.jour||0)-(b.jour||0);
+      return (a.heure||'00:00').localeCompare(b.heure||'00:00');
+    });
+
+    // POST-TRAITEMENT FINAL — doublons géo
+    const {cleaned, warnings, removed} = fixDuplicates(parsed.activites);
+    parsed.activites = cleaned;
+    parsed._dupWarnings = warnings;
+    parsed._dupRemoved  = removed;
+
+    suggestions=parsed;
+    selected=suggestions.activites.map((_,i)=>i).filter(i=>!['repos','vol'].includes(suggestions.activites[i].type));
+    renderFlightSummary(flights,ds,de);
     renderPlan();
     showStep(2);
     saveAll();
-  } catch(e) {
-    showError("Erreur de génération : " + e.message + ". Vérifiez la destination et les dates.");
+  }catch(e){
+    showError("Erreur : "+e.message+". Vérifiez destination et dates.");
     console.error(e);
   }
-  btn.disabled = false;
-  btn.innerHTML = '✨ Générer mon planning optimisé';
+  btn.disabled=false; btn.innerHTML='✨ Générer mon planning optimisé';
 }
 
 // ═══════════════════════════════════════════════════
-// RENDER PLAN
+// RENDER
 // ═══════════════════════════════════════════════════
-function renderFlightSummary(flights, ds, de) {
-  const hasA = flights.aller.num  || flights.aller.depAero;
-  const hasR = flights.retour.num || flights.retour.depAero;
-  if (!hasA && !hasR) { document.getElementById("flightSummary").classList.add("hidden"); return; }
-
-  const depI = (flights.aller.depAero||'???').substring(0,3).toUpperCase();
-  const arrI = (flights.aller.arrAero||'???').substring(0,3).toUpperCase();
-  const rDI  = (flights.retour.depAero||arrI).substring(0,3).toUpperCase();
-  const rAI  = (flights.retour.arrAero||depI).substring(0,3).toUpperCase();
-
-  document.getElementById("flightSummary").innerHTML = `
+function renderFlightSummary(flights,ds,de){
+  const hasA=flights.aller.num||flights.aller.depAero;
+  const hasR=flights.retour.num||flights.retour.depAero;
+  if(!hasA&&!hasR){document.getElementById("flightSummary").classList.add("hidden");return;}
+  const dI=(flights.aller.depAero||'???').substring(0,3).toUpperCase();
+  const aI=(flights.aller.arrAero||'???').substring(0,3).toUpperCase();
+  const rDI=(flights.retour.depAero||aI).substring(0,3).toUpperCase();
+  const rAI=(flights.retour.arrAero||dI).substring(0,3).toUpperCase();
+  document.getElementById("flightSummary").innerHTML=`
     <div class="flight-banner">
       <p style="font-size:11px;color:var(--sky);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">✈️ Vos vols</p>
       ${hasA?`<div style="margin-bottom:${hasR?'14px':'0'}">
         <p style="font-size:10px;color:var(--muted);margin-bottom:8px">ALLER · ${ds}</p>
         <div class="flight-row">
-          <div class="flight-airport"><div class="iata">${depI}</div><div class="city">${flights.aller.depAero||''}</div>${flights.aller.hDep?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.aller.hDep}</div>`:''}</div>
+          <div class="flight-airport"><div class="iata">${dI}</div><div class="city">${flights.aller.depAero||''}</div>${flights.aller.hDep?`<div style="font-size:13px;font-weight:600;margin-top:2px">${flights.aller.hDep}</div>`:''}</div>
           <div class="flight-arrow"><div style="font-size:10px;color:var(--muted)">${flights.aller.num||''}</div><div class="flight-line"></div><div style="font-size:18px">✈️</div><div class="flight-line"></div><div style="font-size:10px;color:var(--muted)">${flights.aller.compagnie||''}</div></div>
-          <div class="flight-airport"><div class="iata">${arrI}</div><div class="city">${flights.aller.arrAero||''}</div>${flights.aller.hArr?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.aller.hArr}</div>`:''}</div>
-        </div>
-        ${flights.aller.terminal?`<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">🚪 ${flights.aller.terminal}</p>`:''}
+          <div class="flight-airport"><div class="iata">${aI}</div><div class="city">${flights.aller.arrAero||''}</div>${flights.aller.hArr?`<div style="font-size:13px;font-weight:600;margin-top:2px">${flights.aller.hArr}</div>`:''}</div>
+        </div>${flights.aller.terminal?`<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">🚪 ${flights.aller.terminal}</p>`:''}
       </div>`:''}
       ${hasA&&hasR?`<div style="height:1px;background:var(--border);margin-bottom:14px"></div>`:''}
       ${hasR?`<div>
         <p style="font-size:10px;color:var(--muted);margin-bottom:8px">RETOUR · ${de}</p>
         <div class="flight-row">
-          <div class="flight-airport"><div class="iata" style="color:#fb923c">${rDI}</div><div class="city">${flights.retour.depAero||''}</div>${flights.retour.hDep?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.retour.hDep}</div>`:''}</div>
+          <div class="flight-airport"><div class="iata" style="color:#fb923c">${rDI}</div><div class="city">${flights.retour.depAero||''}</div>${flights.retour.hDep?`<div style="font-size:13px;font-weight:600;margin-top:2px">${flights.retour.hDep}</div>`:''}</div>
           <div class="flight-arrow"><div style="font-size:10px;color:var(--muted)">${flights.retour.num||''}</div><div class="flight-line" style="background:linear-gradient(90deg,#fb923c,#fb923c33)"></div><div style="font-size:18px">✈️</div><div class="flight-line" style="background:linear-gradient(90deg,#fb923c,#fb923c33)"></div><div style="font-size:10px;color:var(--muted)">${flights.retour.compagnie||''}</div></div>
-          <div class="flight-airport"><div class="iata" style="color:#fb923c">${rAI}</div><div class="city">${flights.retour.arrAero||''}</div>${flights.retour.hArr?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.retour.hArr}</div>`:''}</div>
-        </div>
-        ${flights.retour.terminal?`<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">🚪 ${flights.retour.terminal}</p>`:''}
+          <div class="flight-airport"><div class="iata" style="color:#fb923c">${rAI}</div><div class="city">${flights.retour.arrAero||''}</div>${flights.retour.hArr?`<div style="font-size:13px;font-weight:600;margin-top:2px">${flights.retour.hArr}</div>`:''}</div>
+        </div>${flights.retour.terminal?`<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">🚪 ${flights.retour.terminal}</p>`:''}
       </div>`:''}
     </div>`;
   document.getElementById("flightSummary").classList.remove("hidden");
 }
 
-function renderPlan() {
-  const s = suggestions;
-  const filledPasses = passes.filter(p=>p.nom);
-  const filledCars   = cars.filter(c=>c.lieuPrise||c.agence);
-  const filledHotels = hotels.filter(h=>h.nom||h.adresse);
-  const reposDays = [...new Set(s.activites.filter(a=>a.type==='repos').map(a=>a.jour))].length;
-  const volsCount = s.activites.filter(a=>a.type==='vol').length;
+function renderPlan(){
+  const s=suggestions;
+  const filledPasses=passes.filter(p=>p.nom);
+  const filledCars=cars.filter(c=>c.lieuPrise||c.agence);
+  const filledHotels=hotels.filter(h=>h.nom||h.adresse);
+  const reposDays=[...new Set(s.activites.filter(a=>a.type==='repos').map(a=>a.jour))].length;
+  const volsCount=s.activites.filter(a=>a.type==='vol').length;
+  const attractCount=s.activites.filter(a=>a.passName).length;
 
-  document.getElementById("planHeader").innerHTML = `
+  // Affiche tous les warnings
+  const dupEl=document.getElementById("dupWarning");
+  const warnLines = [];
+  if (s._dupRemoved>0) warnLines.push(`⚡ ${s._dupRemoved} doublon(s) géo corrigé(s) : ${(s._dupWarnings||[]).join(' · ')}`);
+  if (s._missingAttractions?.length) warnLines.push(`🎡 ${s._missingAttractions.length} attraction(s) pass ajoutée(s) automatiquement : ${s._missingAttractions.join(', ')}`);
+  if (s._overloadedDays?.length) warnLines.push(`⚠️ Journée(s) chargée(s) : Jour ${s._overloadedDays.join(', Jour ')} — pensez à reporter certaines activités`);
+  if (warnLines.length) {
+    dupEl.innerHTML = warnLines.map(l=>`<div style="margin-bottom:4px">${l}</div>`).join('');
+    dupEl.classList.remove("hidden");
+  } else { dupEl.classList.add("hidden"); }
+
+  document.getElementById("planHeader").innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
       <h2 style="font-size:19px;flex:1">${s.titre}</h2>
       <span class="tag" style="margin-left:10px;flex-shrink:0">${document.getElementById("destination").value}</span>
     </div>
     <p style="color:var(--muted);font-size:13px;margin-bottom:10px">${s.resume}</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      ${volsCount>0?`<span class="tag-sky">✈️ ${volsCount} vol(s)</span>`:''}
-      ${filledCars.length>0?`<span class="tag-sky">🚗 ${filledCars.length} voiture(s)</span>`:''}
-      <span class="tag-teal">📍 ${s.activites.filter(a=>a.isUserPlace).length} lieux perso</span>
-      ${filledHotels.length>0?`<span class="tag-purple">🏨 ${filledHotels.length} hôtel(s)</span>`:''}
-      ${reposDays>0?`<span class="tag-rest">😴 ${reposDays} repos</span>`:''}
-      ${filledPasses.length>0?`<span class="pass-badge">🎡 ${filledPasses.length} pass</span>`:''}
+      ${volsCount?`<span class="tag-sky">✈️ ${volsCount} vol(s)</span>`:''}
+      ${filledCars.length?`<span class="tag-sky">🚗 ${filledCars.length} voiture(s)</span>`:''}
+      <span class="tag-teal">📌 ${s.activites.filter(a=>a.isUserPlace).length} lieux perso</span>
+      ${filledHotels.length?`<span class="tag-purple">🏨 ${filledHotels.length} hôtel(s)</span>`:''}
+      ${reposDays?`<span class="tag-rest">😴 ${reposDays} repos</span>`:''}
+      ${attractCount?`<span class="pass-badge">🎡 ${attractCount} attraction(s) incluses</span>`:''}
+      ${filledPasses.length?`<span class="pass-badge">🎟️ ${filledPasses.length} pass</span>`:''}
       <span class="tag-purple">🗺️ ${(s.zones||[]).length} zones</span>
     </div>
-    ${s.logique_geo?`<div class="geo-box" style="margin-top:10px"><p style="font-size:12px;color:var(--purple)">🧭 <strong>Optimisation :</strong> ${s.logique_geo}</p></div>`:''}`;
+    ${s.logique_geo?`<div class="geo-box" style="margin-top:10px"><p style="font-size:12px;color:var(--purple)">🧭 <strong>Optimisation géo :</strong> ${s.logique_geo}</p></div>`:''}`;
 
-  const zl = document.getElementById("zonesLegend");
-  zl.innerHTML = (s.zones||[]).map((z,i) => `
+  const zl=document.getElementById("zonesLegend");
+  zl.innerHTML=(s.zones||[]).map((z,i)=>`
     <div style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:4px 10px">
       <span class="zone-dot" style="background:${ZONE_COLORS[i%ZONE_COLORS.length]}"></span>
       <span style="font-size:11px;color:var(--muted)">${z}</span>
     </div>`).join('');
-  zl.style.display = s.zones?.length ? 'flex' : 'none';
+  zl.style.display=s.zones?.length?'flex':'none';
 
-  if (s.conseils?.length) {
-    document.getElementById("tipsCard").innerHTML = `<h3 style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--gold)">💡 Conseils pratiques</h3>${s.conseils.map(c=>`<div class="tip-row"><span style="color:var(--gold)">→</span>${c}</div>`).join('')}`;
+  if(s.conseils?.length){
+    document.getElementById("tipsCard").innerHTML=`<h3 style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--gold)">💡 Conseils pratiques</h3>${s.conseils.map(c=>`<div class="tip-row"><span style="color:var(--gold)">→</span>${c}</div>`).join('')}`;
     document.getElementById("tipsCard").classList.remove("hidden");
   }
   renderActivities();
 }
 
-function renderActivities() {
-  if (!suggestions) return;
-  const days  = [...new Set(suggestions.activites.map(a=>a.jour))].sort((a,b)=>a-b);
-  const zones = suggestions.zones||[];
-  let html = '';
+function renderActivities(){
+  if(!suggestions)return;
+  const days=[...new Set(suggestions.activites.map(a=>a.jour))].sort((a,b)=>a-b);
+  const zones=suggestions.zones||[];
+  let html='';
 
-  days.forEach(day => {
-    const acts     = suggestions.activites.map((a,i)=>({...a,idx:i})).filter(a=>a.jour===day);
-    const isRest   = acts.every(a=>a.type==='repos');
-    const hasVol   = acts.some(a=>a.type==='vol');
-    const dayZones = [...new Set(acts.filter(a=>!['repos','vol'].includes(a.type)).map(a=>a.zone).filter(Boolean))];
+  days.forEach(day=>{
+    const acts=suggestions.activites.map((a,i)=>({...a,idx:i})).filter(a=>a.jour===day);
+    const isRest=acts.every(a=>a.type==='repos');
+    const hasVol=acts.some(a=>a.type==='vol');
+    const dayZones=[...new Set(acts.filter(a=>!['repos','vol'].includes(a.type)).map(a=>a.zone).filter(Boolean))];
 
-    html += `<div class="divider">
+    html+=`<div class="divider">
       <div class="divider-line"></div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap">
         <span class="${isRest?'tag-rest':hasVol?'tag-sky':'tag-teal'}" style="font-size:11px;padding:3px 10px">
@@ -875,66 +1094,72 @@ function renderActivities() {
       <div class="divider-line"></div>
     </div>`;
 
-    acts.forEach(act => {
-      if (act.type==='repos') {
-        html += `<div class="rest-banner">
+    acts.forEach(act=>{
+      if(act.type==='repos'){
+        html+=`<div class="rest-banner">
           <div style="font-size:28px;margin-bottom:6px">😴</div>
           <p style="font-weight:600;color:var(--rose);font-size:15px">${act.titre||'Jour de repos'}</p>
           <p style="font-size:12px;color:var(--muted);margin-top:4px">${act.description||''}</p>
           ${act.astuce?`<p style="font-size:11px;color:var(--purple);margin-top:6px">💡 ${act.astuce}</p>`:''}
-        </div>`; return;
+        </div>`;return;
       }
-      if (act.type==='hotel') {
-        html += `<div class="act-card" style="border-color:#a78bfa44;background:#a78bfa0d;cursor:default">
+      if(act.type==='hotel'){
+        html+=`<div class="act-card" style="border-color:#a78bfa44;background:#a78bfa0d;cursor:default">
           <div style="font-size:20px">🏨</div>
           <div style="flex:1">
             <div style="display:flex;justify-content:space-between"><span style="font-weight:600;font-size:14px;color:var(--purple)">${act.titre}</span>${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}</div>
             <p style="font-size:12px;color:var(--muted);margin-top:3px">${act.description||''}</p>
-            ${act.adresse?`<p style="font-size:11px;color:var(--purple);margin-top:4px">📍 ${act.adresse}</p>`:''}
+            ${act.adresse?`<a href="https://maps.apple.com/?q=${encodeURIComponent(act.adresse)}" target="_blank" style="font-size:11px;color:var(--purple);text-decoration:none;margin-top:4px;display:block">📍 ${act.adresse}</a>`:''}
             ${act.astuce?`<p style="font-size:11px;color:var(--muted);margin-top:4px">💡 ${act.astuce}</p>`:''}
           </div><span class="tag-purple" style="font-size:10px">🏨</span>
-        </div>`; return;
+        </div>`;return;
       }
-      if (act.type==='voiture'||act.type==='trajet') {
-        html += `<div class="trajet-card">
+      if(act.type==='voiture'||act.type==='trajet'){
+        html+=`<div class="trajet-card">
           <div style="font-size:20px">🚗</div>
           <div style="flex:1">
             <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px;color:var(--sky)">${act.titre}</span>${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}</div>
             <p style="font-size:12px;color:var(--muted);margin-top:3px">${act.description||''}</p>
-            ${act.duree?`<p style="font-size:11px;color:var(--sky);margin-top:4px">⌛ Durée estimée : ${act.duree}</p>`:''}
+            ${act.duree?`<p style="font-size:11px;color:var(--sky);margin-top:4px">⌛ ${act.duree}</p>`:''}
             ${act.astuce?`<p style="font-size:11px;color:var(--muted);margin-top:4px">💡 ${act.astuce}</p>`:''}
           </div><span class="tag-sky" style="font-size:10px">🚗</span>
-        </div>`; return;
+        </div>`;return;
       }
-      if (act.type==='vol') {
-        html += `<div class="act-card flight-card">
+      if(act.type==='vol'){
+        html+=`<div class="act-card flight-card">
           <div style="font-size:20px">✈️</div>
           <div style="flex:1;min-width:0">
             <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px;color:var(--sky)">${act.titre}</span>${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}</div>
             <p style="font-size:12px;color:var(--muted);margin-top:3px">${act.description||''}</p>
             ${act.astuce?`<p style="font-size:11px;color:var(--sky);margin-top:5px">💡 ${act.astuce}</p>`:''}
           </div><span class="tag-sky" style="font-size:10px;padding:2px 8px">Vol</span>
-        </div>`; return;
+        </div>`;return;
       }
-      // Activité normale
-      const zIdx   = zones.indexOf(act.zone);
-      const zColor = zIdx>=0 ? ZONE_COLORS[zIdx%ZONE_COLORS.length] : 'var(--teal)';
-      const isSel  = selected.includes(act.idx);
-      html += `<div class="act-card ${isSel?'sel':''}" onclick="toggleAct(${act.idx})">
-        <div style="font-size:20px">${EMOJI_MAP[act.type]||'📍'}</div>
+
+      // Activité normale / attraction pass
+      const isPass=!!act.passName;
+      const zIdx=zones.indexOf(act.zone);
+      const zColor=zIdx>=0?ZONE_COLORS[zIdx%ZONE_COLORS.length]:'var(--teal)';
+      const isSel=selected.includes(act.idx);
+      const emoji=act.type==='attraction'?'🎡':(EMOJI_MAP[act.type]||'📍');
+
+      html+=`<div class="act-card ${isSel?'sel':''} ${isPass?'pass-included':''}" onclick="toggleAct(${act.idx})">
+        <div style="font-size:20px">${emoji}</div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-            <div style="flex:1">
+            <div style="flex:1;min-width:0">
               <span style="font-weight:600;font-size:14px">${act.titre}</span>
-              ${act.isUserPlace?'<span style="font-size:10px;background:#f0a50033;color:var(--gold);border:1px solid #f0a50044;border-radius:10px;padding:1px 7px;margin-left:6px">📌 Votre lieu</span>':''}
+              ${act.isUserPlace?'<span style="font-size:10px;background:#f0a50033;color:var(--gold);border:1px solid #f0a50044;border-radius:10px;padding:1px 7px;margin-left:5px">📌 Perso</span>':''}
+              ${isPass?`<span class="inclus-badge" style="margin-left:5px">✅ ${act.passName}</span>`:''}
             </div>
-            <div style="display:flex;gap:5px;flex-shrink:0">
+            <div style="display:flex;gap:5px;flex-shrink:0;align-items:center">
               ${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}
-              ${act.budget?`<span style="font-size:11px;color:var(--gold)">~${act.budget}</span>`:''}
+              ${act.budget?`<span style="font-size:11px;color:${isPass?'#4ade80':'var(--gold)'};font-weight:${isPass?600:400}">${act.budget}</span>`:''}
             </div>
           </div>
           <p style="font-size:12px;color:var(--muted);margin-top:3px">${act.description||''}</p>
           ${act.meilleurMoment?`<div class="best-time">⭐ ${act.meilleurMoment}</div>`:''}
+          ${act.jourCreux?`<div style="background:#00c9a710;border:1px solid #00c9a733;border-radius:6px;padding:5px 10px;margin-top:5px;font-size:11px;color:var(--teal)">📅 Jour idéal : <strong>${act.jourCreux}</strong> — moins de monde</div>`:''}
           ${act.astuce?`<p style="font-size:11px;color:var(--purple);margin-top:5px">💡 ${act.astuce}</p>`:''}
           <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
             ${act.adresse?`<a href="https://maps.apple.com/?q=${encodeURIComponent(act.adresse)}" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none">📍 ${act.adresse}</a>`:''}
@@ -947,60 +1172,52 @@ function renderActivities() {
     });
   });
 
-  document.getElementById("activitiesContainer").innerHTML = html;
-  document.getElementById("selCount").textContent = `${selected.length} activité(s) sélectionnée(s)`;
-  document.getElementById("addCalBtn").innerHTML  = `📅 Ajouter ${selected.length} événement(s) à l'agenda`;
+  document.getElementById("activitiesContainer").innerHTML=html;
+  document.getElementById("selCount").textContent=`${selected.length} activité(s) sélectionnée(s)`;
+  document.getElementById("addCalBtn").innerHTML=`📅 Ajouter ${selected.length} événement(s) à l'agenda`;
 }
 
-function toggleAct(idx) {
-  if (!suggestions) return;
-  const t = suggestions.activites[idx]?.type;
-  if (t==='repos'||t==='vol') return;
-  selected = selected.includes(idx) ? selected.filter(x=>x!==idx) : [...selected,idx];
+function toggleAct(idx){
+  if(!suggestions)return;
+  if(['repos','vol'].includes(suggestions.activites[idx]?.type))return;
+  selected=selected.includes(idx)?selected.filter(x=>x!==idx):[...selected,idx];
   renderActivities();
 }
-function selectAll()  { selected = suggestions.activites.map((_,i)=>i).filter(i=>!['repos','vol'].includes(suggestions.activites[i].type)); renderActivities(); }
-function selectNone() { selected = []; renderActivities(); }
+function selectAll(){selected=suggestions.activites.map((_,i)=>i).filter(i=>!['repos','vol'].includes(suggestions.activites[i].type));renderActivities();}
+function selectNone(){selected=[];renderActivities();}
 
-async function addToCalendar() {
-  if (!selected.length) return;
-  const btn   = document.getElementById("addCalBtn");
-  btn.disabled = true;
-  const toAdd = selected.map(i => suggestions.activites[i]);
-  const done  = [];
-  for (const act of toAdd) {
-    await new Promise(r => setTimeout(r, 200));
+async function addToCalendar(){
+  if(!selected.length)return;
+  const btn=document.getElementById("addCalBtn");
+  btn.disabled=true;
+  const toAdd=selected.map(i=>suggestions.activites[i]);
+  const done=[];
+  for(const act of toAdd){
+    await new Promise(r=>setTimeout(r,200));
     done.push(act.titre);
-    btn.innerHTML = `<span class="spinner"></span> Ajout... (${done.length}/${toAdd.length})`;
+    btn.innerHTML=`<span class="spinner"></span> Ajout... (${done.length}/${toAdd.length})`;
   }
-  const dest = document.getElementById("destination").value;
-  document.getElementById("doneMsg").innerHTML   = `<strong>${done.length}</strong> événement(s) ajouté(s) pour <strong style="color:var(--text)">${dest}</strong>`;
-  document.getElementById("doneList").innerHTML  = done.map(t=>`<div style="display:flex;gap:10px;align-items:center;font-size:12px;margin-bottom:6px"><span style="color:var(--teal)">✓</span><span style="color:var(--muted)">${t}</span></div>`).join('');
+  const dest=document.getElementById("destination").value;
+  document.getElementById("doneMsg").innerHTML=`<strong>${done.length}</strong> événement(s) ajouté(s) pour <strong style="color:var(--text)">${dest}</strong>`;
+  document.getElementById("doneList").innerHTML=done.map(t=>`<div style="display:flex;gap:10px;align-items:center;font-size:12px;margin-bottom:6px"><span style="color:var(--teal)">✓</span><span style="color:var(--muted)">${t}</span></div>`).join('');
   showStep(3);
 }
 
-function resetApp() {
-  interests = []; suggestions = null; selected = [];
-  const ids = ['destination','dateStart','dateEnd','logement',
-    'volAllerDepAero','volAllerArrAero','volAllerNum','volAllerHDep','volAllerHArr','volAllerTerminal','volAllerCompagnie',
-    'volRetDepAero','volRetArrAero','volRetNum','volRetHDep','volRetHArr','volRetTerminal','volRetCompagnie'];
-  ids.forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById("budget").value    = 'moyen';
-  document.getElementById("reposFreq").value = 'auto';
-  addrs=[]; hotels=[]; cars=[]; passes=[];
-  renderAddrs(); renderHotels(); renderCars(); renderPasses(); renderInterests();
+function resetApp(){
+  interests=[];suggestions=null;selected=[];
+  ['destination','dateStart','dateEnd','logement','volAllerDepAero','volAllerArrAero','volAllerNum','volAllerHDep','volAllerHArr','volAllerTerminal','volAllerCompagnie','volRetDepAero','volRetArrAero','volRetNum','volRetHDep','volRetHArr','volRetTerminal','volRetCompagnie']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById("budget").value='moyen';
+  document.getElementById("reposFreq").value='auto';
+  addrs=[];hotels=[];cars=[];passes=[];
+  renderAddrs();renderHotels();renderCars();renderPasses();renderInterests();
   localStorage.removeItem(SAVE_KEY);
   showStep(1);
 }
 
-// ═══════════════════════════════════════════════════
-// UTILITAIRES
-// ═══════════════════════════════════════════════════
-function escHtml(s) {
-  return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function showError(msg) { const e=document.getElementById("errorMsg"); e.textContent=msg; e.classList.remove("hidden"); }
-function hideError()    { document.getElementById("errorMsg").classList.add("hidden"); }
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showError(msg){const e=document.getElementById("errorMsg");e.textContent=msg;e.classList.remove("hidden");}
+function hideError(){document.getElementById("errorMsg").classList.add("hidden");}
 </script>
 </body>
 </html>
