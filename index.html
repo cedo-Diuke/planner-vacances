@@ -62,8 +62,6 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
 .zone-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block}
 .rest-banner{background:linear-gradient(135deg,#fb718515,#7c3aed15);border:1px solid #fb718533;border-radius:10px;padding:16px;text-align:center;margin-bottom:8px}
 .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
-.counter{font-size:11px;color:var(--muted);text-align:right;margin-top:4px}
-/* Vol card */
 .flight-banner{background:linear-gradient(135deg,#38bdf810,#0f1117);border:1px solid #38bdf833;border-radius:12px;padding:16px;margin-bottom:8px}
 .flight-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .flight-airport{text-align:center;flex:1}
@@ -73,6 +71,27 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
 .flight-line{height:1px;width:100%;background:linear-gradient(90deg,#38bdf8,#38bdf833)}
 .section-toggle{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;padding:0;margin-top:6px}
 .section-toggle:hover{color:var(--gold)}
+
+/* ── Item cards (hôtel, voiture, pass) ── */
+.hotel-card,.car-card,.pass-card{
+  background:var(--card2);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;margin-bottom:10px;position:relative;
+}
+.hotel-card{border-color:#a78bfa33}
+.car-card{border-color:#38bdf833}
+.pass-card{border-color:#4ade8033}
+.remove-btn{
+  position:absolute;top:10px;right:10px;
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:20px;line-height:1;padding:0 4px;
+}
+.remove-btn:hover{color:var(--danger)}
+
+/* trajet card */
+.trajet-card{background:var(--card2);border:1px solid #38bdf833;border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}
+
+/* pass badge inline */
+.pass-badge{background:#4ade8022;color:#4ade80;border:1px solid #4ade8033;border-radius:20px;padding:3px 10px;font-size:11px;display:inline-flex;align-items:center}
 </style>
 </head>
 <body>
@@ -84,21 +103,6 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
   </div>
   <p style="color:var(--muted);font-size:13px">Vols · Planning optimisé · Repos · Meilleurs moments · Agenda iPhone</p>
   <div class="steps" id="steps"></div>
-    <div id="groqBanner" style="display:none;background:#4ade8015;border:1px solid #4ade8033;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
-      <div>
-        <p style="font-size:12px;color:#4ade80;font-weight:600">🔑 Clé Groq configurée</p>
-        <p style="font-size:11px;color:var(--muted)">Génération IA active hors Claude</p>
-      </div>
-      <button onclick="removeGroqKey()" style="font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer">Supprimer</button>
-    </div>
-    <div id="groqSetup" style="background:#f0a50010;border:1px solid #f0a50022;border-radius:10px;padding:10px 14px;margin-bottom:14px">
-      <p style="font-size:12px;color:var(--gold);font-weight:600;margin-bottom:6px">🔑 Clé API Groq (gratuit)</p>
-      <div style="display:flex;gap:8px">
-        <input id="groqKeyInput" placeholder="gsk_..." type="password" style="flex:1;font-size:13px">
-        <button onclick="saveGroqKey()" class="btn btn-ghost btn-sm">Sauvegarder</button>
-      </div>
-      <p style="font-size:10px;color:var(--muted);margin-top:4px">console.groq.com → API Keys → Create. Reste sur votre iPhone uniquement.</p>
-    </div>
 
   <!-- STEP 1 -->
   <div id="step1" class="fade-up">
@@ -110,7 +114,6 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
         <button class="section-toggle" onclick="toggleFlights()"><span id="flightToggleIcon">▼</span> <span id="flightToggleLabel">Masquer</span></button>
       </div>
       <div id="flightsSection">
-        <!-- VOL ALLER -->
         <div style="margin-bottom:16px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
             <div style="width:8px;height:8px;border-radius:50%;background:var(--sky)"></div>
@@ -118,45 +121,21 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
           </div>
           <div style="display:flex;flex-direction:column;gap:10px">
             <div class="row-2">
-              <div>
-                <label class="label">Aéroport départ</label>
-                <input id="volAllerDepAero" placeholder="Ex: CDG, Paris Charles de Gaulle">
-              </div>
-              <div>
-                <label class="label">Aéroport arrivée</label>
-                <input id="volAllerArrAero" placeholder="Ex: FCO, Rome Fiumicino">
-              </div>
+              <div><label class="label">Aéroport départ</label><input id="volAllerDepAero" placeholder="Ex: CDG, Paris Charles de Gaulle"></div>
+              <div><label class="label">Aéroport arrivée</label><input id="volAllerArrAero" placeholder="Ex: FCO, Rome Fiumicino"></div>
             </div>
             <div class="row-3">
-              <div>
-                <label class="label">N° de vol</label>
-                <input id="volAllerNum" placeholder="Ex: AF1234">
-              </div>
-              <div>
-                <label class="label">Heure départ</label>
-                <input id="volAllerHDep" type="time">
-              </div>
-              <div>
-                <label class="label">Heure arrivée</label>
-                <input id="volAllerHArr" type="time">
-              </div>
+              <div><label class="label">N° de vol</label><input id="volAllerNum" placeholder="Ex: AF1234"></div>
+              <div><label class="label">Heure départ</label><input id="volAllerHDep" type="time"></div>
+              <div><label class="label">Heure arrivée</label><input id="volAllerHArr" type="time"></div>
             </div>
             <div class="row-2">
-              <div>
-                <label class="label">Terminal (optionnel)</label>
-                <input id="volAllerTerminal" placeholder="Ex: Terminal 2E">
-              </div>
-              <div>
-                <label class="label">Compagnie</label>
-                <input id="volAllerCompagnie" placeholder="Ex: Air France">
-              </div>
+              <div><label class="label">Terminal (optionnel)</label><input id="volAllerTerminal" placeholder="Ex: Terminal 2E"></div>
+              <div><label class="label">Compagnie</label><input id="volAllerCompagnie" placeholder="Ex: Air France"></div>
             </div>
           </div>
         </div>
-
         <div style="height:1px;background:var(--border);margin-bottom:16px"></div>
-
-        <!-- VOL RETOUR -->
         <div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
             <div style="width:8px;height:8px;border-radius:50%;background:#fb923c"></div>
@@ -164,38 +143,17 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
           </div>
           <div style="display:flex;flex-direction:column;gap:10px">
             <div class="row-2">
-              <div>
-                <label class="label">Aéroport départ</label>
-                <input id="volRetDepAero" placeholder="Ex: FCO, Rome Fiumicino">
-              </div>
-              <div>
-                <label class="label">Aéroport arrivée</label>
-                <input id="volRetArrAero" placeholder="Ex: CDG, Paris Charles de Gaulle">
-              </div>
+              <div><label class="label">Aéroport départ</label><input id="volRetDepAero" placeholder="Ex: FCO, Rome Fiumicino"></div>
+              <div><label class="label">Aéroport arrivée</label><input id="volRetArrAero" placeholder="Ex: CDG, Paris Charles de Gaulle"></div>
             </div>
             <div class="row-3">
-              <div>
-                <label class="label">N° de vol</label>
-                <input id="volRetNum" placeholder="Ex: AF1235">
-              </div>
-              <div>
-                <label class="label">Heure départ</label>
-                <input id="volRetHDep" type="time">
-              </div>
-              <div>
-                <label class="label">Heure arrivée</label>
-                <input id="volRetHArr" type="time">
-              </div>
+              <div><label class="label">N° de vol</label><input id="volRetNum" placeholder="Ex: AF1235"></div>
+              <div><label class="label">Heure départ</label><input id="volRetHDep" type="time"></div>
+              <div><label class="label">Heure arrivée</label><input id="volRetHArr" type="time"></div>
             </div>
             <div class="row-2">
-              <div>
-                <label class="label">Terminal (optionnel)</label>
-                <input id="volRetTerminal" placeholder="Ex: Terminal 1">
-              </div>
-              <div>
-                <label class="label">Compagnie</label>
-                <input id="volRetCompagnie" placeholder="Ex: Air France">
-              </div>
+              <div><label class="label">Terminal (optionnel)</label><input id="volRetTerminal" placeholder="Ex: Terminal 1"></div>
+              <div><label class="label">Compagnie</label><input id="volRetCompagnie" placeholder="Ex: Air France"></div>
             </div>
           </div>
         </div>
@@ -206,26 +164,13 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
     <div class="card">
       <h2 style="margin-bottom:16px">🗺️ Informations du voyage</h2>
       <div style="display:flex;flex-direction:column;gap:12px">
-        <div>
-          <label class="label">Destination *</label>
-          <input id="destination" placeholder="Ex: Rome, Barcelone, Tokyo...">
-        </div>
+        <div><label class="label">Destination *</label><input id="destination" placeholder="Ex: Rome, Barcelone, Tokyo..."></div>
         <div class="row-2">
-          <div>
-            <label class="label">Arrivée *</label>
-            <input id="dateStart" type="date">
-          </div>
-          <div>
-            <label class="label">Départ *</label>
-            <input id="dateEnd" type="date">
-          </div>
+          <div><label class="label">Arrivée *</label><input id="dateStart" type="date"></div>
+          <div><label class="label">Départ *</label><input id="dateEnd" type="date"></div>
         </div>
-        <div>
-          <label class="label">Logement (optionnel)</label>
-          <input id="logement" placeholder="Hôtel, Airbnb, adresse...">
-        </div>
-        <div>
-          <label class="label">Budget</label>
+        <div><label class="label">Logement (optionnel)</label><input id="logement" placeholder="Hôtel, Airbnb, adresse..."></div>
+        <div><label class="label">Budget</label>
           <select id="budget">
             <option value="petit">Petit budget (économique)</option>
             <option value="moyen" selected>Budget moyen (confortable)</option>
@@ -235,7 +180,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
       </div>
     </div>
 
-    <!-- PASS & ABONNEMENTS -->
+    <!-- PASS -->
     <div class="card" style="border-color:#4ade8033">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <h2 style="color:#4ade80">🎡 Pass & Abonnements</h2>
@@ -279,8 +224,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
     <div class="card">
       <h2 style="margin-bottom:10px">😴 Jours de repos</h2>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <div>
-          <label class="label">Fréquence</label>
+        <div><label class="label">Fréquence</label>
           <select id="reposFreq">
             <option value="aucun">Pas de jour de repos</option>
             <option value="auto" selected>Automatique (recommandé par l'IA)</option>
@@ -289,8 +233,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
             <option value="5">1 repos tous les 5 jours</option>
           </select>
         </div>
-        <div>
-          <label class="label">Type de repos</label>
+        <div><label class="label">Type de repos</label>
           <select id="reposType">
             <option value="libre">Journée libre (plage, shopping, flâner)</option>
             <option value="leger">Programme léger (1-2 activités tranquilles)</option>
@@ -312,7 +255,6 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
 
   <!-- STEP 2 -->
   <div id="step2" class="hidden fade-up">
-    <!-- Résumé vols -->
     <div id="flightSummary" class="hidden" style="margin-bottom:14px"></div>
     <div class="card" id="planHeader" style="border-color:#f0a50044;margin-bottom:14px"></div>
     <div id="zonesLegend" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
@@ -327,7 +269,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
     <div id="tipsCard" class="card hidden" style="border-color:#f0a50033;margin-bottom:16px"></div>
     <div style="display:flex;gap:10px">
       <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="goBack()">← Modifier</button>
-      <button class="btn btn-teal" style="flex:2;justify-content:center" id="addCalBtn" onclick="addToCalendar()">📅 Ajouter à l’agenda</button>
+      <button class="btn btn-teal" style="flex:2;justify-content:center" id="addCalBtn" onclick="addToCalendar()">📅 Ajouter à l'agenda</button>
     </div>
   </div>
 
@@ -352,30 +294,52 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
     </div>
   </div>
 
-</div>
+</div><!-- /#app -->
+
 <script>
-const ZONE_COLORS=["#f0a500","#00c9a7","#a78bfa","#ff6b6b","#38bdf8","#fb923c","#4ade80","#f472b6"];
-const EMOJI_MAP={hotel:"🏨",transport:"✈️",activity:"🎯",restaurant:"🍽️",visit:"🗺️",info:"💡",repos:"😴",vol:"✈️"};
-const INTERESTS_LIST=["Culture & Musées","Gastronomie","Nature & Randonnée","Plage","Shopping","Architecture","Sport & Aventure","Nightlife"];
-let interests=[],suggestions=null,selected=[],currentStep=1,flightsVisible=true,hotels=[],cars=[],passes=[];
+// ═══════════════════════════════════════════════════
+// ÉTAT GLOBAL — toutes les variables partagées ici
+// ═══════════════════════════════════════════════════
+const ZONE_COLORS = ["#f0a500","#00c9a7","#a78bfa","#ff6b6b","#38bdf8","#fb923c","#4ade80","#f472b6"];
+const EMOJI_MAP   = {hotel:"🏨",transport:"✈️",activity:"🎯",restaurant:"🍽️",visit:"🗺️",info:"💡",repos:"😴",vol:"✈️"};
+const INTERESTS_LIST = ["Culture & Musées","Gastronomie","Nature & Randonnée","Plage","Shopping","Architecture","Sport & Aventure","Nightlife"];
+const GROQ_KEY = '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';
+const GROQ_URL  = 'https://api.groq.com/openai/v1/chat/completions';
+const SAVE_KEY  = 'planner_vacances_v2';
 
-renderInterests();renderAddrs();renderHotels();renderCars();renderPasses();renderSteps();
-// Load saved data on startup
-loadAll();checkGroqKey();
-// Autosave on any input change
-document.addEventListener('input', ()=>saveAll());
-document.addEventListener('change', ()=>saveAll());
+let interests  = [];
+let suggestions = null;
+let selected   = [];
+let currentStep = 1;
+let flightsVisible = true;
 
-function toggleFlights(){
-  flightsVisible=!flightsVisible;
-  document.getElementById("flightsSection").classList.toggle("hidden",!flightsVisible);
-  document.getElementById("flightToggleIcon").textContent=flightsVisible?"▼":"▶";
-  document.getElementById("flightToggleLabel").textContent=flightsVisible?"Masquer":"Afficher";
-}
+// Tableaux — GLOBAUX, modifiés par add/remove/update
+let hotels = [];
+let cars   = [];
+let passes = [];
+let addrs  = [];
 
-function renderSteps(){
-  const labels=["Vols & Lieux","Planning IA","Agenda"];
-  document.getElementById("steps").innerHTML=labels.map((s,i)=>`
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+renderInterests();
+renderAddrs();
+renderHotels();
+renderCars();
+renderPasses();
+renderSteps();
+loadAll();
+
+// Autosave sur toute modification de champ
+document.addEventListener('input',  () => saveAll());
+document.addEventListener('change', () => saveAll());
+
+// ═══════════════════════════════════════════════════
+// STEPS
+// ═══════════════════════════════════════════════════
+function renderSteps() {
+  const labels = ["Vols & Lieux","Planning IA","Agenda"];
+  document.getElementById("steps").innerHTML = labels.map((s,i) => `
     <div style="display:flex;align-items:center;gap:8px">
       <div class="step-dot" style="background:${currentStep>i+1?'var(--teal)':currentStep===i+1?'var(--gold)':'var(--border)'};color:${currentStep>i+1?'#001a16':currentStep===i+1?'#1a1100':'var(--muted)'}">
         ${currentStep>i+1?'✓':i+1}
@@ -386,361 +350,477 @@ function renderSteps(){
   `).join('');
 }
 
-function renderInterests(){
-  document.getElementById("interestsContainer").innerHTML=INTERESTS_LIST.map(int=>`
-    <button class="interest-btn ${interests.includes(int)?'active':''}" onclick="toggleInterest('${int}')">${interests.includes(int)?'✓ ':''}${int}</button>
-  `).join('');
+function showStep(n) {
+  currentStep = n;
+  ["step1","step2","step3"].forEach((id,i) =>
+    document.getElementById(id).classList.toggle("hidden", n!==i+1));
+  renderSteps();
+  window.scrollTo({top:0,behavior:'smooth'});
 }
-let addrs=[];
-function addAddr(){addrs.push('');renderAddrs();}
-function removeAddr(i){addrs.splice(i,1);renderAddrs();}
-function renderAddrs(){
-  const zoneColors=['#f0a500','#00c9a7','#a78bfa','#ff6b6b','#38bdf8','#fb923c','#4ade80','#f472b6'];
-  const el=document.getElementById('addrContainer');
-  if(!addrs.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun lieu ajouté</p>';return;}
-  el.innerHTML=addrs.map((a,i)=>`
+function goBack()  { showStep(1); }
+
+// ═══════════════════════════════════════════════════
+// VOLS
+// ═══════════════════════════════════════════════════
+function toggleFlights() {
+  flightsVisible = !flightsVisible;
+  document.getElementById("flightsSection").classList.toggle("hidden",!flightsVisible);
+  document.getElementById("flightToggleIcon").textContent  = flightsVisible?"▼":"▶";
+  document.getElementById("flightToggleLabel").textContent = flightsVisible?"Masquer":"Afficher";
+}
+
+function getFlightData() {
+  const g = id => (document.getElementById(id)||{}).value||'';
+  return {
+    aller:  { depAero:g("volAllerDepAero"), arrAero:g("volAllerArrAero"), num:g("volAllerNum"),
+              hDep:g("volAllerHDep"), hArr:g("volAllerHArr"), terminal:g("volAllerTerminal"), compagnie:g("volAllerCompagnie") },
+    retour: { depAero:g("volRetDepAero"),   arrAero:g("volRetArrAero"),   num:g("volRetNum"),
+              hDep:g("volRetHDep"),   hArr:g("volRetHArr"),   terminal:g("volRetTerminal"),   compagnie:g("volRetCompagnie") }
+  };
+}
+
+// ═══════════════════════════════════════════════════
+// CENTRES D'INTÉRÊT
+// ═══════════════════════════════════════════════════
+function renderInterests() {
+  document.getElementById("interestsContainer").innerHTML = INTERESTS_LIST.map(int => `
+    <button class="interest-btn ${interests.includes(int)?'active':''}" onclick="toggleInterest('${int}')">
+      ${interests.includes(int)?'✓ ':''}${int}
+    </button>`).join('');
+}
+function toggleInterest(int) {
+  interests = interests.includes(int) ? interests.filter(x=>x!==int) : [...interests,int];
+  renderInterests();
+  saveAll();
+}
+
+// ═══════════════════════════════════════════════════
+// ADRESSES
+// ═══════════════════════════════════════════════════
+function addAddr()         { addrs.push(''); renderAddrs(); saveAll(); }
+function removeAddr(i)     { addrs.splice(i,1); renderAddrs(); saveAll(); }
+function updateAddr(i,val) { addrs[i] = val; saveAll(); }
+
+function renderAddrs() {
+  const el = document.getElementById('addrContainer');
+  if (!addrs.length) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun lieu ajouté — cliquez sur + Ajouter</p>';
+    return;
+  }
+  el.innerHTML = addrs.map((a,i) => `
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-      <div style="width:26px;height:26px;border-radius:50%;background:${zoneColors[i%zoneColors.length]}33;border:2px solid ${zoneColors[i%zoneColors.length]};color:${zoneColors[i%zoneColors.length]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</div>
-      <input placeholder="Ex: Universal Studios, Los Angeles" value="${a}" oninput="addrs[${i}]=this.value;saveAll()" style="flex:1">
-      ${addrs.length>1?`<button onclick="removeAddr(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0 4px">×</button>`:''}
-    </div>
-  `).join('');
+      <div style="width:26px;height:26px;border-radius:50%;background:${ZONE_COLORS[i%ZONE_COLORS.length]}33;border:2px solid ${ZONE_COLORS[i%ZONE_COLORS.length]};color:${ZONE_COLORS[i%ZONE_COLORS.length]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</div>
+      <input placeholder="Ex: Colosseum, Via Sacra, Rome" value="${escHtml(a)}"
+        oninput="updateAddr(${i},this.value)" style="flex:1">
+      <button onclick="removeAddr(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:0 4px">×</button>
+    </div>`).join('');
 }
-function updateCounter(){
-  // kept for compatibility
-}
-function addHotel(){
+
+// ═══════════════════════════════════════════════════
+// HÔTELS
+// ═══════════════════════════════════════════════════
+function addHotel() {
   hotels.push({nom:'',adresse:'',checkin:'',checkout:''});
   renderHotels();
+  saveAll();
 }
-function removeHotel(i){hotels.splice(i,1);renderHotels();}
-function updateHotel(i,field,val){hotels[i][field]=val;}
-function renderHotels(){
-  const c=document.getElementById("hotelsContainer");
-  if(!hotels.length){c.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun hôtel ajouté</p>';return;}
-  c.innerHTML=hotels.map((h,i)=>`
+function removeHotel(i) { hotels.splice(i,1); renderHotels(); saveAll(); }
+function updateHotel(i,field,val) { if(hotels[i]) hotels[i][field]=val; saveAll(); }
+
+function renderHotels() {
+  const c = document.getElementById("hotelsContainer");
+  if (!hotels.length) {
+    c.innerHTML = '<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun hôtel — cliquez sur + Ajouter</p>';
+    return;
+  }
+  c.innerHTML = hotels.map((h,i) => `
     <div class="hotel-card">
       <button class="remove-btn" onclick="removeHotel(${i})">×</button>
       <div style="display:flex;flex-direction:column;gap:8px">
-        <div><label class="label">Nom de l’hôtel</label>
-          <input placeholder="Ex: Hotel Colosseo" value="${h.nom}" oninput="updateHotel(${i},'nom',this.value)">
-        </div>
+        <div><label class="label">Nom de l'hôtel</label>
+          <input placeholder="Ex: Hotel Colosseo" value="${escHtml(h.nom)}"
+            oninput="updateHotel(${i},'nom',this.value)"></div>
         <div><label class="label">Adresse</label>
-          <input placeholder="Ex: Via Labicana 144, Rome" value="${h.adresse}" oninput="updateHotel(${i},'adresse',this.value)">
-        </div>
+          <input placeholder="Ex: Via Labicana 144, Rome" value="${escHtml(h.adresse)}"
+            oninput="updateHotel(${i},'adresse',this.value)"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div><label class="label">Check-in</label>
-            <input type="date" value="${h.checkin}" oninput="updateHotel(${i},'checkin',this.value)">
-          </div>
+            <input type="date" value="${h.checkin}" oninput="updateHotel(${i},'checkin',this.value)"></div>
           <div><label class="label">Check-out</label>
-            <input type="date" value="${h.checkout}" oninput="updateHotel(${i},'checkout',this.value)">
-          </div>
+            <input type="date" value="${h.checkout}" oninput="updateHotel(${i},'checkout',this.value)"></div>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
-function addCar(){
+
+// ═══════════════════════════════════════════════════
+// VOITURES
+// ═══════════════════════════════════════════════════
+function addCar() {
   cars.push({agence:'',lieuPrise:'',lieuRetour:'',datePrise:'',dateRetour:'',type:'',trajets:''});
   renderCars();
+  saveAll();
 }
-function removeCar(i){cars.splice(i,1);renderCars();}
-function updateCar(i,field,val){cars[i][field]=val;}
-function renderCars(){
-  const el=document.getElementById("carsContainer");
-  if(!cars.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucune voiture ajoutée</p>';return;}
-  el.innerHTML=cars.map((car,i)=>`
+function removeCar(i) { cars.splice(i,1); renderCars(); saveAll(); }
+function updateCar(i,field,val) { if(cars[i]) cars[i][field]=val; saveAll(); }
+
+function renderCars() {
+  const el = document.getElementById("carsContainer");
+  if (!cars.length) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucune voiture — cliquez sur + Ajouter</p>';
+    return;
+  }
+  el.innerHTML = cars.map((car,i) => `
     <div class="car-card">
       <button class="remove-btn" onclick="removeCar(${i})">×</button>
       <div style="display:flex;flex-direction:column;gap:8px">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div><label class="label">Agence</label>
-            <input placeholder="Ex: Hertz, Avis..." value="${car.agence}" oninput="updateCar(${i},'agence',this.value)">
-          </div>
+            <input placeholder="Ex: Hertz, Avis..." value="${escHtml(car.agence)}"
+              oninput="updateCar(${i},'agence',this.value)"></div>
           <div><label class="label">Type de véhicule</label>
-            <input placeholder="Ex: SUV, Berline..." value="${car.type}" oninput="updateCar(${i},'type',this.value)">
-          </div>
+            <input placeholder="Ex: SUV, Berline..." value="${escHtml(car.type)}"
+              oninput="updateCar(${i},'type',this.value)"></div>
         </div>
         <div><label class="label">Lieu de prise en charge</label>
-          <input placeholder="Ex: Aéroport LAX, Los Angeles" value="${car.lieuPrise}" oninput="updateCar(${i},'lieuPrise',this.value)">
-        </div>
+          <input placeholder="Ex: Aéroport LAX, Los Angeles" value="${escHtml(car.lieuPrise)}"
+            oninput="updateCar(${i},'lieuPrise',this.value)"></div>
         <div><label class="label">Lieu de restitution</label>
-          <input placeholder="Ex: Aéroport LAX (aller-retour) ou autre ville" value="${car.lieuRetour}" oninput="updateCar(${i},'lieuRetour',this.value)">
-        </div>
+          <input placeholder="Ex: Aéroport LAX (aller-retour)" value="${escHtml(car.lieuRetour)}"
+            oninput="updateCar(${i},'lieuRetour',this.value)"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div><label class="label">Date de prise</label>
-            <input type="date" value="${car.datePrise}" oninput="updateCar(${i},'datePrise',this.value)">
-          </div>
+            <input type="date" value="${car.datePrise}" oninput="updateCar(${i},'datePrise',this.value)"></div>
           <div><label class="label">Date de restitution</label>
-            <input type="date" value="${car.dateRetour}" oninput="updateCar(${i},'dateRetour',this.value)">
-          </div>
+            <input type="date" value="${car.dateRetour}" oninput="updateCar(${i},'dateRetour',this.value)"></div>
         </div>
         <div><label class="label">Trajets prévus (optionnel)</label>
-          <input placeholder="Ex: LA → San Francisco → Las Vegas → LA" value="${car.trajets}" oninput="updateCar(${i},'trajets',this.value)">
-        </div>
+          <input placeholder="Ex: LA → San Francisco → Las Vegas → LA" value="${escHtml(car.trajets)}"
+            oninput="updateCar(${i},'trajets',this.value)"></div>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
-function addPass(){
-  passes.push({nom:'',type:'illimite',nbEntrees:'',dateDebut:'',dateFin:'',inclus:''});
+
+// ═══════════════════════════════════════════════════
+// PASS
+// ═══════════════════════════════════════════════════
+function addPass() {
+  passes.push({nom:'',type:'illimite',nbEntrees:'',dateDebut:'',dateFin:'',inclus:'',moment:''});
   renderPasses();
+  saveAll();
 }
-function removePass(i){passes.splice(i,1);renderPasses();}
-function updatePass(i,field,val){passes[i][field]=val;renderPasses();}
-function renderPasses(){
-  const el=document.getElementById("passesContainer");
-  if(!passes.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun pass ajouté</p>';return;}
-  el.innerHTML=passes.map((p,i)=>`
+function removePass(i) { passes.splice(i,1); renderPasses(); saveAll(); }
+function updatePass(i,field,val) { if(passes[i]) { passes[i][field]=val; renderPasses(); saveAll(); } }
+
+function renderPasses() {
+  const el = document.getElementById("passesContainer");
+  if (!passes.length) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun pass — cliquez sur + Ajouter</p>';
+    return;
+  }
+  el.innerHTML = passes.map((p,i) => `
     <div class="pass-card">
       <button class="remove-btn" onclick="removePass(${i})">×</button>
       <div style="display:flex;flex-direction:column;gap:8px">
         <div><label class="label">Nom du pass / attraction</label>
-          <input placeholder="Ex: CityPASS Los Angeles, SeaWorld..." value="${p.nom}" oninput="passes[${i}].nom=this.value">
-        </div>
+          <input placeholder="Ex: CityPASS Los Angeles, SeaWorld..." value="${escHtml(p.nom)}"
+            oninput="updatePass(${i},'nom',this.value)"></div>
         <div><label class="label">Type</label>
           <select onchange="updatePass(${i},'type',this.value)">
             <option value="illimite" ${p.type==='illimite'?'selected':''}>♾️ Illimité (entrées illimitées)</option>
-            <option value="limite" ${p.type==='limite'?'selected':''}>🎟️ Limité (nombre d’entrées fixe)</option>
-            <option value="multi" ${p.type==='multi'?'selected':''}>🎡 Multi-attractions (X attractions incluses)</option>
-          </select>
-        </div>
-        ${p.type!=='illimite'?`<div><label class="label">${p.type==='limite'?'Nombre d\u2019entr\u00e9es':'Nombre d\u2019attractions incluses'}</label>
-          <input type="number" placeholder="Ex: 3" value="${p.nbEntrees}" oninput="passes[${i}].nbEntrees=this.value" min="1">
-        </div>`:''}
+            <option value="limite"   ${p.type==='limite'?'selected':''}>🎟️ Limité (nombre d'entrées fixe)</option>
+            <option value="multi"    ${p.type==='multi'?'selected':''}>🎡 Multi-attractions (X attractions incluses)</option>
+          </select></div>
+        ${p.type!=='illimite'?`<div><label class="label">${p.type==='limite'?"Nombre d'entrées":"Nombre d'attractions incluses"}</label>
+          <input type="number" placeholder="Ex: 3" value="${p.nbEntrees||''}"
+            oninput="updatePass(${i},'nbEntrees',this.value)" min="1"></div>`:''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div><label class="label">Valable du</label>
-            <input type="date" value="${p.dateDebut}" oninput="passes[${i}].dateDebut=this.value">
-          </div>
+            <input type="date" value="${p.dateDebut||''}" oninput="updatePass(${i},'dateDebut',this.value)"></div>
           <div><label class="label">Au</label>
-            <input type="date" value="${p.dateFin}" oninput="passes[${i}].dateFin=this.value">
-          </div>
+            <input type="date" value="${p.dateFin||''}"   oninput="updatePass(${i},'dateFin',this.value)"></div>
         </div>
         <div><label class="label">Ce qui est inclus (optionnel)</label>
-          <input placeholder="Ex: Universal, Getty Museum, Warner Bros..." value="${p.inclus}" oninput="passes[${i}].inclus=this.value">
-        </div>
+          <input placeholder="Ex: Universal, Getty Museum, Warner Bros..." value="${escHtml(p.inclus)}"
+            oninput="updatePass(${i},'inclus',this.value)"></div>
         <div><label class="label">⭐ Meilleur moment de visite</label>
-          <select onchange="passes[${i}].moment=this.value;saveAll()">
-            <option value="" ${!p.moment?'selected':''}>🤖 IA décide</option>
-            <option value="matin" ${p.moment==='matin'?'selected':''}>🌅 Matin</option>
-            <option value="aprem" ${p.moment==='aprem'?'selected':''}>☀️ Après-midi</option>
+          <select onchange="updatePass(${i},'moment',this.value)">
+            <option value=""        ${!p.moment?'selected':''}>🤖 IA décide</option>
+            <option value="matin"   ${p.moment==='matin'?'selected':''}>🌅 Matin</option>
+            <option value="aprem"   ${p.moment==='aprem'?'selected':''}>☀️ Après-midi</option>
             <option value="findaprem" ${p.moment==='findaprem'?'selected':''}>🌇 Fin après-midi</option>
             <option value="journee" ${p.moment==='journee'?'selected':''}>🌞 Journée entière</option>
-            <option value="soir" ${p.moment==='soir'?'selected':''}>🌆 Soirée</option>
-            <option value="flexible" ${p.moment==='flexible'?'selected':''}>🔄 Flexible / plusieurs fois</option>
-          </select>
-        </div>
+            <option value="soir"    ${p.moment==='soir'?'selected':''}>🌆 Soirée</option>
+            <option value="flexible"${p.moment==='flexible'?'selected':''}>🔄 Flexible / plusieurs fois</option>
+          </select></div>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
-function updateCounter(){ /* no-op */ }
-function toggleInterest(int){
-  interests=interests.includes(int)?interests.filter(x=>x!==int):[...interests,int];
-  renderInterests();
-}
-function showStep(n){
-  currentStep=n;
-  ["step1","step2","step3"].forEach((id,i)=>document.getElementById(id).classList.toggle("hidden",n!==i+1));
-  renderSteps();window.scrollTo({top:0,behavior:'smooth'});
-}
-function goBack(){showStep(1);}
-function selectAll(){selected=suggestions.activites.filter(a=>a.type!=='repos').map((_,i)=>i);renderActivities();}
-function selectNone(){selected=[];renderActivities();}
 
-function getFlightData(){
+// ═══════════════════════════════════════════════════
+// SAUVEGARDE LOCALE
+// ═══════════════════════════════════════════════════
+function getFormVals() {
+  const g = id => { const el=document.getElementById(id); return el?el.value:''; };
   return {
-    aller:{
-      depAero:document.getElementById("volAllerDepAero").value.trim(),
-      arrAero:document.getElementById("volAllerArrAero").value.trim(),
-      num:document.getElementById("volAllerNum").value.trim(),
-      hDep:document.getElementById("volAllerHDep").value,
-      hArr:document.getElementById("volAllerHArr").value,
-      terminal:document.getElementById("volAllerTerminal").value.trim(),
-      compagnie:document.getElementById("volAllerCompagnie").value.trim(),
-    },
-    retour:{
-      depAero:document.getElementById("volRetDepAero").value.trim(),
-      arrAero:document.getElementById("volRetArrAero").value.trim(),
-      num:document.getElementById("volRetNum").value.trim(),
-      hDep:document.getElementById("volRetHDep").value,
-      hArr:document.getElementById("volRetHArr").value,
-      terminal:document.getElementById("volRetTerminal").value.trim(),
-      compagnie:document.getElementById("volRetCompagnie").value.trim(),
-    }
+    destination: g('destination'), dateStart: g('dateStart'), dateEnd: g('dateEnd'),
+    logement: g('logement'), budget: g('budget'),
+    reposFreq: g('reposFreq'), reposType: g('reposType'),
+    volAllerNum: g('volAllerNum'), volAllerDepAero: g('volAllerDepAero'), volAllerArrAero: g('volAllerArrAero'),
+    volAllerHDep: g('volAllerHDep'), volAllerHArr: g('volAllerHArr'),
+    volAllerTerminal: g('volAllerTerminal'), volAllerCompagnie: g('volAllerCompagnie'),
+    volRetNum: g('volRetNum'), volRetDepAero: g('volRetDepAero'), volRetArrAero: g('volRetArrAero'),
+    volRetHDep: g('volRetHDep'), volRetHArr: g('volRetHArr'),
+    volRetTerminal: g('volRetTerminal'), volRetCompagnie: g('volRetCompagnie'),
   };
 }
 
-function renderFlightSummary(flights, ds, de){
-  const hasAller = flights.aller.num || flights.aller.depAero;
-  const hasRetour = flights.retour.num || flights.retour.depAero;
-  if(!hasAller && !hasRetour){document.getElementById("flightSummary").classList.add("hidden");return;}
-
-  const depIATA = (flights.aller.depAero||'???').substring(0,3).toUpperCase();
-  const arrIATA = (flights.aller.arrAero||'???').substring(0,3).toUpperCase();
-  const retDepIATA = (flights.retour.depAero||arrIATA).substring(0,3).toUpperCase();
-  const retArrIATA = (flights.retour.arrAero||depIATA).substring(0,3).toUpperCase();
-
-  document.getElementById("flightSummary").innerHTML=`
-    <div class="flight-banner">
-      <p style="font-size:11px;color:var(--sky);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">✈️ Vos vols</p>
-      ${hasAller?`
-      <div style="margin-bottom:${hasRetour?'14px':'0'}">
-        <p style="font-size:10px;color:var(--muted);margin-bottom:8px">ALLER · ${ds}</p>
-        <div class="flight-row">
-          <div class="flight-airport">
-            <div class="iata">${depIATA}</div>
-            <div class="city">${flights.aller.depAero||'Départ'}</div>
-            ${flights.aller.hDep?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.aller.hDep}</div>`:''}
-          </div>
-          <div class="flight-arrow">
-            <div style="font-size:10px;color:var(--muted)">${flights.aller.num||''}</div>
-            <div class="flight-line"></div>
-            <div style="font-size:18px">✈️</div>
-            <div class="flight-line"></div>
-            <div style="font-size:10px;color:var(--muted)">${flights.aller.compagnie||''}</div>
-          </div>
-          <div class="flight-airport">
-            <div class="iata">${arrIATA}</div>
-            <div class="city">${flights.aller.arrAero||'Arrivée'}</div>
-            ${flights.aller.hArr?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.aller.hArr}</div>`:''}
-          </div>
-        </div>
-        ${flights.aller.terminal?`<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">🚪 ${flights.aller.terminal}</p>`:''}
-      </div>`:''}
-      ${hasAller&&hasRetour?`<div style="height:1px;background:var(--border);margin-bottom:14px"></div>`:''}
-      ${hasRetour?`
-      <div>
-        <p style="font-size:10px;color:var(--muted);margin-bottom:8px">RETOUR · ${de}</p>
-        <div class="flight-row">
-          <div class="flight-airport">
-            <div class="iata" style="color:#fb923c">${retDepIATA}</div>
-            <div class="city">${flights.retour.depAero||'Départ'}</div>
-            ${flights.retour.hDep?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.retour.hDep}</div>`:''}
-          </div>
-          <div class="flight-arrow">
-            <div style="font-size:10px;color:var(--muted)">${flights.retour.num||''}</div>
-            <div class="flight-line" style="background:linear-gradient(90deg,#fb923c,#fb923c33)"></div>
-            <div style="font-size:18px">✈️</div>
-            <div class="flight-line" style="background:linear-gradient(90deg,#fb923c,#fb923c33)"></div>
-            <div style="font-size:10px;color:var(--muted)">${flights.retour.compagnie||''}</div>
-          </div>
-          <div class="flight-airport">
-            <div class="iata" style="color:#fb923c">${retArrIATA}</div>
-            <div class="city">${flights.retour.arrAero||'Arrivée'}</div>
-            ${flights.retour.hArr?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.retour.hArr}</div>`:''}
-          </div>
-        </div>
-        ${flights.retour.terminal?`<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">🚪 ${flights.retour.terminal}</p>`:''}
-      </div>`:''}
-    </div>
-  `;
-  document.getElementById("flightSummary").classList.remove("hidden");
+function saveAll() {
+  try {
+    const data = {
+      ...getFormVals(),
+      interests, hotels, cars, passes, addrs, suggestions,
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    showSaveIndicator();
+  } catch(e) { console.warn('saveAll error', e); }
 }
 
-async function generatePlan(){
-  const dest=document.getElementById("destination").value.trim();
-  const ds=document.getElementById("dateStart").value;
-  const de=document.getElementById("dateEnd").value;
-  if(!dest||!ds||!de){showError("Veuillez remplir destination et dates.");return;}
-  const btn=document.getElementById("generateBtn");
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Génération du planning...';
+function loadAll() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+
+    // Champs simples
+    const fields = ['destination','dateStart','dateEnd','logement','budget','reposFreq','reposType',
+      'volAllerNum','volAllerDepAero','volAllerArrAero','volAllerHDep','volAllerHArr','volAllerTerminal','volAllerCompagnie',
+      'volRetNum','volRetDepAero','volRetArrAero','volRetHDep','volRetHArr','volRetTerminal','volRetCompagnie'];
+    fields.forEach(f => { const el=document.getElementById(f); if(el && data[f]!==undefined) el.value=data[f]; });
+
+    // Tableaux
+    if (Array.isArray(data.interests)) { interests = data.interests; renderInterests(); }
+    if (Array.isArray(data.hotels))    { hotels    = data.hotels;    renderHotels(); }
+    if (Array.isArray(data.cars))      { cars      = data.cars;      renderCars(); }
+    if (Array.isArray(data.passes))    { passes    = data.passes;    renderPasses(); }
+    if (Array.isArray(data.addrs))     { addrs     = data.addrs;     renderAddrs(); }
+
+    // Planning existant
+    if (data.suggestions) {
+      suggestions = data.suggestions;
+      selected = suggestions.activites
+        .map((_,i) => i)
+        .filter(i => !['repos','vol'].includes(suggestions.activites[i].type));
+    }
+
+    if (data.savedAt) showRestoreBanner(data);
+  } catch(e) { console.warn('loadAll error', e); }
+}
+
+function showSaveIndicator() {
+  let el = document.getElementById('saveIndicator');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'saveIndicator';
+    el.style.cssText = 'position:fixed;bottom:20px;right:16px;background:#00c9a7;color:#001a16;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;z-index:9999;transition:opacity .5s;pointer-events:none';
+    document.body.appendChild(el);
+  }
+  el.textContent = '✅ Sauvegardé';
+  el.style.opacity = '1';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.style.opacity='0', 2000);
+}
+
+function showRestoreBanner(data) {
+  const date = new Date(data.savedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+  let banner = document.getElementById('restoreBanner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'restoreBanner';
+    banner.style.cssText = 'background:#f0a50015;border:1px solid #f0a50033;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px';
+    const form = document.getElementById('step1');
+    if (form) form.insertBefore(banner, form.firstChild);
+  }
+  const dest   = data.destination ? `· ${data.destination}` : '';
+  const hasPlan = data.suggestions ? '· Planning généré ✅' : '';
+  banner.innerHTML = `
+    <div>
+      <p style="font-size:12px;color:#f0a500;font-weight:600">📂 Données restaurées ${dest} ${hasPlan}</p>
+      <p style="font-size:11px;color:#7a7f9a">Dernière sauvegarde : ${date}</p>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+      ${data.suggestions?`<button onclick="showSavedPlanning()" style="background:#00c9a722;border:1px solid #00c9a744;color:#00c9a7;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Voir planning</button>`:''}
+      <button onclick="clearSave()" style="background:#ff6b6b22;border:1px solid #ff6b6b44;color:#ff6b6b;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">Effacer</button>
+    </div>`;
+}
+
+function showSavedPlanning() {
+  if (suggestions) { renderPlan(); showStep(2); }
+}
+
+function clearSave() {
+  localStorage.removeItem(SAVE_KEY);
+  const b = document.getElementById('restoreBanner');
+  if (b) b.remove();
+  suggestions = null;
+}
+
+// ═══════════════════════════════════════════════════
+// GÉNÉRATION IA
+// ═══════════════════════════════════════════════════
+async function generatePlan() {
+  const dest  = (document.getElementById("destination")||{}).value?.trim();
+  const ds    = (document.getElementById("dateStart")||{}).value;
+  const de    = (document.getElementById("dateEnd")||{}).value;
+  if (!dest||!ds||!de) { showError("Veuillez remplir destination et dates."); return; }
+
+  const btn = document.getElementById("generateBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Génération du planning...';
   hideError();
 
-  const flights=getFlightData();
-  const addresses=addrs.filter(a=>a.trim());
-  const logement=document.getElementById("logement").value;
-  const budget=document.getElementById("budget").value;
-  const reposFreq=document.getElementById("reposFreq").value;
-  const reposType=document.getElementById("reposType").value;
-  const nbJours=Math.max(1,Math.round((new Date(de)-new Date(ds))/86400000)+1);
+  const flights    = getFlightData();
+  const addresses  = addrs.filter(a => a.trim());
+  const logement   = (document.getElementById("logement")||{}).value||'';
+  const budget     = (document.getElementById("budget")||{}).value||'moyen';
+  const reposFreq  = (document.getElementById("reposFreq")||{}).value||'auto';
+  const reposType  = (document.getElementById("reposType")||{}).value||'libre';
+  const nbJours    = Math.max(1, Math.round((new Date(de)-new Date(ds))/86400000)+1);
 
-  const filledPasses=passes.filter(p=>p.nom);
-  const passesBlock=filledPasses.length>0?`\nPASS & ABONNEMENTS:\n${filledPasses.map((p,i)=>{
-    const typeLabel=p.type==='illimite'?'ILLIMITÉ (peut y aller autant que voulu)':p.type==='limite'?`LIMITÉ (${p.nbEntrees} entrée(s) seulement - utiliser intelligemment)`:`MULTI-ATTRACTIONS (${p.nbEntrees} attractions incluses)`;
-    const momentTxt=p.moment==='findaprem'?"PLANIFIER EN FIN D'APRES-MIDI (moins de monde, plus frais)":p.moment==='matin'?"PLANIFIER LE MATIN dès l'ouverture":p.moment==='aprem'?"PLANIFIER L'APRES-MIDI":p.moment==='journee'?"JOURNEE ENTIERE - bloquer toute la journée, rien d'autre ce jour-là":p.moment==='soir'?"PLANIFIER EN SOIREE":p.moment==='flexible'?"FLEXIBLE - plusieurs visites possibles":"";
-    return `${i+1}. ${p.nom} | ${typeLabel}${p.dateDebut?' | Valable: '+p.dateDebut+' → '+p.dateFin:''}${p.inclus?' | Inclus: '+p.inclus:''}${momentTxt?' | MOMENT IDEAL: '+momentTxt:''}`;
-  }).join("\n")}\nIMPORTANT PASS: Pour les pass illimités, planifie plusieurs visites sur le séjour. Respecte ABSOLUMENT le moment idéal indiqué. Indique 'INCLUS DANS VOTRE PASS - Entrée gratuite' et budget='Inclus ✅'.`:'';
-  const filledCars=cars.filter(car=>car.lieuPrise||car.agence);
-  const carsBlock=filledCars.length>0?`\nLOCATION VOITURE:\n${filledCars.map((car,i)=>`Voiture ${i+1}: ${car.agence||'Agence inconnue'} - ${car.type||'véhicule'} | Prise: ${car.lieuPrise||'?'} le ${car.datePrise||'?'} | Retour: ${car.lieuRetour||'?'} le ${car.dateRetour||'?'}${car.trajets?' | Trajets: '+car.trajets:''}`).join("\n")}\nIMPORTANT: Bloque des événements type="voiture" pour les jours de trajet inter-villes (prise en charge, trajets longue distance, restitution). Pour chaque trajet, calcule la durée réaliste et indique les pauses recommandées. Ne planifie pas de visites chargées ces jours-là.`:'';
-  const filledHotels=hotels.filter(h=>h.nom||h.adresse);
-  const hotelsBlock=filledHotels.length>0?`\nHÔTELS & LOGEMENTS:\n${filledHotels.map((h,i)=>`${i+1}. ${h.nom||"H\u00f4tel"} - ${h.adresse||"adresse non pr\u00e9cis\u00e9e"} | Check-in: ${h.checkin||'?'} | Check-out: ${h.checkout||'?'}`).join("\n")}\nTiens compte de la localisation des hôtels pour planifier les visites à proximité selon les dates de séjour.`:''
-  const addrBlock=addresses.length>0?`\nADRESSES À VISITER (toutes obligatoires):\n${addresses.map((a,i)=>`${i+1}. ${a}`).join("\n")}`:'';
-  const reposBlock=reposFreq==='aucun'?'\nPas de jour de repos.':reposFreq==='auto'?`\nJOURS DE REPOS: Place des jours de repos de façon optimale sur ${nbJours} jours. Type: ${reposType}.`:`\nJOURS DE REPOS: 1 repos tous les ${reposFreq} jours. Type: ${reposType}.`;
+  const filledPasses = passes.filter(p => p.nom);
+  const filledCars   = cars.filter(car => car.lieuPrise||car.agence);
+  const filledHotels = hotels.filter(h => h.nom||h.adresse);
 
-  const allerInfo=flights.aller.num?`Vol aller: ${flights.aller.num} ${flights.aller.compagnie||''} - Départ ${flights.aller.depAero||''} à ${flights.aller.hDep||'?'} → Arrivée ${flights.aller.arrAero||''} à ${flights.aller.hArr||'?'}${flights.aller.terminal?' ('+flights.aller.terminal+')':''}`:'' ;
-  const retourInfo=flights.retour.num?`Vol retour: ${flights.retour.num} ${flights.retour.compagnie||''} - Départ ${flights.retour.depAero||''} à ${flights.retour.hDep||'?'} → Arrivée ${flights.retour.arrAero||''} à ${flights.retour.hArr||'?'}${flights.retour.terminal?' ('+flights.retour.terminal+')':''}`:'' ;
-  const volBlock=(allerInfo||retourInfo)?`\nINFOS VOLS:\n${allerInfo}\n${retourInfo}\nTiens compte des horaires de vol pour le premier et dernier jour (transfert aéroport, check-in).`:'';
+  const passesBlock = filledPasses.length ? `\nPASS & ABONNEMENTS:\n${filledPasses.map((p,i)=>{
+    const tl = p.type==='illimite'?'ILLIMITÉ':p.type==='limite'?`LIMITÉ (${p.nbEntrees} entrée(s))`:`MULTI (${p.nbEntrees} attractions)`;
+    const ml = p.moment==='findaprem'?"FIN APRÈS-MIDI":p.moment==='matin'?"MATIN":p.moment==='aprem'?"APRÈS-MIDI":p.moment==='journee'?"JOURNÉE ENTIÈRE":p.moment==='soir'?"SOIRÉE":p.moment==='flexible'?"FLEXIBLE":"";
+    return `${i+1}. ${p.nom} | ${tl}${p.dateDebut?' | Valable: '+p.dateDebut+' → '+p.dateFin:''}${p.inclus?' | Inclus: '+p.inclus:''}${ml?' | MOMENT IDÉAL: '+ml:''}`;
+  }).join("\n")}\nIMPORTANT: Respecte ABSOLUMENT le moment idéal. Marque budget='Inclus ✅'.` : '';
 
-  const prompt=`Tu es expert en voyages et optimisation d’itinéraires. Génère un planning de vacances complet.
+  const carsBlock = filledCars.length ? `\nLOCATION VOITURE:\n${filledCars.map((car,i)=>
+    `Voiture ${i+1}: ${car.agence||'?'} ${car.type||''} | Prise: ${car.lieuPrise||'?'} le ${car.datePrise||'?'} | Retour: ${car.lieuRetour||'?'} le ${car.dateRetour||'?'}${car.trajets?' | Trajets: '+car.trajets:''}`
+  ).join("\n")}\nIMPORTANT: Bloque type="voiture" pour prise, trajets inter-villes, restitution.` : '';
+
+  const hotelsBlock = filledHotels.length ? `\nHÔTELS:\n${filledHotels.map((h,i)=>
+    `${i+1}. ${h.nom||'Hôtel'} - ${h.adresse||'?'} | Check-in: ${h.checkin||'?'} | Check-out: ${h.checkout||'?'}`
+  ).join("\n")}\nPlanifie les visites proches géographiquement de chaque hôtel selon les dates.` : '';
+
+  const addrBlock = addresses.length ? `\nADRESSES À VISITER (toutes obligatoires):\n${addresses.map((a,i)=>`${i+1}. ${a}`).join("\n")}` : '';
+  const reposBlock = reposFreq==='aucun' ? '\nPas de jour de repos.' :
+    reposFreq==='auto' ? `\nJOURS DE REPOS: optimaux sur ${nbJours} jours. Type: ${reposType}.` :
+    `\nJOURS DE REPOS: 1 repos tous les ${reposFreq} jours. Type: ${reposType}.`;
+
+  const volBlock = (flights.aller.num||flights.retour.num) ? `\nINFOS VOLS:\n${
+    flights.aller.num?`Vol aller: ${flights.aller.num} ${flights.aller.compagnie||''} - Départ ${flights.aller.depAero||''} ${flights.aller.hDep||''} → Arrivée ${flights.aller.arrAero||''} ${flights.aller.hArr||''}${flights.aller.terminal?' ('+flights.aller.terminal+')':''}`:''
+  }\n${
+    flights.retour.num?`Vol retour: ${flights.retour.num} ${flights.retour.compagnie||''} - Départ ${flights.retour.depAero||''} ${flights.retour.hDep||''} → Arrivée ${flights.retour.arrAero||''} ${flights.retour.hArr||''}${flights.retour.terminal?' ('+flights.retour.terminal+')':''}`:''
+  }\nTiens compte des horaires pour les jours de vol (transfert aéroport 2-3h avant).` : '';
+
+  const prompt = `Tu es expert en voyages et optimisation d'itinéraires. Génère un planning de vacances complet.
 
 DESTINATION: ${dest}
 DATES: ${ds} → ${de} (${nbJours} jour(s))
 LOGEMENT: ${logement||'non précisé'}
 BUDGET: ${budget}
 INTÉRÊTS: ${interests.join(', ')||'général'}
-${volBlock}
-${passesBlock}
-${carsBlock}
-${hotelsBlock}
-${addrBlock}
-${reposBlock}
+${volBlock}${passesBlock}${carsBlock}${hotelsBlock}${addrBlock}${reposBlock}
 
 RÈGLES:
-1. GÉO: Regroupe les lieux proches sur le même jour. Optimise l’ordre (circuit logique).
+1. GÉO: Regroupe les lieux proches sur le même jour. Optimise l'ordre (circuit logique).
 2. MEILLEUR MOMENT: Pour chaque visite, donne le meilleur créneau (foule, lumière, météo).
-3. VOLS: Si vols renseignés, ajoute-les en type="vol" le premier et dernier jour. Tiens compte des transferts aéroport (prévoir 2-3h avant vol).
+3. VOLS: Ajoute-les en type="vol" le premier et dernier jour si renseignés.
 4. REPOS: Insère selon les consignes.
-5. TOUTES les adresses fournies doivent être présentes, isUserPlace:true.
-6. VOITURE: Si location voiture, ajoute type="voiture" pour prise en charge, chaque trajet inter-villes et restitution. Indique durée réaliste (ex: LA→SF = 6h, SF→Las Vegas = 9h). Ces jours sont légers en visites.
-7. HÔTELS: Si hôtels renseignés, ajoute un événement type="hotel" le jour du check-in (titre: "Check-in [nom]") et le jour du check-out (titre: "Check-out [nom]"). Planifie les visites proches géographiquement de l’hôtel actif.
+5. TOUTES les adresses fournies doivent être présentes avec isUserPlace:true.
+6. VOITURE: type="voiture" pour prise, trajets, restitution avec durée réaliste.
+7. HÔTELS: type="hotel" pour check-in/check-out.
 
-JSON valide uniquement, sans markdown:
+Réponds UNIQUEMENT en JSON valide, sans markdown ni backticks:
 {
-  "titre": "Titre",
-  "resume": "Résumé 1-2 phrases",
-  "zones": ["Zone A"],
+  "titre": "Titre du planning",
+  "resume": "Résumé court",
+  "zones": ["Zone A","Zone B"],
   "activites": [
-    {"jour":1,"date":"YYYY-MM-DD","heure":"09:00","titre":"Nom","description":"Desc","adresse":"Adresse","duree":"2h","type":"visit","budget":"15€","zone":"Quartier","isUserPlace":false,"meilleurMoment":"Conseil horaire","astuce":"Conseil pratique"}
+    {"jour":1,"date":"YYYY-MM-DD","heure":"09:00","titre":"Nom","description":"Desc","adresse":"Adresse complète","duree":"2h","type":"visit","budget":"15€","zone":"Quartier","isUserPlace":false,"meilleurMoment":"Conseil horaire","astuce":"Conseil pratique"}
   ],
   "logique_geo": "Explication regroupement",
   "conseils": ["conseil 1","conseil 2"]
 }`;
 
-  try{
-    // Try Groq first, fallback to Anthropic
-    const GROQ_KEY = localStorage.getItem('groq_api_key')||'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';
-    let raw='';
-    if(GROQ_KEY){
-      const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
-        method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+GROQ_KEY},
-        body:JSON.stringify({model:"llama-3.3-70b-versatile",max_tokens:3000,messages:[{role:"user",content:prompt}],temperature:0.7})
-      });
-      const data=await res.json();
-      raw=data.choices?.[0]?.message?.content||'';
-    } else {
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:3000,messages:[{role:"user",content:prompt}]})
-      });
-      const data=await res.json();
-      raw=data.content.map(b=>b.text||"").join("");
-    }
-    suggestions=JSON.parse(raw.replace(/```json|```/g,"").trim());
-    selected=suggestions.activites.map((_,i)=>i).filter(i=>suggestions.activites[i].type!=='repos');
+  try {
+    const res = await fetch(GROQ_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json","Authorization":"Bearer "+GROQ_KEY},
+      body: JSON.stringify({model:"llama-3.3-70b-versatile",max_tokens:4000,temperature:0.7,
+        messages:[{role:"user",content:prompt}]})
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const raw  = data.choices?.[0]?.message?.content || '';
+    suggestions = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    selected = suggestions.activites
+      .map((_,i)=>i)
+      .filter(i=>!['repos','vol'].includes(suggestions.activites[i].type));
     renderFlightSummary(flights, ds, de);
-    renderPlan();showStep(2);
+    renderPlan();
+    showStep(2);
     saveAll();
-  }catch(e){showError("Erreur de génération. Réessayez.");}
-  btn.disabled=false;btn.innerHTML='✨ Générer mon planning optimisé';
+  } catch(e) {
+    showError("Erreur de génération : " + e.message + ". Vérifiez la destination et les dates.");
+    console.error(e);
+  }
+  btn.disabled = false;
+  btn.innerHTML = '✨ Générer mon planning optimisé';
 }
 
-function renderPlan(){
-  const s=suggestions;
-  const reposDays=[...new Set(s.activites.filter(a=>a.type==='repos').map(a=>a.jour))].length;
-  const volsCount=s.activites.filter(a=>a.type==='vol').length;
-  document.getElementById("planHeader").innerHTML=`
+// ═══════════════════════════════════════════════════
+// RENDER PLAN
+// ═══════════════════════════════════════════════════
+function renderFlightSummary(flights, ds, de) {
+  const hasA = flights.aller.num  || flights.aller.depAero;
+  const hasR = flights.retour.num || flights.retour.depAero;
+  if (!hasA && !hasR) { document.getElementById("flightSummary").classList.add("hidden"); return; }
+
+  const depI = (flights.aller.depAero||'???').substring(0,3).toUpperCase();
+  const arrI = (flights.aller.arrAero||'???').substring(0,3).toUpperCase();
+  const rDI  = (flights.retour.depAero||arrI).substring(0,3).toUpperCase();
+  const rAI  = (flights.retour.arrAero||depI).substring(0,3).toUpperCase();
+
+  document.getElementById("flightSummary").innerHTML = `
+    <div class="flight-banner">
+      <p style="font-size:11px;color:var(--sky);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">✈️ Vos vols</p>
+      ${hasA?`<div style="margin-bottom:${hasR?'14px':'0'}">
+        <p style="font-size:10px;color:var(--muted);margin-bottom:8px">ALLER · ${ds}</p>
+        <div class="flight-row">
+          <div class="flight-airport"><div class="iata">${depI}</div><div class="city">${flights.aller.depAero||''}</div>${flights.aller.hDep?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.aller.hDep}</div>`:''}</div>
+          <div class="flight-arrow"><div style="font-size:10px;color:var(--muted)">${flights.aller.num||''}</div><div class="flight-line"></div><div style="font-size:18px">✈️</div><div class="flight-line"></div><div style="font-size:10px;color:var(--muted)">${flights.aller.compagnie||''}</div></div>
+          <div class="flight-airport"><div class="iata">${arrI}</div><div class="city">${flights.aller.arrAero||''}</div>${flights.aller.hArr?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.aller.hArr}</div>`:''}</div>
+        </div>
+        ${flights.aller.terminal?`<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">🚪 ${flights.aller.terminal}</p>`:''}
+      </div>`:''}
+      ${hasA&&hasR?`<div style="height:1px;background:var(--border);margin-bottom:14px"></div>`:''}
+      ${hasR?`<div>
+        <p style="font-size:10px;color:var(--muted);margin-bottom:8px">RETOUR · ${de}</p>
+        <div class="flight-row">
+          <div class="flight-airport"><div class="iata" style="color:#fb923c">${rDI}</div><div class="city">${flights.retour.depAero||''}</div>${flights.retour.hDep?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.retour.hDep}</div>`:''}</div>
+          <div class="flight-arrow"><div style="font-size:10px;color:var(--muted)">${flights.retour.num||''}</div><div class="flight-line" style="background:linear-gradient(90deg,#fb923c,#fb923c33)"></div><div style="font-size:18px">✈️</div><div class="flight-line" style="background:linear-gradient(90deg,#fb923c,#fb923c33)"></div><div style="font-size:10px;color:var(--muted)">${flights.retour.compagnie||''}</div></div>
+          <div class="flight-airport"><div class="iata" style="color:#fb923c">${rAI}</div><div class="city">${flights.retour.arrAero||''}</div>${flights.retour.hArr?`<div style="font-size:13px;color:var(--text);font-weight:600;margin-top:2px">${flights.retour.hArr}</div>`:''}</div>
+        </div>
+        ${flights.retour.terminal?`<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">🚪 ${flights.retour.terminal}</p>`:''}
+      </div>`:''}
+    </div>`;
+  document.getElementById("flightSummary").classList.remove("hidden");
+}
+
+function renderPlan() {
+  const s = suggestions;
+  const filledPasses = passes.filter(p=>p.nom);
+  const filledCars   = cars.filter(c=>c.lieuPrise||c.agence);
+  const filledHotels = hotels.filter(h=>h.nom||h.adresse);
+  const reposDays = [...new Set(s.activites.filter(a=>a.type==='repos').map(a=>a.jour))].length;
+  const volsCount = s.activites.filter(a=>a.type==='vol').length;
+
+  document.getElementById("planHeader").innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
       <h2 style="font-size:19px;flex:1">${s.titre}</h2>
       <span class="tag" style="margin-left:10px;flex-shrink:0">${document.getElementById("destination").value}</span>
@@ -748,112 +828,99 @@ function renderPlan(){
     <p style="color:var(--muted);font-size:13px;margin-bottom:10px">${s.resume}</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       ${volsCount>0?`<span class="tag-sky">✈️ ${volsCount} vol(s)</span>`:''}
-      ${filledCars&&filledCars.length>0?`<span class="tag-sky">🚗 ${filledCars.length} voiture(s)</span>`:''}
+      ${filledCars.length>0?`<span class="tag-sky">🚗 ${filledCars.length} voiture(s)</span>`:''}
       <span class="tag-teal">📍 ${s.activites.filter(a=>a.isUserPlace).length} lieux perso</span>
-      ${filledHotels&&filledHotels.length>0?`<span class="tag-purple">🏨 ${filledHotels.length} hôtel(s)</span>`:''}
+      ${filledHotels.length>0?`<span class="tag-purple">🏨 ${filledHotels.length} hôtel(s)</span>`:''}
       ${reposDays>0?`<span class="tag-rest">😴 ${reposDays} repos</span>`:''}
-      ${filledPasses&&filledPasses.length>0?`<span class="pass-badge">🎡 ${filledPasses.length} pass</span>`:''}
+      ${filledPasses.length>0?`<span class="pass-badge">🎡 ${filledPasses.length} pass</span>`:''}
       <span class="tag-purple">🗺️ ${(s.zones||[]).length} zones</span>
     </div>
-    ${s.logique_geo?`<div class="geo-box" style="margin-top:10px"><p style="font-size:12px;color:var(--purple)">🧭 <strong>Optimisation :</strong> ${s.logique_geo}</p></div>`:''}
-  `;
-  const zl=document.getElementById("zonesLegend");
-  zl.innerHTML=(s.zones||[]).map((z,i)=>`
+    ${s.logique_geo?`<div class="geo-box" style="margin-top:10px"><p style="font-size:12px;color:var(--purple)">🧭 <strong>Optimisation :</strong> ${s.logique_geo}</p></div>`:''}`;
+
+  const zl = document.getElementById("zonesLegend");
+  zl.innerHTML = (s.zones||[]).map((z,i) => `
     <div style="display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:4px 10px">
       <span class="zone-dot" style="background:${ZONE_COLORS[i%ZONE_COLORS.length]}"></span>
       <span style="font-size:11px;color:var(--muted)">${z}</span>
     </div>`).join('');
-  zl.style.display=s.zones?.length?'flex':'none';
-  if(s.conseils?.length){
-    document.getElementById("tipsCard").innerHTML=`<h3 style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--gold)">💡 Conseils pratiques</h3>${s.conseils.map(c=>`<div class="tip-row"><span style="color:var(--gold)">→</span>${c}</div>`).join('')}`;
+  zl.style.display = s.zones?.length ? 'flex' : 'none';
+
+  if (s.conseils?.length) {
+    document.getElementById("tipsCard").innerHTML = `<h3 style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--gold)">💡 Conseils pratiques</h3>${s.conseils.map(c=>`<div class="tip-row"><span style="color:var(--gold)">→</span>${c}</div>`).join('')}`;
     document.getElementById("tipsCard").classList.remove("hidden");
   }
   renderActivities();
 }
 
-function renderActivities(){
-  if(!suggestions)return;
-  const days=[...new Set(suggestions.activites.map(a=>a.jour))].sort();
-  const zones=suggestions.zones||[];
-  let html='';
-  days.forEach(day=>{
-    const acts=suggestions.activites.map((a,i)=>({...a,idx:i})).filter(a=>a.jour===day);
-    const isRestDay=acts.every(a=>a.type==='repos');
-    const hasVol=acts.some(a=>a.type==='vol');
-    const dayZones=[...new Set(acts.filter(a=>a.type!=='repos'&&a.type!=='vol').map(a=>a.zone).filter(Boolean))];
-    html+=`
-      <div class="divider">
-        <div class="divider-line"></div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap">
-          <span class="${isRestDay?'tag-rest':hasVol?'tag-sky':'tag-teal'}" style="font-size:11px;padding:3px 10px">
-            ${isRestDay?'😴':hasVol?'✈️':'📅'} Jour ${day} · ${acts[0]?.date||''}
-          </span>
-          ${dayZones.map(z=>`<span class="tag-purple">${z}</span>`).join('')}
-        </div>
-        <div class="divider-line"></div>
-      </div>`;
-    acts.forEach(act=>{
-      // Jour de repos
-      if(act.type==='repos'){
-        html+=`<div class="rest-banner">
+function renderActivities() {
+  if (!suggestions) return;
+  const days  = [...new Set(suggestions.activites.map(a=>a.jour))].sort((a,b)=>a-b);
+  const zones = suggestions.zones||[];
+  let html = '';
+
+  days.forEach(day => {
+    const acts     = suggestions.activites.map((a,i)=>({...a,idx:i})).filter(a=>a.jour===day);
+    const isRest   = acts.every(a=>a.type==='repos');
+    const hasVol   = acts.some(a=>a.type==='vol');
+    const dayZones = [...new Set(acts.filter(a=>!['repos','vol'].includes(a.type)).map(a=>a.zone).filter(Boolean))];
+
+    html += `<div class="divider">
+      <div class="divider-line"></div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap">
+        <span class="${isRest?'tag-rest':hasVol?'tag-sky':'tag-teal'}" style="font-size:11px;padding:3px 10px">
+          ${isRest?'😴':hasVol?'✈️':'📅'} Jour ${day} · ${acts[0]?.date||''}
+        </span>
+        ${dayZones.map(z=>`<span class="tag-purple">${z}</span>`).join('')}
+      </div>
+      <div class="divider-line"></div>
+    </div>`;
+
+    acts.forEach(act => {
+      if (act.type==='repos') {
+        html += `<div class="rest-banner">
           <div style="font-size:28px;margin-bottom:6px">😴</div>
           <p style="font-weight:600;color:var(--rose);font-size:15px">${act.titre||'Jour de repos'}</p>
           <p style="font-size:12px;color:var(--muted);margin-top:4px">${act.description||''}</p>
           ${act.astuce?`<p style="font-size:11px;color:var(--purple);margin-top:6px">💡 ${act.astuce}</p>`:''}
-        </div>`;return;
+        </div>`; return;
       }
-      // Hotel check-in/check-out
-      if(act.type==='hotel'){
-        html+=`<div class="act-card" style="border-color:#a78bfa44;background:#a78bfa0d;cursor:default">
+      if (act.type==='hotel') {
+        html += `<div class="act-card" style="border-color:#a78bfa44;background:#a78bfa0d;cursor:default">
           <div style="font-size:20px">🏨</div>
           <div style="flex:1">
-            <div style="display:flex;justify-content:space-between">
-              <span style="font-weight:600;font-size:14px;color:var(--purple)">${act.titre}</span>
-              ${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}
-            </div>
+            <div style="display:flex;justify-content:space-between"><span style="font-weight:600;font-size:14px;color:var(--purple)">${act.titre}</span>${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}</div>
             <p style="font-size:12px;color:var(--muted);margin-top:3px">${act.description||''}</p>
             ${act.adresse?`<p style="font-size:11px;color:var(--purple);margin-top:4px">📍 ${act.adresse}</p>`:''}
             ${act.astuce?`<p style="font-size:11px;color:var(--muted);margin-top:4px">💡 ${act.astuce}</p>`:''}
-          </div>
-          <span class="tag-purple" style="font-size:10px">🏨</span>
-        </div>`;return;
+          </div><span class="tag-purple" style="font-size:10px">🏨</span>
+        </div>`; return;
       }
-      // Voiture / Trajet
-      if(act.type==='voiture'||act.type==='trajet'){
-        html+=`<div class="trajet-card">
+      if (act.type==='voiture'||act.type==='trajet') {
+        html += `<div class="trajet-card">
           <div style="font-size:20px">🚗</div>
           <div style="flex:1">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="font-weight:600;font-size:14px;color:var(--sky)">${act.titre}</span>
-              ${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}
-            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px;color:var(--sky)">${act.titre}</span>${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}</div>
             <p style="font-size:12px;color:var(--muted);margin-top:3px">${act.description||''}</p>
             ${act.duree?`<p style="font-size:11px;color:var(--sky);margin-top:4px">⌛ Durée estimée : ${act.duree}</p>`:''}
             ${act.astuce?`<p style="font-size:11px;color:var(--muted);margin-top:4px">💡 ${act.astuce}</p>`:''}
-          </div>
-          <span class="tag-sky" style="font-size:10px">🚗</span>
-        </div>`;return;
+          </div><span class="tag-sky" style="font-size:10px">🚗</span>
+        </div>`; return;
       }
-      // Vol
-      if(act.type==='vol'){
-        html+=`<div class="act-card flight-card">
+      if (act.type==='vol') {
+        html += `<div class="act-card flight-card">
           <div style="font-size:20px">✈️</div>
           <div style="flex:1;min-width:0">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="font-weight:600;font-size:14px;color:var(--sky)">${act.titre}</span>
-              ${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}
-            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px;color:var(--sky)">${act.titre}</span>${act.heure?`<span style="font-size:11px;color:var(--muted)">⏰${act.heure}</span>`:''}</div>
             <p style="font-size:12px;color:var(--muted);margin-top:3px">${act.description||''}</p>
             ${act.astuce?`<p style="font-size:11px;color:var(--sky);margin-top:5px">💡 ${act.astuce}</p>`:''}
-          </div>
-          <span class="tag-sky" style="font-size:10px;padding:2px 8px">Vol</span>
-        </div>`;return;
+          </div><span class="tag-sky" style="font-size:10px;padding:2px 8px">Vol</span>
+        </div>`; return;
       }
       // Activité normale
-      const zIdx=zones.indexOf(act.zone);
-      const zColor=zIdx>=0?ZONE_COLORS[zIdx%ZONE_COLORS.length]:'var(--teal)';
-      const isSel=selected.includes(act.idx);
-      html+=`<div class="act-card ${isSel?'sel':''}" onclick="toggleAct(${act.idx})">
+      const zIdx   = zones.indexOf(act.zone);
+      const zColor = zIdx>=0 ? ZONE_COLORS[zIdx%ZONE_COLORS.length] : 'var(--teal)';
+      const isSel  = selected.includes(act.idx);
+      html += `<div class="act-card ${isSel?'sel':''}" onclick="toggleAct(${act.idx})">
         <div style="font-size:20px">${EMOJI_MAP[act.type]||'📍'}</div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
@@ -870,7 +937,7 @@ function renderActivities(){
           ${act.meilleurMoment?`<div class="best-time">⭐ ${act.meilleurMoment}</div>`:''}
           ${act.astuce?`<p style="font-size:11px;color:var(--purple);margin-top:5px">💡 ${act.astuce}</p>`:''}
           <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
-            ${act.adresse?`<span style="font-size:11px;color:var(--teal)">📍 ${act.adresse}</span>`:''}
+            ${act.adresse?`<a href="https://maps.apple.com/?q=${encodeURIComponent(act.adresse)}" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none">📍 ${act.adresse}</a>`:''}
             ${act.zone?`<span style="display:flex;align-items:center;gap:4px;font-size:11px"><span class="zone-dot" style="background:${zColor}"></span><span style="color:var(--muted)">${act.zone}</span></span>`:''}
             ${act.duree?`<span style="font-size:10px;color:var(--muted)">⌛ ${act.duree}</span>`:''}
           </div>
@@ -879,198 +946,61 @@ function renderActivities(){
       </div>`;
     });
   });
-  document.getElementById("activitiesContainer").innerHTML=html;
-  document.getElementById("selCount").textContent=`${selected.length} activité(s) sélectionnée(s)`;
-  document.getElementById("addCalBtn").innerHTML=`📅 Ajouter ${selected.length} événement(s) à l’agenda`;
+
+  document.getElementById("activitiesContainer").innerHTML = html;
+  document.getElementById("selCount").textContent = `${selected.length} activité(s) sélectionnée(s)`;
+  document.getElementById("addCalBtn").innerHTML  = `📅 Ajouter ${selected.length} événement(s) à l'agenda`;
 }
 
-function toggleAct(idx){
-  if(!suggestions||suggestions.activites[idx]?.type==='repos'||suggestions.activites[idx]?.type==='vol')return;
-  selected=selected.includes(idx)?selected.filter(x=>x!==idx):[...selected,idx];
+function toggleAct(idx) {
+  if (!suggestions) return;
+  const t = suggestions.activites[idx]?.type;
+  if (t==='repos'||t==='vol') return;
+  selected = selected.includes(idx) ? selected.filter(x=>x!==idx) : [...selected,idx];
   renderActivities();
 }
+function selectAll()  { selected = suggestions.activites.map((_,i)=>i).filter(i=>!['repos','vol'].includes(suggestions.activites[i].type)); renderActivities(); }
+function selectNone() { selected = []; renderActivities(); }
 
-async function addToCalendar(){
-  if(!selected.length)return;
-  const btn=document.getElementById("addCalBtn");
-  btn.disabled=true;
-  const toAdd=selected.map(i=>suggestions.activites[i]);
-  const done=[];
-  for(const act of toAdd){
-    await new Promise(r=>setTimeout(r,260));
+async function addToCalendar() {
+  if (!selected.length) return;
+  const btn   = document.getElementById("addCalBtn");
+  btn.disabled = true;
+  const toAdd = selected.map(i => suggestions.activites[i]);
+  const done  = [];
+  for (const act of toAdd) {
+    await new Promise(r => setTimeout(r, 200));
     done.push(act.titre);
-    btn.innerHTML=`<span class="spinner"></span> Ajout... (${done.length}/${toAdd.length})`;
+    btn.innerHTML = `<span class="spinner"></span> Ajout... (${done.length}/${toAdd.length})`;
   }
-  const dest=document.getElementById("destination").value;
-  document.getElementById("doneMsg").innerHTML=`<strong>${done.length}</strong> événement(s) ajouté(s) pour <strong style="color:var(--text)">${dest}</strong>`;
-  document.getElementById("doneList").innerHTML=done.map(t=>`<div style="display:flex;gap:10px;align-items:center;font-size:12px;margin-bottom:6px"><span style="color:var(--teal)">✓</span><span style="color:var(--muted)">${t}</span></div>`).join('');
+  const dest = document.getElementById("destination").value;
+  document.getElementById("doneMsg").innerHTML   = `<strong>${done.length}</strong> événement(s) ajouté(s) pour <strong style="color:var(--text)">${dest}</strong>`;
+  document.getElementById("doneList").innerHTML  = done.map(t=>`<div style="display:flex;gap:10px;align-items:center;font-size:12px;margin-bottom:6px"><span style="color:var(--teal)">✓</span><span style="color:var(--muted)">${t}</span></div>`).join('');
   showStep(3);
 }
 
-function resetApp(){
-  interests=[];suggestions=null;selected=[];
-  ["destination","dateStart","dateEnd","logement","addressesInput",
-   "volAllerDepAero","volAllerArrAero","volAllerNum","volAllerHDep","volAllerHArr","volAllerTerminal","volAllerCompagnie",
-   "volRetDepAero","volRetArrAero","volRetNum","volRetHDep","volRetHArr","volRetTerminal","volRetCompagnie"
-  ].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  addrs=[];renderAddrs();
-  hotels=[];renderHotels();cars=[];renderCars();passes=[];renderPasses();
-  document.getElementById("budget").value='moyen';
-  renderInterests();localStorage.removeItem('planner_vacances');showStep(1);
-}
-function openMaps(address){
-  const encoded=encodeURIComponent(address);
-  // Apple Maps on iOS/macOS, Google Maps fallback
-  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
-  const isMac=/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>0;
-  if(isIOS||isMac){
-    window.open(`maps://maps.apple.com/?q=${encoded}`,'_blank');
-  } else {
-    window.open(`https://maps.apple.com/?q=${encoded}`,'_blank');
-  }
-}
-// ─── SAUVEGARDE LOCALE ───
-function saveAll(){
-  try {
-    const data = {
-      destination: document.getElementById('destination')?.value||'',
-      dateStart: document.getElementById('dateStart')?.value||'',
-      dateEnd: document.getElementById('dateEnd')?.value||'',
-      logement: document.getElementById('logement')?.value||'',
-      budget: document.getElementById('budget')?.value||'moyen',
-      addresses: addrs,
-      reposFreq: document.getElementById('reposFreq')?.value||'auto',
-      reposType: document.getElementById('reposType')?.value||'libre',
-      volAllerNum: document.getElementById('volAllerNum')?.value||'',
-      volAllerDepAero: document.getElementById('volAllerDepAero')?.value||'',
-      volAllerArrAero: document.getElementById('volAllerArrAero')?.value||'',
-      volAllerHDep: document.getElementById('volAllerHDep')?.value||'',
-      volAllerHArr: document.getElementById('volAllerHArr')?.value||'',
-      volAllerTerminal: document.getElementById('volAllerTerminal')?.value||'',
-      volAllerCompagnie: document.getElementById('volAllerCompagnie')?.value||'',
-      volRetNum: document.getElementById('volRetNum')?.value||'',
-      volRetDepAero: document.getElementById('volRetDepAero')?.value||'',
-      volRetArrAero: document.getElementById('volRetArrAero')?.value||'',
-      volRetHDep: document.getElementById('volRetHDep')?.value||'',
-      volRetHArr: document.getElementById('volRetHArr')?.value||'',
-      volRetTerminal: document.getElementById('volRetTerminal')?.value||'',
-      volRetCompagnie: document.getElementById('volRetCompagnie')?.value||'',
-      interests: interests,
-      hotels: hotels,
-      cars: cars,
-      passes: passes,
-      suggestions: suggestions,
-      savedAt: new Date().toISOString()
-    };
-    localStorage.setItem('planner_vacances', JSON.stringify(data));
-    showSaveIndicator();
-  } catch(e){ console.warn('Save error', e); }
+function resetApp() {
+  interests = []; suggestions = null; selected = [];
+  const ids = ['destination','dateStart','dateEnd','logement',
+    'volAllerDepAero','volAllerArrAero','volAllerNum','volAllerHDep','volAllerHArr','volAllerTerminal','volAllerCompagnie',
+    'volRetDepAero','volRetArrAero','volRetNum','volRetHDep','volRetHArr','volRetTerminal','volRetCompagnie'];
+  ids.forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById("budget").value    = 'moyen';
+  document.getElementById("reposFreq").value = 'auto';
+  addrs=[]; hotels=[]; cars=[]; passes=[];
+  renderAddrs(); renderHotels(); renderCars(); renderPasses(); renderInterests();
+  localStorage.removeItem(SAVE_KEY);
+  showStep(1);
 }
 
-function loadAll(){
-  try {
-    const raw = localStorage.getItem('planner_vacances');
-    if(!raw) return;
-    const data = JSON.parse(raw);
-    // Restore form fields
-    const fields = ['destination','dateStart','dateEnd','logement','budget',
-      'reposFreq','reposType','volAllerNum','volAllerDepAero','volAllerArrAero',
-      'volAllerHDep','volAllerHArr','volAllerTerminal','volAllerCompagnie',
-      'volRetNum','volRetDepAero','volRetArrAero','volRetHDep','volRetHArr',
-      'volRetTerminal','volRetCompagnie'];
-    fields.forEach(f => {
-      const el = document.getElementById(f);
-      if(el && data[f] !== undefined) el.value = data[f];
-    });
-    if(data.addresses && Array.isArray(data.addresses)) { addrs = data.addresses; renderAddrs(); }
-    // Restore arrays
-    if(data.interests) { interests = data.interests; renderInterests(); }
-    if(data.hotels) { hotels = data.hotels; renderHotels(); }
-    if(data.cars) { cars = data.cars; renderCars(); }
-    if(data.passes) { passes = data.passes; renderPasses(); }
-    // Restore planning
-    if(data.suggestions) {
-      suggestions = data.suggestions;
-      selected = suggestions.activites.map((_,i)=>i).filter(i=>suggestions.activites[i].type!=='repos'&&suggestions.activites[i].type!=='vol');
-    }
-    // Update counter
-    updateCounter();
-    // Show restore banner if data exists
-    if(data.savedAt) showRestoreBanner(data);
-  } catch(e){ console.warn('Load error', e); }
+// ═══════════════════════════════════════════════════
+// UTILITAIRES
+// ═══════════════════════════════════════════════════
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-
-function showSaveIndicator(){
-  let el = document.getElementById('saveIndicator');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'saveIndicator';
-    el.style.cssText = 'position:fixed;bottom:20px;right:16px;background:#00c9a7;color:#001a16;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;z-index:9999;transition:opacity .5s;pointer-events:none';
-    document.body.appendChild(el);
-  }
-  el.textContent = '✅ Sauvegardé';
-  el.style.opacity = '1';
-  clearTimeout(el._timer);
-  el._timer = setTimeout(() => el.style.opacity = '0', 2000);
-}
-
-function showRestoreBanner(data){
-  const date = new Date(data.savedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
-  let banner = document.getElementById('restoreBanner');
-  if(!banner){
-    banner = document.createElement('div');
-    banner.id = 'restoreBanner';
-    banner.style.cssText = 'background:#f0a50015;border:1px solid #f0a50033;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px';
-    const form = document.getElementById('step1');
-    if(form) form.insertBefore(banner, form.firstChild);
-  }
-  const dest = data.destination ? `· ${data.destination}` : '';
-  const hasPlan = data.suggestions ? '· Planning généré ✅' : '';
-  banner.innerHTML = `
-    <div>
-      <p style="font-size:12px;color:#f0a500;font-weight:600">📂 Données restaurées ${dest} ${hasPlan}</p>
-      <p style="font-size:11px;color:#7a7f9a">Dernière sauvegarde : ${date}</p>
-    </div>
-    <div style="display:flex;gap:6px;flex-shrink:0">
-      ${data.suggestions ? `<button onclick="showPlanning()" style="background:#00c9a722;border:1px solid #00c9a744;color:#00c9a7;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Voir planning</button>` : ''}
-      <button onclick="clearSave()" style="background:#ff6b6b22;border:1px solid #ff6b6b44;color:#ff6b6b;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:DM Sans,sans-serif">Effacer</button>
-    </div>
-  `;
-}
-
-function showPlanning(){
-  if(suggestions){ renderPlan(); showStep(2); }
-}
-
-function clearSave(){
-  localStorage.removeItem('planner_vacances');
-  const b = document.getElementById('restoreBanner');
-  if(b) b.remove();
-  suggestions = null;
-}
-
-function saveGroqKey(){
-  const key=document.getElementById('groqKeyInput').value.trim();
-  if(!key){return;}
-  localStorage.setItem('groq_api_key',key);
-  document.getElementById('groqSetup').style.display='none';
-  document.getElementById('groqBanner').style.display='flex';
-}
-function removeGroqKey(){
-  localStorage.removeItem('groq_api_key');
-  document.getElementById('groqSetup').style.display='block';
-  document.getElementById('groqBanner').style.display='none';
-}
-function checkGroqKey(){
-  if(localStorage.getItem('groq_api_key')){
-    document.getElementById('groqSetup').style.display='none';
-    document.getElementById('groqBanner').style.display='flex';
-  }
-}
-function showError(msg){const e=document.getElementById("errorMsg");e.textContent=msg;e.classList.remove("hidden")}
-function hideError(){document.getElementById("errorMsg").classList.add("hidden")}
+function showError(msg) { const e=document.getElementById("errorMsg"); e.textContent=msg; e.classList.remove("hidden"); }
+function hideError()    { document.getElementById("errorMsg").classList.add("hidden"); }
 </script>
 </body>
 </html>
-
-
