@@ -327,7 +327,7 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
     <div id="tipsCard" class="card hidden" style="border-color:#f0a50033;margin-bottom:16px"></div>
     <div style="display:flex;gap:10px">
       <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="goBack()">← Modifier</button>
-      <button class="btn btn-teal" style="flex:2;justify-content:center" id="addCalBtn" onclick="addToCalendar()">📅 Ajouter à l'agenda</button>
+      <button class="btn btn-teal" style="flex:2;justify-content:center" id="addCalBtn" onclick="addToCalendar()">📅 Ajouter à l’agenda</button>
     </div>
   </div>
 
@@ -422,7 +422,7 @@ function renderHotels(){
     <div class="hotel-card">
       <button class="remove-btn" onclick="removeHotel(${i})">×</button>
       <div style="display:flex;flex-direction:column;gap:8px">
-        <div><label class="label">Nom de l'hôtel</label>
+        <div><label class="label">Nom de l’hôtel</label>
           <input placeholder="Ex: Hotel Colosseo" value="${h.nom}" oninput="updateHotel(${i},'nom',this.value)">
         </div>
         <div><label class="label">Adresse</label>
@@ -501,11 +501,11 @@ function renderPasses(){
         <div><label class="label">Type</label>
           <select onchange="updatePass(${i},'type',this.value)">
             <option value="illimite" ${p.type==='illimite'?'selected':''}>♾️ Illimité (entrées illimitées)</option>
-            <option value="limite" ${p.type==='limite'?'selected':''}>🎟️ Limité (nombre d'entrées fixe)</option>
+            <option value="limite" ${p.type==='limite'?'selected':''}>🎟️ Limité (nombre d’entrées fixe)</option>
             <option value="multi" ${p.type==='multi'?'selected':''}>🎡 Multi-attractions (X attractions incluses)</option>
           </select>
         </div>
-        ${p.type!=='illimite'?`<div><label class="label">${p.type==='limite'?'Nombre d'entrées':'Nombre d'attractions incluses'}</label>
+        ${p.type!=='illimite'?`<div><label class="label">${p.type==='limite'?'Nombre d\u2019entr\u00e9es':'Nombre d\u2019attractions incluses'}</label>
           <input type="number" placeholder="Ex: 3" value="${p.nbEntrees}" oninput="passes[${i}].nbEntrees=this.value" min="1">
         </div>`:''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -521,10 +521,10 @@ function renderPasses(){
         </div>
         <div><label class="label">⭐ Meilleur moment de visite</label>
           <select onchange="passes[${i}].moment=this.value;saveAll()">
-            <option value="" ${!p.moment?'selected':''}>🤖 L'IA décide</option>
+            <option value="" ${!p.moment?'selected':''}>🤖 IA décide</option>
             <option value="matin" ${p.moment==='matin'?'selected':''}>🌅 Matin</option>
             <option value="aprem" ${p.moment==='aprem'?'selected':''}>☀️ Après-midi</option>
-            <option value="findaprem" ${p.moment==='findaprem'?'selected':''}>🌇 Fin d'après-midi</option>
+            <option value="findaprem" ${p.moment==='findaprem'?'selected':''}>🌇 Fin après-midi</option>
             <option value="journee" ${p.moment==='journee'?'selected':''}>🌞 Journée entière</option>
             <option value="soir" ${p.moment==='soir'?'selected':''}>🌆 Soirée</option>
             <option value="flexible" ${p.moment==='flexible'?'selected':''}>🔄 Flexible / plusieurs fois</option>
@@ -534,10 +534,7 @@ function renderPasses(){
     </div>
   `).join('');
 }
-function updateCounter(){
-  const lines=document.getElementById("addressesInput").value.split("\n").filter(l=>l.trim());
-  document.getElementById("addrCounter").textContent=`${lines.length} adresse(s)`;
-}
+function updateCounter(){ /* no-op */ }
 function toggleInterest(int){
   interests=interests.includes(int)?interests.filter(x=>x!==int):[...interests,int];
   renderInterests();
@@ -667,7 +664,7 @@ async function generatePlan(){
   const filledCars=cars.filter(car=>car.lieuPrise||car.agence);
   const carsBlock=filledCars.length>0?`\nLOCATION VOITURE:\n${filledCars.map((car,i)=>`Voiture ${i+1}: ${car.agence||'Agence inconnue'} - ${car.type||'véhicule'} | Prise: ${car.lieuPrise||'?'} le ${car.datePrise||'?'} | Retour: ${car.lieuRetour||'?'} le ${car.dateRetour||'?'}${car.trajets?' | Trajets: '+car.trajets:''}`).join("\n")}\nIMPORTANT: Bloque des événements type="voiture" pour les jours de trajet inter-villes (prise en charge, trajets longue distance, restitution). Pour chaque trajet, calcule la durée réaliste et indique les pauses recommandées. Ne planifie pas de visites chargées ces jours-là.`:'';
   const filledHotels=hotels.filter(h=>h.nom||h.adresse);
-  const hotelsBlock=filledHotels.length>0?`\nHÔTELS & LOGEMENTS:\n${filledHotels.map((h,i)=>`${i+1}. ${h.nom||'Hôtel'} - ${h.adresse||'adresse non précisée'} | Check-in: ${h.checkin||'?'} | Check-out: ${h.checkout||'?'}`).join("\n")}\nTiens compte de la localisation des hôtels pour planifier les visites à proximité selon les dates de séjour.`:''
+  const hotelsBlock=filledHotels.length>0?`\nHÔTELS & LOGEMENTS:\n${filledHotels.map((h,i)=>`${i+1}. ${h.nom||"H\u00f4tel"} - ${h.adresse||"adresse non pr\u00e9cis\u00e9e"} | Check-in: ${h.checkin||'?'} | Check-out: ${h.checkout||'?'}`).join("\n")}\nTiens compte de la localisation des hôtels pour planifier les visites à proximité selon les dates de séjour.`:''
   const addrBlock=addresses.length>0?`\nADRESSES À VISITER (toutes obligatoires):\n${addresses.map((a,i)=>`${i+1}. ${a}`).join("\n")}`:'';
   const reposBlock=reposFreq==='aucun'?'\nPas de jour de repos.':reposFreq==='auto'?`\nJOURS DE REPOS: Place des jours de repos de façon optimale sur ${nbJours} jours. Type: ${reposType}.`:`\nJOURS DE REPOS: 1 repos tous les ${reposFreq} jours. Type: ${reposType}.`;
 
@@ -675,7 +672,7 @@ async function generatePlan(){
   const retourInfo=flights.retour.num?`Vol retour: ${flights.retour.num} ${flights.retour.compagnie||''} - Départ ${flights.retour.depAero||''} à ${flights.retour.hDep||'?'} → Arrivée ${flights.retour.arrAero||''} à ${flights.retour.hArr||'?'}${flights.retour.terminal?' ('+flights.retour.terminal+')':''}`:'' ;
   const volBlock=(allerInfo||retourInfo)?`\nINFOS VOLS:\n${allerInfo}\n${retourInfo}\nTiens compte des horaires de vol pour le premier et dernier jour (transfert aéroport, check-in).`:'';
 
-  const prompt=`Tu es expert en voyages et optimisation d'itinéraires. Génère un planning de vacances complet.
+  const prompt=`Tu es expert en voyages et optimisation d’itinéraires. Génère un planning de vacances complet.
 
 DESTINATION: ${dest}
 DATES: ${ds} → ${de} (${nbJours} jour(s))
@@ -690,13 +687,13 @@ ${addrBlock}
 ${reposBlock}
 
 RÈGLES:
-1. GÉO: Regroupe les lieux proches sur le même jour. Optimise l'ordre (circuit logique).
+1. GÉO: Regroupe les lieux proches sur le même jour. Optimise l’ordre (circuit logique).
 2. MEILLEUR MOMENT: Pour chaque visite, donne le meilleur créneau (foule, lumière, météo).
 3. VOLS: Si vols renseignés, ajoute-les en type="vol" le premier et dernier jour. Tiens compte des transferts aéroport (prévoir 2-3h avant vol).
 4. REPOS: Insère selon les consignes.
 5. TOUTES les adresses fournies doivent être présentes, isUserPlace:true.
 6. VOITURE: Si location voiture, ajoute type="voiture" pour prise en charge, chaque trajet inter-villes et restitution. Indique durée réaliste (ex: LA→SF = 6h, SF→Las Vegas = 9h). Ces jours sont légers en visites.
-7. HÔTELS: Si hôtels renseignés, ajoute un événement type="hotel" le jour du check-in (titre: "Check-in [nom]") et le jour du check-out (titre: "Check-out [nom]"). Planifie les visites proches géographiquement de l'hôtel actif.
+7. HÔTELS: Si hôtels renseignés, ajoute un événement type="hotel" le jour du check-in (titre: "Check-in [nom]") et le jour du check-out (titre: "Check-out [nom]"). Planifie les visites proches géographiquement de l’hôtel actif.
 
 JSON valide uniquement, sans markdown:
 {
@@ -884,7 +881,7 @@ function renderActivities(){
   });
   document.getElementById("activitiesContainer").innerHTML=html;
   document.getElementById("selCount").textContent=`${selected.length} activité(s) sélectionnée(s)`;
-  document.getElementById("addCalBtn").innerHTML=`📅 Ajouter ${selected.length} événement(s) à l'agenda`;
+  document.getElementById("addCalBtn").innerHTML=`📅 Ajouter ${selected.length} événement(s) à l’agenda`;
 }
 
 function toggleAct(idx){
@@ -1075,3 +1072,5 @@ function hideError(){document.getElementById("errorMsg").classList.add("hidden")
 </script>
 </body>
 </html>
+
+
