@@ -84,6 +84,21 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
   </div>
   <p style="color:var(--muted);font-size:13px">Vols · Planning optimisé · Repos · Meilleurs moments · Agenda iPhone</p>
   <div class="steps" id="steps"></div>
+    <div id="groqBanner" style="display:none;background:#4ade8015;border:1px solid #4ade8033;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div>
+        <p style="font-size:12px;color:#4ade80;font-weight:600">🔑 Clé Groq configurée</p>
+        <p style="font-size:11px;color:var(--muted)">Génération IA active hors Claude</p>
+      </div>
+      <button onclick="removeGroqKey()" style="font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer">Supprimer</button>
+    </div>
+    <div id="groqSetup" style="background:#f0a50010;border:1px solid #f0a50022;border-radius:10px;padding:10px 14px;margin-bottom:14px">
+      <p style="font-size:12px;color:var(--gold);font-weight:600;margin-bottom:6px">🔑 Clé API Groq (gratuit)</p>
+      <div style="display:flex;gap:8px">
+        <input id="groqKeyInput" placeholder="gsk_..." type="password" style="flex:1;font-size:13px">
+        <button onclick="saveGroqKey()" class="btn btn-ghost btn-sm">Sauvegarder</button>
+      </div>
+      <p style="font-size:10px;color:var(--muted);margin-top:4px">console.groq.com → API Keys → Create. Reste sur votre iPhone uniquement.</p>
+    </div>
 
   <!-- STEP 1 -->
   <div id="step1" class="fade-up">
@@ -220,12 +235,24 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
       </div>
     </div>
 
+    <!-- PASS & ABONNEMENTS -->
+    <div class="card" style="border-color:#4ade8033">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h2 style="color:#4ade80">🎡 Pass & Abonnements</h2>
+        <button class="btn btn-ghost btn-sm" onclick="addPass()">+ Ajouter</button>
+      </div>
+      <p class="hint" style="margin-bottom:14px">L'IA optimise les visites selon vos pass — entrées illimitées ou limitées.</p>
+      <div id="passesContainer"></div>
+    </div>
+
     <!-- ADRESSES -->
     <div class="card">
-      <h2 style="margin-bottom:6px">📍 Vos adresses à visiter</h2>
-      <p class="hint" style="margin-bottom:12px">Une adresse par ligne. L'IA les regroupe géographiquement et planifie au meilleur moment.</p>
-      <textarea id="addressesInput" placeholder="Ex:&#10;Colosseum, Rome&#10;Vatican, Rome&#10;Trastevere, Rome&#10;Galleria Borghese, Rome&#10;Pantheon, Rome" oninput="updateCounter()"></textarea>
-      <div class="counter" id="addrCounter">0 adresse(s)</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h2>📍 Lieux à visiter</h2>
+        <button class="btn btn-ghost btn-sm" onclick="addAddr()">+ Ajouter</button>
+      </div>
+      <p class="hint" style="margin-bottom:14px">L'IA regroupe les adresses proches sur le même jour.</p>
+      <div id="addrContainer"></div>
     </div>
 
     <!-- VOITURE -->
@@ -330,11 +357,11 @@ textarea{resize:vertical;min-height:110px;line-height:1.6}
 const ZONE_COLORS=["#f0a500","#00c9a7","#a78bfa","#ff6b6b","#38bdf8","#fb923c","#4ade80","#f472b6"];
 const EMOJI_MAP={hotel:"🏨",transport:"✈️",activity:"🎯",restaurant:"🍽️",visit:"🗺️",info:"💡",repos:"😴",vol:"✈️"};
 const INTERESTS_LIST=["Culture & Musées","Gastronomie","Nature & Randonnée","Plage","Shopping","Architecture","Sport & Aventure","Nightlife"];
-let interests=[],suggestions=null,selected=[],currentStep=1,flightsVisible=true,hotels=[],cars=[];
+let interests=[],suggestions=null,selected=[],currentStep=1,flightsVisible=true,hotels=[],cars=[],passes=[];
 
-renderInterests();renderHotels();renderCars();renderSteps();
+renderInterests();renderAddrs();renderHotels();renderCars();renderPasses();renderSteps();
 // Load saved data on startup
-loadAll();
+loadAll();checkGroqKey();
 // Autosave on any input change
 document.addEventListener('input', ()=>saveAll());
 document.addEventListener('change', ()=>saveAll());
@@ -363,6 +390,24 @@ function renderInterests(){
   document.getElementById("interestsContainer").innerHTML=INTERESTS_LIST.map(int=>`
     <button class="interest-btn ${interests.includes(int)?'active':''}" onclick="toggleInterest('${int}')">${interests.includes(int)?'✓ ':''}${int}</button>
   `).join('');
+}
+let addrs=[];
+function addAddr(){addrs.push('');renderAddrs();}
+function removeAddr(i){addrs.splice(i,1);renderAddrs();}
+function renderAddrs(){
+  const zoneColors=['#f0a500','#00c9a7','#a78bfa','#ff6b6b','#38bdf8','#fb923c','#4ade80','#f472b6'];
+  const el=document.getElementById('addrContainer');
+  if(!addrs.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun lieu ajouté</p>';return;}
+  el.innerHTML=addrs.map((a,i)=>`
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <div style="width:26px;height:26px;border-radius:50%;background:${zoneColors[i%zoneColors.length]}33;border:2px solid ${zoneColors[i%zoneColors.length]};color:${zoneColors[i%zoneColors.length]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</div>
+      <input placeholder="Ex: Universal Studios, Los Angeles" value="${a}" oninput="addrs[${i}]=this.value;saveAll()" style="flex:1">
+      ${addrs.length>1?`<button onclick="removeAddr(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0 4px">×</button>`:''}
+    </div>
+  `).join('');
+}
+function updateCounter(){
+  // kept for compatibility
 }
 function addHotel(){
   hotels.push({nom:'',adresse:'',checkin:'',checkout:''});
@@ -432,6 +477,58 @@ function renderCars(){
         </div>
         <div><label class="label">Trajets prévus (optionnel)</label>
           <input placeholder="Ex: LA → San Francisco → Las Vegas → LA" value="${car.trajets}" oninput="updateCar(${i},'trajets',this.value)">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function addPass(){
+  passes.push({nom:'',type:'illimite',nbEntrees:'',dateDebut:'',dateFin:'',inclus:''});
+  renderPasses();
+}
+function removePass(i){passes.splice(i,1);renderPasses();}
+function updatePass(i,field,val){passes[i][field]=val;renderPasses();}
+function renderPasses(){
+  const el=document.getElementById("passesContainer");
+  if(!passes.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun pass ajouté</p>';return;}
+  el.innerHTML=passes.map((p,i)=>`
+    <div class="pass-card">
+      <button class="remove-btn" onclick="removePass(${i})">×</button>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div><label class="label">Nom du pass / attraction</label>
+          <input placeholder="Ex: CityPASS Los Angeles, SeaWorld..." value="${p.nom}" oninput="passes[${i}].nom=this.value">
+        </div>
+        <div><label class="label">Type</label>
+          <select onchange="updatePass(${i},'type',this.value)">
+            <option value="illimite" ${p.type==='illimite'?'selected':''}>♾️ Illimité (entrées illimitées)</option>
+            <option value="limite" ${p.type==='limite'?'selected':''}>🎟️ Limité (nombre d'entrées fixe)</option>
+            <option value="multi" ${p.type==='multi'?'selected':''}>🎡 Multi-attractions (X attractions incluses)</option>
+          </select>
+        </div>
+        ${p.type!=='illimite'?`<div><label class="label">${p.type==='limite'?'Nombre d'entrées':'Nombre d'attractions incluses'}</label>
+          <input type="number" placeholder="Ex: 3" value="${p.nbEntrees}" oninput="passes[${i}].nbEntrees=this.value" min="1">
+        </div>`:''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label class="label">Valable du</label>
+            <input type="date" value="${p.dateDebut}" oninput="passes[${i}].dateDebut=this.value">
+          </div>
+          <div><label class="label">Au</label>
+            <input type="date" value="${p.dateFin}" oninput="passes[${i}].dateFin=this.value">
+          </div>
+        </div>
+        <div><label class="label">Ce qui est inclus (optionnel)</label>
+          <input placeholder="Ex: Universal, Getty Museum, Warner Bros..." value="${p.inclus}" oninput="passes[${i}].inclus=this.value">
+        </div>
+        <div><label class="label">⭐ Meilleur moment de visite</label>
+          <select onchange="passes[${i}].moment=this.value;saveAll()">
+            <option value="" ${!p.moment?'selected':''}>🤖 L'IA décide</option>
+            <option value="matin" ${p.moment==='matin'?'selected':''}>🌅 Matin</option>
+            <option value="aprem" ${p.moment==='aprem'?'selected':''}>☀️ Après-midi</option>
+            <option value="findaprem" ${p.moment==='findaprem'?'selected':''}>🌇 Fin d'après-midi</option>
+            <option value="journee" ${p.moment==='journee'?'selected':''}>🌞 Journée entière</option>
+            <option value="soir" ${p.moment==='soir'?'selected':''}>🌆 Soirée</option>
+            <option value="flexible" ${p.moment==='flexible'?'selected':''}>🔄 Flexible / plusieurs fois</option>
+          </select>
         </div>
       </div>
     </div>
@@ -554,14 +651,19 @@ async function generatePlan(){
   hideError();
 
   const flights=getFlightData();
-  const rawAddresses=document.getElementById("addressesInput").value;
-  const addresses=rawAddresses.split("\n").map(l=>l.trim()).filter(Boolean);
+  const addresses=addrs.filter(a=>a.trim());
   const logement=document.getElementById("logement").value;
   const budget=document.getElementById("budget").value;
   const reposFreq=document.getElementById("reposFreq").value;
   const reposType=document.getElementById("reposType").value;
   const nbJours=Math.max(1,Math.round((new Date(de)-new Date(ds))/86400000)+1);
 
+  const filledPasses=passes.filter(p=>p.nom);
+  const passesBlock=filledPasses.length>0?`\nPASS & ABONNEMENTS:\n${filledPasses.map((p,i)=>{
+    const typeLabel=p.type==='illimite'?'ILLIMITÉ (peut y aller autant que voulu)':p.type==='limite'?`LIMITÉ (${p.nbEntrees} entrée(s) seulement - utiliser intelligemment)`:`MULTI-ATTRACTIONS (${p.nbEntrees} attractions incluses)`;
+    const momentTxt=p.moment==='findaprem'?"PLANIFIER EN FIN D'APRES-MIDI (moins de monde, plus frais)":p.moment==='matin'?"PLANIFIER LE MATIN dès l'ouverture":p.moment==='aprem'?"PLANIFIER L'APRES-MIDI":p.moment==='journee'?"JOURNEE ENTIERE - bloquer toute la journée, rien d'autre ce jour-là":p.moment==='soir'?"PLANIFIER EN SOIREE":p.moment==='flexible'?"FLEXIBLE - plusieurs visites possibles":"";
+    return `${i+1}. ${p.nom} | ${typeLabel}${p.dateDebut?' | Valable: '+p.dateDebut+' → '+p.dateFin:''}${p.inclus?' | Inclus: '+p.inclus:''}${momentTxt?' | MOMENT IDEAL: '+momentTxt:''}`;
+  }).join("\n")}\nIMPORTANT PASS: Pour les pass illimités, planifie plusieurs visites sur le séjour. Respecte ABSOLUMENT le moment idéal indiqué. Indique 'INCLUS DANS VOTRE PASS - Entrée gratuite' et budget='Inclus ✅'.`:'';
   const filledCars=cars.filter(car=>car.lieuPrise||car.agence);
   const carsBlock=filledCars.length>0?`\nLOCATION VOITURE:\n${filledCars.map((car,i)=>`Voiture ${i+1}: ${car.agence||'Agence inconnue'} - ${car.type||'véhicule'} | Prise: ${car.lieuPrise||'?'} le ${car.datePrise||'?'} | Retour: ${car.lieuRetour||'?'} le ${car.dateRetour||'?'}${car.trajets?' | Trajets: '+car.trajets:''}`).join("\n")}\nIMPORTANT: Bloque des événements type="voiture" pour les jours de trajet inter-villes (prise en charge, trajets longue distance, restitution). Pour chaque trajet, calcule la durée réaliste et indique les pauses recommandées. Ne planifie pas de visites chargées ces jours-là.`:'';
   const filledHotels=hotels.filter(h=>h.nom||h.adresse);
@@ -581,6 +683,7 @@ LOGEMENT: ${logement||'non précisé'}
 BUDGET: ${budget}
 INTÉRÊTS: ${interests.join(', ')||'général'}
 ${volBlock}
+${passesBlock}
 ${carsBlock}
 ${hotelsBlock}
 ${addrBlock}
@@ -608,12 +711,25 @@ JSON valide uniquement, sans markdown:
 }`;
 
   try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:3000,messages:[{role:"user",content:prompt}]})
-    });
-    const data=await res.json();
-    const raw=data.content.map(b=>b.text||"").join("");
+    // Try Groq first, fallback to Anthropic
+    const GROQ_KEY = localStorage.getItem('groq_api_key')||'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';
+    let raw='';
+    if(GROQ_KEY){
+      const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+GROQ_KEY},
+        body:JSON.stringify({model:"llama-3.3-70b-versatile",max_tokens:3000,messages:[{role:"user",content:prompt}],temperature:0.7})
+      });
+      const data=await res.json();
+      raw=data.choices?.[0]?.message?.content||'';
+    } else {
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:3000,messages:[{role:"user",content:prompt}]})
+      });
+      const data=await res.json();
+      raw=data.content.map(b=>b.text||"").join("");
+    }
     suggestions=JSON.parse(raw.replace(/```json|```/g,"").trim());
     selected=suggestions.activites.map((_,i)=>i).filter(i=>suggestions.activites[i].type!=='repos');
     renderFlightSummary(flights, ds, de);
@@ -639,6 +755,7 @@ function renderPlan(){
       <span class="tag-teal">📍 ${s.activites.filter(a=>a.isUserPlace).length} lieux perso</span>
       ${filledHotels&&filledHotels.length>0?`<span class="tag-purple">🏨 ${filledHotels.length} hôtel(s)</span>`:''}
       ${reposDays>0?`<span class="tag-rest">😴 ${reposDays} repos</span>`:''}
+      ${filledPasses&&filledPasses.length>0?`<span class="pass-badge">🎡 ${filledPasses.length} pass</span>`:''}
       <span class="tag-purple">🗺️ ${(s.zones||[]).length} zones</span>
     </div>
     ${s.logique_geo?`<div class="geo-box" style="margin-top:10px"><p style="font-size:12px;color:var(--purple)">🧭 <strong>Optimisation :</strong> ${s.logique_geo}</p></div>`:''}
@@ -799,8 +916,8 @@ function resetApp(){
    "volAllerDepAero","volAllerArrAero","volAllerNum","volAllerHDep","volAllerHArr","volAllerTerminal","volAllerCompagnie",
    "volRetDepAero","volRetArrAero","volRetNum","volRetHDep","volRetHArr","volRetTerminal","volRetCompagnie"
   ].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById("addrCounter").textContent='0 adresse(s)';
-  hotels=[];renderHotels();cars=[];renderCars();
+  addrs=[];renderAddrs();
+  hotels=[];renderHotels();cars=[];renderCars();passes=[];renderPasses();
   document.getElementById("budget").value='moyen';
   renderInterests();localStorage.removeItem('planner_vacances');showStep(1);
 }
@@ -824,7 +941,7 @@ function saveAll(){
       dateEnd: document.getElementById('dateEnd')?.value||'',
       logement: document.getElementById('logement')?.value||'',
       budget: document.getElementById('budget')?.value||'moyen',
-      addresses: document.getElementById('addressesInput')?.value||'',
+      addresses: addrs,
       reposFreq: document.getElementById('reposFreq')?.value||'auto',
       reposType: document.getElementById('reposType')?.value||'libre',
       volAllerNum: document.getElementById('volAllerNum')?.value||'',
@@ -844,6 +961,7 @@ function saveAll(){
       interests: interests,
       hotels: hotels,
       cars: cars,
+      passes: passes,
       suggestions: suggestions,
       savedAt: new Date().toISOString()
     };
@@ -858,20 +976,21 @@ function loadAll(){
     if(!raw) return;
     const data = JSON.parse(raw);
     // Restore form fields
-    const fields = ['destination','dateStart','dateEnd','logement','budget','addresses',
+    const fields = ['destination','dateStart','dateEnd','logement','budget',
       'reposFreq','reposType','volAllerNum','volAllerDepAero','volAllerArrAero',
       'volAllerHDep','volAllerHArr','volAllerTerminal','volAllerCompagnie',
       'volRetNum','volRetDepAero','volRetArrAero','volRetHDep','volRetHArr',
       'volRetTerminal','volRetCompagnie'];
-    const idMap = {addresses:'addressesInput'};
     fields.forEach(f => {
-      const el = document.getElementById(idMap[f]||f);
+      const el = document.getElementById(f);
       if(el && data[f] !== undefined) el.value = data[f];
     });
+    if(data.addresses && Array.isArray(data.addresses)) { addrs = data.addresses; renderAddrs(); }
     // Restore arrays
     if(data.interests) { interests = data.interests; renderInterests(); }
     if(data.hotels) { hotels = data.hotels; renderHotels(); }
     if(data.cars) { cars = data.cars; renderCars(); }
+    if(data.passes) { passes = data.passes; renderPasses(); }
     // Restore planning
     if(data.suggestions) {
       suggestions = data.suggestions;
@@ -933,6 +1052,24 @@ function clearSave(){
   suggestions = null;
 }
 
+function saveGroqKey(){
+  const key=document.getElementById('groqKeyInput').value.trim();
+  if(!key){return;}
+  localStorage.setItem('groq_api_key',key);
+  document.getElementById('groqSetup').style.display='none';
+  document.getElementById('groqBanner').style.display='flex';
+}
+function removeGroqKey(){
+  localStorage.removeItem('groq_api_key');
+  document.getElementById('groqSetup').style.display='block';
+  document.getElementById('groqBanner').style.display='none';
+}
+function checkGroqKey(){
+  if(localStorage.getItem('groq_api_key')){
+    document.getElementById('groqSetup').style.display='none';
+    document.getElementById('groqBanner').style.display='flex';
+  }
+}
 function showError(msg){const e=document.getElementById("errorMsg");e.textContent=msg;e.classList.remove("hidden")}
 function hideError(){document.getElementById("errorMsg").classList.add("hidden")}
 </script>
