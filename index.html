@@ -699,7 +699,7 @@ function buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flig
     lines.push('- Miami vers Key West: Key Largo, Islamorada, Marathon, Seven Mile Bridge');
     lines.push('- New York vers Washington DC: Philadelphie (Liberty Bell)');
     lines.push('Format: type=voiture pour conduite, type=visit pour arrets touristiques');
-    lines.push('Ne jamais ecrire juste "Trajet 6h" sans arrets - alterner conduite et visites');
+    lines.push('INTERDIT: une seule carte Conduite avec arrets en description. OBLIGATOIRE: chaque arret = activite separee dans le JSON avec titre, heure, adresse propres');
   }
 
   var filledTrajetsVoiture=trajetsVoiture.filter(function(t){ return t.villeDepart||t.villeArrivee; });
@@ -724,9 +724,11 @@ function buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flig
     lines.push('  Miami->Key West: Key Largo (plongee), Islamorada, Marathon, Seven Mile Bridge (photo), Bahia Honda, Key West (Duval St)');
     lines.push('  NY->Washington DC: Princeton NJ, Philadelphie (Liberty Bell, cheesesteak Pat King)');
     lines.push('  Paris->Cote Azur: Lyon (vieux Lyon dejeune), Orange (arc de triomphe), Avignon (Pont)');
-    lines.push('- Format obligatoire: depart (type=voiture) -> arret 1 (type=visit) -> conduite (type=voiture) -> arret 2 (type=visit) -> arrivee');
-    lines.push('- Ne jamais ecrire juste Trajet 6h - TOUJOURS decoupe avec arrets et horaires precis');
-    lines.push('- Durees realistes: LA->SF Hwy1 = 9-10h avec arrets, LA->Vegas = 4-5h avec arrets');
+    lines.push('- FORMAT OBLIGATOIRE - chaque element = UNE activite separee dans le JSON:');
+    lines.push('  EXEMPLE LA->SF: [{type:voiture,heure:08:00,titre:Depart LA vers Malibu,duree:45min}, {type:visit,heure:08:45,titre:Malibu Beach - Point Dume,duree:45min}, {type:voiture,heure:09:30,titre:Malibu vers Santa Barbara,duree:1h15}, {type:restaurant,heure:10:45,titre:Dejeuner Santa Barbara - State Street,duree:1h}, {type:voiture,heure:12:00,titre:Santa Barbara vers Big Sur,duree:3h}, {type:visit,heure:15:00,titre:McWay Falls - Julia Pfeiffer Burns,duree:1h}, {type:visit,heure:16:30,titre:Bixby Creek Bridge - photo,duree:20min}, {type:voiture,heure:17:00,titre:Big Sur vers Monterey,duree:45min}, {type:visit,heure:17:45,titre:Fishermans Wharf Monterey,duree:1h}, {type:voiture,heure:19:00,titre:Monterey vers San Francisco,duree:2h}]');
+    lines.push('- INTERDIT: une seule carte Conduite vers SF avec arrets mentionnes en description');
+    lines.push('- OBLIGATOIRE: chaque arret = sa propre activite avec heure, titre, adresse, duree');
+    lines.push('- Durees realistes: LA->SF Hwy1 = journee complete (8h-21h), LA->Vegas = demi-journee');
   }
 
   var filledTrajetsLD=trajetsLD.filter(function(t){ return t.villeDepart||t.villeArrivee; });
