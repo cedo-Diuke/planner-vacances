@@ -253,7 +253,11 @@ textarea{resize:vertical;min-height:75px;line-height:1.5}
   </select>
 </div>
 <p class="error hidden" id="errorMsg"></p>
-<button class="btn btn-gold btn-full" id="generateBtn" onclick="generatePlan()">✨ Générer mon planning optimisé</button>
+<div class="r2" style="margin-bottom:0">
+  <button class="btn btn-gold btn-full" id="generateBtn" onclick="generatePlan('LA')" style="font-size:13px">🌴 Générer LA + Big Sur</button>
+  <button class="btn btn-teal btn-full" id="generateBtn2" onclick="generatePlan('excursions')" style="font-size:13px">🎰 Générer SF + Vegas</button>
+</div>
+<button class="btn btn-gold btn-full" id="generateBtnAll" onclick="generatePlan('all')" style="margin-top:8px;font-size:13px">✨ Générer tout le voyage</button>
 </div>
 
 <!-- ══════════════════ STEP 2 ══════════════════ -->
@@ -836,7 +840,7 @@ function repairJson(raw){
   return raw;
 }
 
-async function generatePlan(){
+async function generatePlan(mode){
   var dest=g('destination').trim(), ds=g('dateStart'), de=g('dateEnd');
   if(!dest||!ds||!de){ showError('Veuillez remplir destination et dates.'); return; }
   var btn=document.getElementById('generateBtn');
@@ -852,12 +856,40 @@ async function generatePlan(){
   var filledTrajetsV=trajetsV.filter(function(t){ return t.villeDepart||t.villeArrivee; });
   var model=(document.getElementById('modelSelect')||{value:'llama-3.3-70b-versatile'}).value;
 
+  // Filtrer selon le mode
+  var modeLabel = mode==='LA'?'LA + Big Sur':mode==='excursions'?'SF + Vegas':'Voyage complet';
+  var filledHotelsFiltered = filledHotels;
+  var filledTrajetsFiltered = filledTrajetsV;
+  var filledPassesFiltered = filledPasses;
+  var addressesFiltered = addresses;
+
+  if(mode==='LA'){
+    // Garder seulement la base LA, pas les excursions
+    filledHotelsFiltered = filledHotels.filter(function(h){ return h.role==='base' || !h.role; });
+    filledTrajetsFiltered = [];
+    // Garder seulement pass de LA
+    filledPassesFiltered = filledPasses.filter(function(p){
+      var v=normStr(p.ville||'');
+      return !v || v.indexOf('sanfrancisco')<0 && v.indexOf('lasvegas')<0 && v.indexOf('threeriv')<0;
+    });
+    // Garder seulement lieux LA (pas PIER39 SF)
+    addressesFiltered = addresses.filter(function(a){ return normStr(a).indexOf('sanfrancisco')<0 && normStr(a).indexOf('pier39')<0 && normStr(a).indexOf('embarcadero')<0; });
+  } else if(mode==='excursions'){
+    // Garder seulement SF + Vegas
+    filledHotelsFiltered = filledHotels.filter(function(h){ return h.role==='excursion'; });
+    filledPassesFiltered = filledPasses.filter(function(p){
+      var v=normStr(p.ville||'');
+      return v.indexOf('sanfrancisco')>=0 || v.indexOf('lasvegas')>=0 || v.indexOf('threeriv')>=0 || v.indexOf('sequoia')>=0;
+    });
+    addressesFiltered = addresses.filter(function(a){ return normStr(a).indexOf('sanfrancisco')>=0 || normStr(a).indexOf('pier39')>=0 || normStr(a).indexOf('embarcadero')>=0; });
+  }
+
   // Squelette
-  var skeleton=calcSkeleton(ds,de,nbJours,flights,filledHotels,filledCars,filledTrajetsV,filledPasses,reposFreq,reposDates);
+  var skeleton=calcSkeleton(ds,de,nbJours,flights,filledHotelsFiltered,filledCars,filledTrajetsFiltered,filledPassesFiltered,reposFreq,reposDates);
 
   // Répartir les adresses par ville
   var addrByVille={};
-  addresses.forEach(function(addr){
+  addressesFiltered.forEach(function(addr){
     var matched=false;
     skeleton.forEach(function(d){
       if(!matched&&d.ville&&normStr(addr).indexOf(normStr(d.ville).slice(0,5))>=0){
@@ -895,7 +927,7 @@ async function generatePlan(){
       btn.innerHTML='<span class="spinner"></span> Bloc '+(bi+1)+'/'+blocs.length+' — '+bloc.ville+'...';
       if(bi>0) await new Promise(function(r){ setTimeout(r,2500); });
 
-      var prompt=buildBlocPrompt(bloc.days,filledPasses,filledTrajetsV,interests,budget,dest,ds,flights,reposFreq,reposType,bloc.addrs);
+      var prompt=buildBlocPrompt(bloc.days,filledPassesFiltered,filledTrajetsFiltered,interests,budget,dest,ds,flights,reposFreq,reposType,bloc.addrs);
       var res, retries=0;
       while(retries<3){
         res=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:model,max_tokens:8000,temperature:0.4,messages:[{role:'user',content:prompt}]})});
@@ -935,7 +967,7 @@ async function generatePlan(){
     });
 
     // Hôtels manquants
-    filledHotels.forEach(function(h){
+    filledHotelsFiltered.forEach(function(h){
       var jci=dateToJour(h.checkin,ds), jco=dateToJour(h.checkout,ds);
       if(jci&&!parsed.activites.some(function(a){ return a.type==='hotel'&&a.jour===jci; }))
         parsed.activites.push({jour:jci,date:h.checkin,heure:'15:00',titre:'Check-in — '+(h.nom||'Hôtel'),description:'Arrivée à '+(h.nom||'hôtel'),adresse:h.adresse||'',duree:'1h',type:'hotel',budget:'',zone:'',isUserPlace:false,passName:null,meilleurMoment:'Check-in à partir de 15h',astuce:'Déposez les bagages si arrivée avant 15h.',_injected:true});
@@ -950,7 +982,7 @@ async function generatePlan(){
       parsed.activites.push({jour:nbJours,date:de,heure:flights.retour.hDep||'10:00',titre:'Vol retour — '+flights.retour.num+(flights.retour.compagnie?' · '+flights.retour.compagnie:''),description:flights.retour.depAero+' → '+flights.retour.arrAero,adresse:'',duree:'',type:'vol',budget:'',zone:'',isUserPlace:false,passName:null,astuce:'Aéroport 2-3h avant.'+(flights.retour.terminal?' Terminal: '+flights.retour.terminal:''),_injected:true});
 
     // Lieux perso manquants
-    addresses.forEach(function(addr,i){
+    addressesFiltered.forEach(function(addr,i){
       var n=normStr(addr).slice(0,12);
       if(!parsed.activites.some(function(a){ return normStr(a.adresse).indexOf(n)>=0||normStr(a.titre).indexOf(n)>=0; })){
         var j=Math.min(2+i,nbJours);
@@ -960,7 +992,7 @@ async function generatePlan(){
 
     // Attractions pass manquantes
     var missAttr=[];
-    filledPasses.forEach(function(p){
+    filledPassesFiltered.forEach(function(p){
       if(!p.inclus.trim()) return;
       p.inclus.split(/[\n,]+/).map(function(a){ return a.trim(); }).filter(Boolean).forEach(function(attr){
         var n=normStr(attr).slice(0,12);
@@ -984,6 +1016,22 @@ async function generatePlan(){
       return (a.heure||'00:00').localeCompare(b.heure||'00:00');
     });
 
+    // Fusionner avec planning existant si mode partiel
+    if(mode!=='all' && suggestions && suggestions.activites && suggestions.activites.length){
+      // Supprimer les jours déjà couverts par ce mode, garder les autres
+      var newJours={};
+      parsed.activites.forEach(function(a){ newJours[a.jour]=true; });
+      var kept=suggestions.activites.filter(function(a){ return !newJours[a.jour]; });
+      parsed.activites=kept.concat(parsed.activites);
+      parsed.activites.sort(function(a,b){
+        if(a.jour!==b.jour) return (a.jour||0)-(b.jour||0);
+        var oa=typeOrder(a.type),ob=typeOrder(b.type); if(oa!==ob) return oa-ob;
+        return (a.heure||'00:00').localeCompare(b.heure||'00:00');
+      });
+      // Fusionner zones et conseils
+      if(suggestions.zones) suggestions.zones.forEach(function(z){ if(parsed.zones.indexOf(z)<0) parsed.zones.push(z); });
+      parsed.titre = suggestions.titre||parsed.titre;
+    }
     suggestions=parsed;
     selected=suggestions.activites.map(function(_,i){ return i; }).filter(function(i){ return ['repos','vol'].indexOf(suggestions.activites[i].type)<0; });
     renderFlightSummary(flights,ds,de);
@@ -994,7 +1042,9 @@ async function generatePlan(){
     showError('Erreur: '+e.message);
     console.error(e);
   }
-  btn.disabled=false; btn.innerHTML='✨ Générer mon planning optimisé';
+  btn.disabled=false; btn.innerHTML=modeLabel;
+  if(document.getElementById('generateBtn2')) document.getElementById('generateBtn2').disabled=false;
+  if(document.getElementById('generateBtnAll')) document.getElementById('generateBtnAll').disabled=false;
 }
 
 // =======================================
