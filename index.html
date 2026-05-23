@@ -466,7 +466,7 @@ function renderTrajetsVoiture(){
   }).join('');
 }
 
-function addHotel(){ hotels.push({nom:'',adresse:'',checkin:'',checkout:''}); renderHotels(); saveAll(); }
+function addHotel(){ hotels.push({nom:'',adresse:'',checkin:'',checkout:'',role:''}); renderHotels(); saveAll(); }
 function removeHotel(i){ hotels.splice(i,1); renderHotels(); saveAll(); }
 function updateHotel(i,f,v){ if(hotels[i]) hotels[i][f]=v; saveAll(); }
 function renderHotels(){
@@ -479,8 +479,17 @@ function renderHotels(){
       +'<div><label class="label">Nom</label><input placeholder="Ex: Hotel Colosseo" value="'+escHtml(h.nom)+'" oninput="updateHotel('+i+',\'nom\',this.value)"></div>'
       +'<div><label class="label">Adresse</label><input placeholder="Ex: Via Labicana 144, Rome" value="'+escHtml(h.adresse)+'" oninput="updateHotel('+i+',\'adresse\',this.value)"></div>'
       +'<div class="row-2">'
-      +'<div><label class="label">Check-in</label><input type="date" value="'+h.checkin+'" oninput="updateHotel('+i+',\'checkin\',this.value)"></div>'
-      +'<div><label class="label">Check-out</label><input type="date" value="'+h.checkout+'" oninput="updateHotel('+i+',\'checkout\',this.value)"></div>'
+      +'<div><label class="label">Check-in <span style="color:var(--muted);font-size:10px">(optionnel)</span></label><input type="date" value="'+h.checkin+'" oninput="updateHotel('+i+',\'checkin\',this.value)"></div>'
+      +'<div><label class="label">Check-out <span style="color:var(--muted);font-size:10px">(optionnel)</span></label><input type="date" value="'+h.checkout+'" oninput="updateHotel('+i+',\'checkout\',this.value)"></div>'
+      +'</div>'
+      +'<div><label class="label">Type de séjour</label>'
+      +'<select onchange="updateHotel('+i+',\'role\',this.value)">'
+      +'<option value=""'+(!h.role?' selected':'')+'>IA décide des dates</option>'
+      +'<option value="base"'+(h.role==="base"?' selected':'')+'>🏠 Logement principal (base du voyage)</option>'
+      +'<option value="excursion"'+(h.role==="excursion"?' selected':'')+'>🗺️ Excursion (IA planifie aller-retour)</option>'
+      +'</select>'
+      +'<p style="font-size:10px;color:var(--muted);margin-top:3px">Base = logement fixe toute la durée. Excursion = IA choisit les jours selon logique du voyage.</p>'
+      +'</div>'
       +'</div></div></div>';
   }).join('');
 }
@@ -730,11 +739,26 @@ function buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flig
 
   if(filledHotels.length){
     lines.push('');
-    lines.push('HOTELS:');
-    filledHotels.forEach(function(h,i){
-      lines.push((i+1)+'. '+(h.nom||'Hotel')+' ('+h.adresse+') check-in:'+h.checkin+' check-out:'+h.checkout);
-    });
-    lines.push('Planifie visites proches geographiquement de chaque hotel selon les dates.');
+    lines.push('=== LOGEMENTS ET HOTELS ===');
+    var hotelBase=filledHotels.filter(function(h){ return h.role==='base'; });
+    var hotelExcursion=filledHotels.filter(function(h){ return h.role==='excursion'; });
+    var hotelAuto=filledHotels.filter(function(h){ return !h.role; });
+    if(hotelBase.length){
+      lines.push('LOGEMENT PRINCIPAL (base fixe du voyage):');
+      hotelBase.forEach(function(h,i){ lines.push('  '+(i+1)+'. '+h.nom+' - '+h.adresse+(h.checkin?' | du '+h.checkin+' au '+h.checkout:' | toute la duree du sejour')); });
+      lines.push('  -> Le voyageur revient toujours ici entre les excursions');
+    }
+    if(hotelExcursion.length){
+      lines.push('HOTELS EXCURSION (IA choisit les dates selon logique du voyage):');
+      hotelExcursion.forEach(function(h,i){ lines.push('  '+(i+1)+'. '+h.nom+' - '+h.adresse+(h.checkin?' | dates preferees: '+h.checkin+' au '+h.checkout:' | IA decide quand')); });
+      lines.push('  -> Planifie un aller depuis la base, sejour, puis retour a la base. Choisir les meilleurs jours selon geo et activites.');
+    }
+    if(hotelAuto.length){
+      lines.push('AUTRES HOTELS:');
+      hotelAuto.forEach(function(h,i){ lines.push('  '+(i+1)+'. '+h.nom+' - '+h.adresse+(h.checkin?' | '+h.checkin+' au '+h.checkout:'')); });
+    }
+    lines.push('REGLE: planifie type=hotel pour check-in et check-out de chaque logement.');
+    lines.push('REGLE: grouper les visites proches geographiquement de chaque hotel pendant son sejour.');
   }
 
   if(addresses.length){
