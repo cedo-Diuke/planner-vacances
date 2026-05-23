@@ -530,7 +530,7 @@ function renderCars(){
   }).join('');
 }
 
-function addPass(){ passes.push({nom:'',type:'illimite',nbEntrees:'',dateDebut:'',dateFin:'',inclus:'',moment:''}); renderPasses(); saveAll(); }
+function addPass(){ passes.push({nom:'',type:'illimite',nbEntrees:'',dateDebut:'',dateFin:'',inclus:'',moment:'',ville:''}); renderPasses(); saveAll(); }
 function removePass(i){ passes.splice(i,1); renderPasses(); saveAll(); }
 function updatePass(i,f,v){ if(passes[i]){ passes[i][f]=v; renderPasses(); saveAll(); } }
 function renderPasses(){
@@ -550,6 +550,10 @@ function renderPasses(){
       +'<option value="multi"'+(p.type==='multi'?' selected':'')+'>Multi (X attractions au choix)</option>'
       +'</select></div>'
       +nbField
+      +'<div><label class="label">Ville / Lieu du pass</label>'
+      +'<input placeholder="Ex: Los Angeles, San Francisco..." value="'+escHtml(p.ville||'')+'" oninput="updatePass('+i+',\'ville\',this.value)">'
+      +'<p style="font-size:10px;color:#4ade80;margin-top:3px">Important: l\'IA planifie ce pass uniquement quand vous etes dans cette ville</p>'
+      +'</div>'
       +'<div class="row-2">'
       +'<div><label class="label">Valable du</label><input type="date" value="'+(p.dateDebut||'')+'" oninput="updatePass('+i+',\'dateDebut\',this.value)"></div>'
       +'<div><label class="label">Au</label><input type="date" value="'+(p.dateFin||'')+'" oninput="updatePass('+i+',\'dateFin\',this.value)"></div>'
@@ -632,6 +636,175 @@ function jourToDate(j,ds){ var d=new Date(ds); d.setDate(d.getDate()+(j-1)); ret
 function normStr(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
 function simil(a,b){ var wa=normStr(a).split('').join(''); var wb=normStr(b); if(!wa||!wb) return 0; var common=0; for(var i=0;i<Math.min(wa.length,wb.length);i++) if(wa[i]===wb[i]) common++; return common/Math.max(wa.length,wb.length); }
 
+// ═══════════════════════════════════════
+// CALCUL SQUELETTE JS — logique ville/jour
+// L'IA ne fait que remplir les activités
+// ═══════════════════════════════════════
+function calcSkeleton(ds, de, nbJours, flights, filledHotels, filledCars, filledTrajets, filledPasses, reposFreq, reposDates){
+  var days = [];
+  for(var j=1; j<=nbJours; j++){
+    var dateStr = jourToDate(j, ds);
+    days.push({jour:j, date:dateStr, ville:'', type:'normal', events:[], passes:[]});
+  }
+
+  // 1. Vols : jour 1 = arrivée, dernier jour = départ
+  if(flights.aller.num || flights.aller.depAero){
+    days[0].events.push({type:'vol', label:'Vol aller '+flights.aller.depAero+' -> '+flights.aller.arrAero, heure:flights.aller.hArr||'06:00'});
+    days[0].type = 'vol-arrivee';
+  }
+  if(flights.retour.num || flights.retour.depAero){
+    var last = days[nbJours-1];
+    last.events.push({type:'vol', label:'Vol retour '+flights.retour.depAero+' -> '+flights.retour.arrAero, heure:flights.retour.hDep||'10:00'});
+    last.type = 'vol-depart';
+  }
+
+  // 2. Prise/restitution voiture
+  filledCars.forEach(function(car){
+    var jp = dateToJour(car.datePrise, ds);
+    var jr = dateToJour(car.dateRetour, ds);
+    if(jp && jp>=1 && jp<=nbJours) days[jp-1].events.push({type:'voiture', label:'Prise voiture '+car.agence, heure:'09:00'});
+    if(jr && jr>=1 && jr<=nbJours) days[jr-1].events.push({type:'voiture', label:'Restitution voiture '+car.agence, heure:'10:00'});
+  });
+
+  // 3. Hotels fixes (avec dates)
+  var hotelBase = filledHotels.filter(function(h){ return h.role==='base'; });
+  var hotelExc  = filledHotels.filter(function(h){ return h.role==='excursion'; });
+  var hotelAuto = filledHotels.filter(function(h){ return !h.role && (h.checkin||h.nom); });
+
+  // Hôtel base : ville = ville de la base pour tous les jours sans excursion
+  var villeBase = hotelBase.length ? (hotelBase[0].adresse||hotelBase[0].nom||'') : '';
+
+  // Hotels avec dates fixes
+  hotelAuto.concat(hotelBase).forEach(function(h){
+    if(!h.checkin) return;
+    var jci = dateToJour(h.checkin, ds);
+    var jco = dateToJour(h.checkout, ds);
+    if(jci && jci>=1 && jci<=nbJours) days[jci-1].events.push({type:'hotel', label:'Check-in '+h.nom, heure:'15:00'});
+    if(jco && jco>=1 && jco<=nbJours) days[jco-1].events.push({type:'hotel', label:'Check-out '+h.nom, heure:'11:00'});
+    // Marquer la ville pour les jours entre checkin et checkout
+    if(jci && jco){
+      for(var j=jci; j<=Math.min(jco,nbJours); j++){
+        if(!days[j-1].ville) days[j-1].ville = h.nom||h.adresse||'';
+      }
+    }
+  });
+
+  // 4. Trajets voiture : marquer jours de trajet + calculer excursions
+  // Pour les hôtels excursion sans dates : réserver des blocs
+  var excursionBlocs = [];
+  hotelExc.forEach(function(h){
+    var nuits = parseInt(h.duree||2);
+    // Trouver un bloc libre de (nuits+2) jours (aller+sejour+retour)
+    var bloc = {hotel:h, nuits:nuits, jourStart:-1};
+    excursionBlocs.push(bloc);
+  });
+  // Attribuer les blocs dans l'ordre (après le jour 1 d'arrivée)
+  var nextFree = 4; // laisser 2-3 jours à la base d'abord
+  excursionBlocs.forEach(function(bloc){
+    var needed = bloc.nuits + 2;
+    bloc.jourStart = nextFree;
+    // Marquer ces jours
+    for(var j=bloc.jourStart; j<Math.min(bloc.jourStart+needed, nbJours); j++){
+      days[j-1].ville = bloc.hotel.nom||bloc.hotel.adresse||'Excursion';
+      if(j===bloc.jourStart) days[j-1].type='trajet-aller';
+      else if(j===bloc.jourStart+needed-1) days[j-1].type='trajet-retour';
+      else days[j-1].type='excursion';
+    }
+    nextFree = bloc.jourStart + needed + 1;
+  });
+
+  // 5. Repos manuels
+  if(reposFreq==='manuel' && reposDates.length){
+    reposDates.filter(Boolean).forEach(function(d){
+      var j = dateToJour(d, ds);
+      if(j && j>=1 && j<=nbJours) days[j-1].type='repos';
+    });
+  }
+
+  // 6. Assigner ville de base aux jours restants
+  days.forEach(function(d){
+    if(!d.ville) d.ville = villeBase || 'destination principale';
+  });
+
+  // 7. Assigner pass aux bons jours (selon ville du pass)
+  filledPasses.forEach(function(p){
+    if(!p.nom) return;
+    var villePass = normStr(p.ville||'');
+    days.forEach(function(d){
+      if(!villePass || normStr(d.ville).indexOf(villePass.slice(0,6))>=0 || villePass.indexOf(normStr(d.ville).slice(0,6))>=0){
+        if(['normal','excursion'].indexOf(d.type)>=0) d.passes.push(p.nom);
+      }
+    });
+  });
+
+  return days;
+}
+
+function skeletonToPrompt(days, filledPasses, filledTrajets, interests, budget, dest, ds, flights, reposFreq, reposType){
+  var lines = [];
+  lines.push('Tu es expert voyages famille. Voici le SQUELETTE du planning deja calcule.');
+  lines.push('Ta tache: remplir UNIQUEMENT les activites pour chaque jour selon la ville assignee.');
+  lines.push('Ne change PAS les jours assignes, les villes, ni les evenements fixes (vols, hotels, voiture).');
+  lines.push('');
+  lines.push('DESTINATION: '+dest+' | BUDGET: '+budget+' | INTERETS: '+(interests.join(',')||'general'));
+  lines.push('HEURES LOCALES: toutes les heures sont en heure locale de '+dest);
+  if(flights.aller.hArr) lines.push('Vol arrive a '+flights.aller.hArr+' heure locale - activites jour 1 apres cette heure seulement');
+  if(flights.retour.hDep) lines.push('Vol repart a '+flights.retour.hDep+' - dernier jour activites terminees '+(parseInt(flights.retour.hDep)-3)+'h au plus tard');
+  lines.push('');
+  lines.push('=== SQUELETTE DU PLANNING ===');
+
+  days.forEach(function(d){
+    var typeLabel = {normal:'Activites libres', repos:'REPOS - journee libre, rien planifier sauf type=repos',
+      'vol-arrivee':'Jour arrivee - peu dactivites, hotel check-in',
+      'vol-depart':'Jour depart - activites AVANT '+flights.retour.hDep+' seulement',
+      'trajet-aller':'TRAJET ALLER vers '+d.ville+' - decoupe en arrets touristiques',
+      'trajet-retour':'TRAJET RETOUR depuis '+d.ville+' - decoupe en arrets touristiques',
+      excursion:'Visites a '+d.ville}[d.type]||'Activites';
+
+    var passInfo = d.passes.length ? ' | PASS DISPONIBLES CE JOUR: '+d.passes.join(', ') : '';
+    lines.push('JOUR '+d.jour+' ('+d.date+') | VILLE: '+d.ville+' | '+typeLabel+passInfo);
+
+    // Evenements fixes
+    d.events.forEach(function(ev){
+      lines.push('  [FIXE '+ev.heure+'] '+ev.label);
+    });
+
+    // Trajets voiture ce jour
+    var tj = filledTrajets.filter(function(t){ return t.date && dateToJour(t.date,ds)===d.jour; });
+    tj.forEach(function(t){
+      var arrets = t.arrets ? 'Arrets: '+t.arrets : 'Choisir les meilleurs arrets (2-4 obligatoires)';
+      lines.push('  [TRAJET VOITURE] '+t.villeDepart+' -> '+t.villeArrivee+' | '+arrets);
+      lines.push('  -> Creer UNE activite type=voiture par segment + UNE activite type=visit par arret');
+    });
+
+    // Pass disponibles ce jour
+    if(d.passes.length && d.type!=='repos' && d.type!=='trajet-aller' && d.type!=='trajet-retour'){
+      filledPasses.filter(function(p){ return d.passes.indexOf(p.nom)>=0; }).forEach(function(p){
+        if(p.inclus.trim()){
+          var attrs = p.inclus.split(/[\n,]+/).map(function(a){ return a.trim(); }).filter(Boolean);
+          lines.push('  [PASS '+p.nom+'] Attractions disponibles: '+attrs.join(', '));
+          lines.push('  -> Planifier 1 attraction de ce pass ce jour (type=attraction, budget=Inclus '+p.nom+', passName='+p.nom+')');
+        }
+      });
+    }
+  });
+
+  lines.push('');
+  lines.push('=== REGLES DE REMPLISSAGE ===');
+  lines.push('1. ORDRE dans chaque jour: [vols] -> [voiture] -> [hotel] -> [activites] -> [repos]');
+  lines.push('2. HORAIRES varies: parcs 08h-09h, musees 10h30, monuments golden hour 17h-19h, restos 12h30 ou 19h30');
+  lines.push('3. JOURS CREUX: parcs et attractions sur mardi/mercredi de preference');
+  lines.push('4. MAX 4-5 activites par jour realiste en famille');
+  lines.push('5. GEO: regrouper lieux proches, circuit logique, zero doublon');
+  lines.push('6. PASS: utiliser les attractions assignees par le squelette - ne pas les deplacer dans dautres villes');
+  lines.push('7. TRAJETS: chaque arret = activite separee avec heure, titre, adresse propres');
+  if(reposFreq!=='aucun' && reposFreq!=='manuel') lines.push('8. REPOS: inserer jours de repos tous les '+reposFreq+' jours. Type: '+reposType);
+  lines.push('');
+  lines.push('Reponds UNIQUEMENT en JSON valide sans markdown:');
+  lines.push('{"titre":"string","resume":"string","zones":["Zone A"],"activites":[{"jour":1,"date":"'+ds+'","heure":"09:00","titre":"string","description":"string","adresse":"Adresse, '+dest+'","duree":"2h","type":"visit","budget":"15 EUR","zone":"string","isUserPlace":false,"passName":null,"meilleurMoment":"string","jourCreux":null,"astuce":"string"}],"logique_geo":"string","conseils":["string"]}');
+  return lines.join('\n');
+}
+
 function buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flights,filledPasses,filledCars,filledHotels,addresses){
   var lines=[];
   lines.push('Tu es expert voyages famille. Genere un planning complet et optimise.');
@@ -660,12 +833,13 @@ function buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flig
       var momentLabel = {matin:'MATIN avant 11h',aprem:'APRES-MIDI 14h-17h',findaprem:'FIN APRES-MIDI 17h-19h',journee:'JOURNEE ENTIERE',soir:'SOIREE apres 18h',flexible:'FLEXIBLE'}[p.moment]||'IA decide';
       lines.push('PASS '+(i+1)+': "'+p.nom+'"');
       lines.push('  Type: '+typeLabel);
+      if(p.ville) lines.push('  VILLE: '+p.ville+' -> planifier UNIQUEMENT les jours passes dans cette ville');
       if(p.dateDebut) lines.push('  Valide: '+p.dateDebut+' au '+(p.dateFin||'?'));
       lines.push('  Moment ideal: '+momentLabel);
       if(p.inclus.trim()){
         var attrs=p.inclus.split(/[\n,]+/).map(function(a){ return a.trim(); }).filter(Boolean);
         lines.push('  ATTRACTIONS A PLANIFIER (obligatoires, une par jour):');
-        attrs.forEach(function(a,j){ lines.push('  '+(j+1)+'. '+a+' -> type=attraction, budget="Inclus '+p.nom+'", passName="'+p.nom+'"'); });
+        attrs.forEach(function(a,j){ lines.push('  '+(j+1)+'. '+a+' -> type=attraction, budget="Inclus '+p.nom+'", passName="'+p.nom+'". PLANIFIER dans la ville de cette attraction, pas ailleurs.'); });
       } else {
         lines.push('  (invente 3-5 attractions populaires compatibles avec ce pass)');
       }
@@ -674,6 +848,11 @@ function buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flig
     lines.push('- Chaque attraction = activite SEPAREE dans le JSON');
     lines.push('- type=attraction, budget="Inclus [nom pass]", passName="[nom pass]"');
     lines.push('- Respecter le moment ideal');
+    lines.push('- GEO OBLIGATOIRE: planifier chaque attraction dans la ville ou elle se trouve physiquement');
+    lines.push('- Ex: parc aquatique a LA = planifie un jour LA, PAS pendant un trajet vers SF');
+    lines.push('- Ex: studios a LA = planifie un jour LA, PAS a San Francisco');
+    lines.push('- Ne jamais placer une attraction d un pass pendant un jour de trajet ou d excursion hors de sa ville');
+    lines.push('- Si le pass a des attractions dans differentes villes, les grouper par ville sur des jours dans cette ville');
   }
 
   if(filledCars.length){
@@ -856,7 +1035,10 @@ async function generatePlan(){
   var filledCars=cars.filter(function(c){ return c.lieuPrise||c.agence; });
   var filledHotels=hotels.filter(function(h){ return h.nom||h.adresse; });
 
-  var prompt=buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flights,filledPasses,filledCars,filledHotels,addresses);
+  // Calculer le squelette JS-side
+  var filledTrajetsV=trajetsVoiture.filter(function(t){ return t.villeDepart||t.villeArrivee; });
+  var skeleton=calcSkeleton(ds,de,nbJours,flights,filledHotels,filledCars,filledTrajetsV,filledPasses,reposFreq,reposDates);
+  var prompt=skeletonToPrompt(skeleton,filledPasses,filledTrajetsV,interests,budget,dest,ds,flights,reposFreq,reposType);
 
   try{
     var res=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:6000,temperature:0.4,messages:[{role:'user',content:prompt}]})});
