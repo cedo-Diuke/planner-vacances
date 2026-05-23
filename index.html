@@ -75,9 +75,7 @@ textarea{resize:vertical;min-height:75px;line-height:1.5}
 .geo-box{background:#7c3aed15;border:1px solid #7c3aed33;border-radius:8px;padding:7px 11px;margin-top:9px}
 .warn-box{background:#f0a50010;border:1px solid #f0a50033;border-radius:8px;padding:7px 11px;margin-bottom:9px;font-size:12px;color:var(--gold)}
 .tip-row{font-size:12px;color:var(--muted);display:flex;gap:7px;margin-bottom:5px}
-/* Dialog améliorer */
-#improveDialog{position:fixed;inset:0;background:#000a;z-index:1000;display:flex;align-items:flex-end}
-#improveDialog .dialog-inner{background:var(--card);border-top:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;padding:20px;max-height:80vh;overflow-y:auto}
+
 </style>
 </head>
 <body>
@@ -275,7 +273,6 @@ textarea{resize:vertical;min-height:75px;line-height:1.5}
   <div id="tipsCard" class="card hidden" style="border-color:#f0a50033;margin-bottom:14px"></div>
   <div style="display:flex;gap:8px;margin-bottom:8px">
     <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="goBack()">← Modifier</button>
-    <button class="btn btn-ghost" style="flex:1;justify-content:center;border-color:#f0a50066;color:var(--gold)" id="improveBtn" onclick="showImproveDialog()">✨ Améliorer</button>
   </div>
   <button class="btn btn-teal btn-full" id="addCalBtn" onclick="addToCalendar()">📅 Ajouter à l'agenda</button>
 </div>
@@ -295,21 +292,7 @@ textarea{resize:vertical;min-height:75px;line-height:1.5}
   </div>
 </div>
 
-<!-- DIALOG AMÉLIORER -->
-<div id="improveDialog" class="hidden">
-  <div class="dialog-inner">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <h2 style="font-size:15px">✨ Instructions pour l'amélioration</h2>
-      <button onclick="closeImproveDialog()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer">×</button>
-    </div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Dis ce qui ne va pas ou ce que tu veux changer :</p>
-    <textarea id="improveInstructions" placeholder="Ex: Mets Universal les 6 et 7 juillet&#10;SF après le 15 juillet&#10;Plus de repos en début de voyage&#10;Vegas la dernière semaine..." style="margin-bottom:10px"></textarea>
-    <div style="display:flex;gap:7px">
-      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeImproveDialog()">Annuler</button>
-      <button class="btn btn-gold" style="flex:2;justify-content:center" onclick="improvePlan()">✨ Améliorer</button>
-    </div>
-  </div>
-</div>
+
 
 </div><!-- /#app -->
 <script>
@@ -758,11 +741,9 @@ function getAutoArrets(from,to){
 
 function buildBlocPrompt(days,filledPasses,filledTrajets,interests,budget,dest,ds,flights,reposFreq,reposType,blocAddrs){
   var lines=[];
-  lines.push('Expert voyages famille. Remplis les activités pour ce bloc de planning.');
-  lines.push('DESTINATION: '+dest+' | BUDGET: '+budget+' | INTERETS: '+(interests.join(',')||'général'));
-  lines.push('HEURES EN HEURE LOCALE DE '+dest.toUpperCase());
-  if(flights.aller.hArr) lines.push('Jour arrivée: vol arrive '+flights.aller.hArr+' heure locale — activités après cette heure seulement');
-  if(flights.retour.hDep) lines.push('Dernier jour: vol part '+flights.retour.hDep+' — activités terminées '+(parseInt(flights.retour.hDep)-3)+'h au plus tard');
+  lines.push('Planning vacances. Destination:'+dest+' Budget:'+budget+' Interets:'+(interests.join(',')||'general')+' Heures locales '+dest);
+  if(flights.aller.hArr) lines.push('Arrivee:'+flights.aller.hArr+' activites apres seulement');
+  if(flights.retour.hDep) lines.push('Depart:'+flights.retour.hDep+' activites avant '+(parseInt(flights.retour.hDep)-3)+'h');
   lines.push('');
   lines.push('=== SQUELETTE DU BLOC ===');
 
@@ -778,24 +759,17 @@ function buildBlocPrompt(days,filledPasses,filledTrajets,interests,budget,dest,d
       'parc-bloque':'JOURNÉE ENTIÈRE '+d.parcNom+' (08h00 fermeture) — RIEN dautre ce jour'
     }[d.type]||'Activités';
 
-    var passInfo=d.passes.length?' | PASS DISPONIBLES: '+d.passes.join(', '):'';
-    lines.push('JOUR '+d.jour+' ('+d.date+') | VILLE: '+d.ville+' | '+tl+passInfo);
-    d.events.forEach(function(ev){ lines.push('  [FIXE '+ev.heure+'] '+ev.label); });
+    var passInfo=d.passes.length?'|PASS:'+d.passes.join(','):'';
+    lines.push('J'+d.jour+'('+d.date+')'+d.ville+'|'+tl+passInfo);
+    d.events.forEach(function(ev){ lines.push('['+ev.heure+']'+ev.label); });
 
     // Trajets voiture ce jour
     var tj=filledTrajets.filter(function(t){ return t.date&&dateToJour(t.date,ds)===d.jour; });
     tj.forEach(function(t){
       var arrets=t.arrets&&t.arrets.trim()?t.arrets.split(/[,;]+/).map(function(a){ return a.trim(); }).filter(Boolean):getAutoArrets(t.villeDepart,t.villeArrivee);
       lines.push('  [TRAJET VOITURE] '+t.villeDepart+' -> '+t.villeArrivee);
-      lines.push('  STRUCTURE OBLIGATOIRE ('+( arrets.length*2+1)+' activités séparées):');
       var h=8;
-      lines.push('    {type:voiture, heure:0'+h+':00, titre:Départ '+t.villeDepart+', duree:45min-1h}'); h++;
-      arrets.forEach(function(a,idx){
-        lines.push('    {type:visit ou restaurant, heure:'+String(h).padStart(2,'0')+':00, titre:'+a+', duree:45min-1h30}'); h++;
-        if(idx<arrets.length-1){ lines.push('    {type:voiture, heure:'+String(h).padStart(2,'0')+':00, titre:Route vers '+(arrets[idx+1]||t.villeArrivee)+', duree:30min-2h}'); h++; }
-      });
-      lines.push('    {type:voiture, heure:'+String(h).padStart(2,'0')+':00, titre:Arrivée '+t.villeArrivee+' + check-in hôtel, duree:1h}');
-      lines.push('  INTERDIT: une seule carte conduite pour tout le trajet.');
+      lines.push('  ARRETS(chacun=activite separee):depart(voiture,08h)->'+arrets.map(function(a,idx){ return a+'(visit,'+String(h+++idx*2).padStart(2,'0')+'h)->route(voiture)->'; }).join('')+'arrivee '+t.villeArrivee+'(voiture). PAS une seule carte pour tout.');
     });
 
     // Pass ce jour
@@ -826,20 +800,10 @@ function buildBlocPrompt(days,filledPasses,filledTrajets,interests,budget,dest,d
   });
 
   lines.push('');
-  lines.push('=== RÈGLES ===');
-  lines.push('1. ORDRE: vol > voiture > hotel > activités > repos');
-  lines.push('2. HORAIRES VARIÉS: parcs 08h-09h, musées 10h30, monuments 17h-19h, restos 12h30 ou 19h30, plage 08h ou 16h');
-  lines.push('3. JOURS CREUX: parcs sur mardi/mercredi si possible');
-  lines.push('4. MAX 3-4 activités/jour en famille');
-  lines.push('5. GEO: lieux proches même jour, circuit logique, zéro doublon');
-  lines.push('6. PASS: attractions assignées uniquement les jours de la ville du pass');
-  lines.push('7. TRAJETS: CHAQUE ARRÊT = activité séparée avec heure, titre, adresse');
-  lines.push('8. RÉPARTITION: répartir les lieux sur TOUTE la durée du bloc, alternez actif/repos');
-  if(reposFreq!=='aucun'&&reposFreq!=='manuel') lines.push('9. REPOS: tous les '+reposFreq+' jours. Type: '+reposType);
-  if(blocAddrs&&blocAddrs.length){ lines.push('10. LIEUX OBLIGATOIRES (isUserPlace:true):'); blocAddrs.forEach(function(a,i){ lines.push('   '+(i+1)+'. '+a); }); }
-  lines.push('');
-  lines.push('JSON uniquement, sans markdown:');
-  lines.push('{"titre":"string","resume":"string","zones":["Zone A"],"activites":[{"jour":1,"date":"'+ds+'","heure":"09:00","titre":"string","description":"string","adresse":"Adresse, Ville","duree":"2h","type":"visit","budget":"15 EUR","zone":"string","isUserPlace":false,"passName":null,"meilleurMoment":"string","jourCreux":null,"astuce":"string"}],"logique_geo":"string","conseils":["string"]}');
+  lines.push('REGLES: 1)ordre:vol>voiture>hotel>activites>repos 2)parcs 08h mardi/mercredi 3)max 3-4 activites/jour 4)lieux proches=meme jour 5)TRAJETS:chaque arret=activite separee 6)repartir sur toute la duree');
+  if(reposFreq!=='aucun'&&reposFreq!=='manuel') lines.push('REPOS: tous les '+reposFreq+' jours type:'+reposType);
+  if(blocAddrs&&blocAddrs.length){ lines.push('LIEUX(isUserPlace:true):'); blocAddrs.forEach(function(a,i){ lines.push((i+1)+'.'+a); }); }
+  lines.push('JSON sans markdown:{"titre":"","resume":"","zones":[],"activites":[{"jour":1,"date":"'+ds+'","heure":"09:00","titre":"","description":"","adresse":"","duree":"","type":"visit","budget":"","zone":"","isUserPlace":false,"passName":null,"meilleurMoment":"","jourCreux":null,"astuce":""}],"logique_geo":"","conseils":[]}');
   return lines.join('\n');
 }
 
@@ -1036,69 +1000,6 @@ async function generatePlan(){
 // =======================================
 // AMÉLIORER
 // =======================================
-function showImproveDialog(){ var d=document.getElementById('improveDialog'); d.classList.remove('hidden'); d.style.display='flex'; }
-function closeImproveDialog(){ var d=document.getElementById('improveDialog'); d.classList.add('hidden'); d.style.display='none'; }
-
-async function improvePlan(){
-  closeImproveDialog();
-  if(!suggestions) return;
-  var btn=document.getElementById('improveBtn');
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Amélioration...';
-
-  var dest=g('destination'), ds=g('dateStart'), de=g('dateEnd');
-  var instructions=(document.getElementById('improveInstructions')||{value:''}).value.trim();
-  var model=(document.getElementById('modelSelect')||{value:'llama-3.3-70b-versatile'}).value;
-
-  var summary=suggestions.activites.map(function(a){
-    return 'J'+a.jour+' '+a.heure+' | '+a.type.toUpperCase()+' | '+a.titre+(a.adresse?' | '+a.adresse:'')+(a.passName?' | PASS:'+a.passName:'');
-  }).join('\n');
-
-  var prompt=[
-    'Expert voyages famille. Améliore ce planning existant.',
-    'DESTINATION: '+dest+' | DATES: '+ds+' au '+de,
-    '',
-    '=== PLANNING ACTUEL ===',
-    summary,
-    '',
-    '=== AMÉLIORATIONS À FAIRE ===',
-    '1. ORDRE dans chaque jour: vol > voiture > hotel > activités > repos',
-    '2. HORAIRES variés (pas tout à 09:00): parcs 08h-09h, musées 10h30, monuments 17h-19h, restos 12h30 ou 19h30',
-    '3. GEO: lieux proches = même jour, circuit logique',
-    '4. JOURS CREUX: parcs sur mardi/mercredi',
-    '5. DENSITÉ: max 3-4 activités/jour en famille',
-    '6. RÉPARTITION: activités réparties sur toute la durée, pas concentrées au début',
-    (instructions?'':''),
-    (instructions?'=== INSTRUCTIONS SPÉCIFIQUES (priorité absolue) ===':''),
-    (instructions?instructions:''),
-    '',
-    'JSON uniquement sans markdown:',
-    '{"titre":"string","resume":"string","zones":["Zone A"],"activites":[{"jour":1,"date":"'+ds+'","heure":"09:00","titre":"string","description":"string","adresse":"Adresse, '+dest+'","duree":"2h","type":"visit","budget":"15 EUR","zone":"string","isUserPlace":false,"passName":null,"meilleurMoment":"string","jourCreux":null,"astuce":"string"}],"logique_geo":"string","conseils":["string"]}'
-  ].join('\n');
-
-  try{
-    var res=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:model,max_tokens:8000,temperature:0.3,messages:[{role:'user',content:prompt}]})});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    var data=await res.json();
-    var raw=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
-    raw=raw.replace(/```json|```/g,'').trim();
-    var ji=raw.indexOf('{'); if(ji>0) raw=raw.slice(ji);
-    var parsed=JSON.parse(raw);
-    parsed.activites.forEach(function(a){ if(a.jour) a.date=jourToDate(a.jour,ds); });
-    parsed.activites.sort(function(a,b){
-      if(a.jour!==b.jour) return (a.jour||0)-(b.jour||0);
-      var oa=typeOrder(a.type), ob=typeOrder(b.type); if(oa!==ob) return oa-ob;
-      return (a.heure||'00:00').localeCompare(b.heure||'00:00');
-    });
-    suggestions=parsed;
-    selected=suggestions.activites.map(function(_,i){ return i; }).filter(function(i){ return ['repos','vol'].indexOf(suggestions.activites[i].type)<0; });
-    renderPlan(); saveAll();
-    btn.innerHTML='✅ Amélioré !'; btn.style.borderColor='var(--teal)'; btn.style.color='var(--teal)';
-    setTimeout(function(){ btn.innerHTML='✨ Améliorer'; btn.style.borderColor=''; btn.style.color='var(--gold)'; btn.disabled=false; },2500);
-  }catch(e){
-    showError('Amélioration échouée: '+e.message); console.error(e);
-    btn.innerHTML='✨ Améliorer'; btn.disabled=false;
-  }
-}
 
 // =======================================
 // RENDER PLAN
