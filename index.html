@@ -173,7 +173,7 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
         <h2 style="color:var(--sky)">🗺️ Trajets en voiture</h2>
         <button class="btn btn-ghost btn-sm" onclick="addTrajetVoiture()">+ Ajouter</button>
       </div>
-      <p class="hint" style="margin-bottom:14px">L'IA planifie les arrêts touristiques sur chaque trajet (Big Sur, Carmel, etc.)</p>
+      <p class="hint" style="margin-bottom:14px">L'IA propose automatiquement les meilleurs arrêts si tu laisses vide — ou précise tes préférences.</p>
       <div id="trajetsVoitureContainer"></div>
     </div>
 
@@ -460,7 +460,7 @@ function renderTrajetsVoiture(){
       +'<div><label class="label">Date du trajet</label><input type="date" value="'+escHtml(t.date)+'" oninput="updateTrajetVoiture('+i+',\'date\',this.value)"></div>'
       +'<div><label class="label">Arrêts souhaités <span style="color:var(--sky)">(optionnel)</span></label>'
       +'<input placeholder="Ex: Big Sur, Carmel, Monterey" value="'+escHtml(t.arrets)+'" oninput="updateTrajetVoiture('+i+',\'arrets\',this.value)">'
-      +'<p style="font-size:10px;color:var(--sky);margin-top:3px">L\'IA planifie chaque arrêt comme une activité avec horaire et durée</p>'
+      +'<p style="font-size:10px;color:var(--sky);margin-top:3px">Laisse vide = l\'IA choisit les meilleurs arrêts automatiquement</p>'
       +'</div>'
       +'</div></div>';
   }).join('');
@@ -692,14 +692,21 @@ function buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flig
       if(t.arrets) lines.push('   Arrets souhaites: '+t.arrets);
     });
     lines.push('REGLES TRAJETS VOITURE:');
-    lines.push('- Chaque trajet = plusieurs activites: type=voiture pour conduite, type=visit pour arrets');
-    lines.push('- Exemples arrets selon trajet:');
-    lines.push('  LA->SF via Hwy1: Malibu, Santa Barbara, Big Sur (McWay Falls, Bixby Bridge), Carmel, Monterey');
-    lines.push('  LA->Vegas: Barstow, Calico Ghost Town, Baker');
-    lines.push('  SF->Yosemite: Livermore, Manteca, entree du parc');
-    lines.push('  Miami->Key West: Key Largo, Islamorada, Seven Mile Bridge');
-    lines.push('- Ne jamais ecrire juste Trajet 6h sans arrets');
-    lines.push('- Alterner: conduite (type=voiture, duree) -> arret (type=visit, duree) -> conduite...');
+    lines.push('- Chaque trajet = plusieurs activites: type=voiture pour conduite, type=visit pour arrets touristiques');
+    lines.push('- Si arrets non precises: tu DOIS inventer les meilleurs arrets selon la route (2 a 4 arrets)');
+    lines.push('- Si arrets precises: utilise-les ET ajoute dautres si pertinent');
+    lines.push('- EXEMPLES arrets selon itineraire (utilise comme reference):');
+    lines.push('  LA->SF via Hwy1: Malibu (Point Dume), Santa Barbara (State St, dejeune), Pismo Beach, Big Sur (McWay Falls, Bixby Bridge photo), Carmel-by-the-Sea (village), Monterey (Fishermans Wharf, Aquarium)');
+    lines.push('  LA->SF via I-5: Tejon Pass, Kettleman City, Harris Ranch (dejeune)');
+    lines.push('  LA->Las Vegas: Victorville, Barstow (outlet), Calico Ghost Town, Baker (thermometre geant), Primm');
+    lines.push('  SF->Yosemite: Livermore, Manteca, Merced, entree du parc (tunnel view)');
+    lines.push('  SF->Napa: Sausalito, Golden Gate vue, Napa downtown');
+    lines.push('  Miami->Key West: Key Largo (plongee), Islamorada, Marathon, Seven Mile Bridge (photo), Bahia Honda, Key West (Duval St)');
+    lines.push('  NY->Washington DC: Princeton NJ, Philadelphie (Liberty Bell, cheesesteak Pat King)');
+    lines.push('  Paris->Cote Azur: Lyon (vieux Lyon dejeune), Orange (arc de triomphe), Avignon (Pont)');
+    lines.push('- Format obligatoire: depart (type=voiture) -> arret 1 (type=visit) -> conduite (type=voiture) -> arret 2 (type=visit) -> arrivee');
+    lines.push('- Ne jamais ecrire juste Trajet 6h - TOUJOURS decoupe avec arrets et horaires precis');
+    lines.push('- Durees realistes: LA->SF Hwy1 = 9-10h avec arrets, LA->Vegas = 4-5h avec arrets');
   }
 
   var filledTrajetsLD=trajetsLD.filter(function(t){ return t.villeDepart||t.villeArrivee; });
@@ -751,6 +758,9 @@ function buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flig
 
   lines.push('');
   lines.push('=== REGLES CRITIQUES ===');
+  lines.push('0. HEURES LOCALES: toutes les heures dans le planning sont en HEURE LOCALE de '+dest+'. Jamais en heure du pays de depart.');
+  if(flights.aller.hArr) lines.push('   JOUR ARRIVEE (jour 1): vol arrive a '+flights.aller.hArr+' heure locale. Toutes activites ce jour apres '+(parseInt(flights.aller.hArr)+1)+'h. La prise voiture est apres arrivee, pas avant.');
+  if(flights.retour.hDep) lines.push('   JOUR DEPART (jour '+nbJours+'): vol part a '+flights.retour.hDep+' heure locale. Activites possibles seulement avant '+(parseInt(flights.retour.hDep)-3)+'h (transfert aeroport 2-3h avant).');
   lines.push('1. PASS: chaque attraction listee = activite separee avec type=attraction, budget=Inclus [pass], passName=[pass]');
   lines.push('2. GEO: lieux proches = meme jour. Jamais le meme lieu a 16 jours d ecart. Circuit logique.');
   lines.push('3. ZERO DOUBLON: un lieu n apparait qu une seule fois.');
@@ -823,7 +833,15 @@ async function generatePlan(){
     filledCars.forEach(function(car){
       var jp=dateToJour(car.datePrise,ds), jr=dateToJour(car.dateRetour,ds);
       if(jp&&!parsed.activites.some(function(a){ return a.type==='voiture'&&a.jour===jp; })){
-        parsed.activites.push({jour:jp,date:car.datePrise,heure:'09:00',titre:'Prise voiture - '+(car.agence||'Agence'),description:'Recuperation du '+(car.type||'vehicule')+' chez '+(car.agence||'agence'),adresse:car.lieuPrise||'',duree:'1h',type:'voiture',budget:'',zone:'',isUserPlace:false,passName:null,meilleurMoment:'Matin tot',astuce:'Photographiez le vehicule avant de partir.',_injected:true});
+        // Si prise voiture le jour du vol aller, heure = après arrivée
+        var heurePrise='09:00';
+        if(jp===1 && flights.aller.hArr){
+          var arrH=parseInt(flights.aller.hArr.split(':')[0]);
+          var arrM=parseInt(flights.aller.hArr.split(':')[1]||'0');
+          var priseH=arrH+1; // 1h après arrivée pour bagages
+          heurePrise=(priseH<10?'0':'')+priseH+':'+(arrM<10?'0':'')+arrM;
+        }
+        parsed.activites.push({jour:jp,date:car.datePrise,heure:heurePrise,titre:'Prise voiture - '+(car.agence||'Agence'),description:'Recuperation du '+(car.type||'vehicule')+' chez '+(car.agence||'agence'),adresse:car.lieuPrise||'',duree:'1h',type:'voiture',budget:'',zone:'',isUserPlace:false,passName:null,meilleurMoment:'Matin tot',astuce:'Photographiez le vehicule avant de partir.',_injected:true});
       }
       if(jr&&!parsed.activites.some(function(a){ return a.type==='voiture'&&a.jour===jr; })){
         parsed.activites.push({jour:jr,date:car.dateRetour,heure:'10:00',titre:'Restitution voiture - '+(car.agence||'Agence'),description:'Retour du vehicule chez '+(car.agence||'agence'),adresse:car.lieuRetour||car.lieuPrise||'',duree:'1h',type:'voiture',budget:'',zone:'',isUserPlace:false,passName:null,meilleurMoment:'Prevoir 1h avant le vol',astuce:'Plein fait et vehicule propre pour eviter les frais.',_injected:true});
@@ -877,7 +895,7 @@ async function generatePlan(){
 
     // 4. Injecter vols manquants
     if(flights.aller.num&&!parsed.activites.some(function(a){ return a.type==='vol'&&a.jour===1; })){
-      parsed.activites.push({jour:1,date:ds,heure:flights.aller.hDep||'06:00',titre:'Vol aller - '+flights.aller.num+(flights.aller.compagnie?' - '+flights.aller.compagnie:''),description:flights.aller.depAero+' -> '+flights.aller.arrAero+(flights.aller.hArr?' arr. '+flights.aller.hArr:''),adresse:'',duree:'',type:'vol',budget:'',zone:'',isUserPlace:false,passName:null,astuce:'Aeroport 2-3h avant.'+(flights.aller.terminal?' Terminal: '+flights.aller.terminal:''),_injected:true});
+      parsed.activites.push({jour:1,date:ds,heure:flights.aller.hArr||flights.aller.hDep||'06:00',titre:'Vol aller - '+flights.aller.num+(flights.aller.compagnie?' - '+flights.aller.compagnie:''),description:flights.aller.depAero+' -> '+flights.aller.arrAero+(flights.aller.hArr?' arr. '+flights.aller.hArr:''),adresse:'',duree:'',type:'vol',budget:'',zone:'',isUserPlace:false,passName:null,astuce:'Aeroport 2-3h avant.'+(flights.aller.terminal?' Terminal: '+flights.aller.terminal:''),_injected:true});
     }
     if(flights.retour.num&&!parsed.activites.some(function(a){ return a.type==='vol'&&a.jour===nbJours; })){
       parsed.activites.push({jour:nbJours,date:de,heure:flights.retour.hDep||'10:00',titre:'Vol retour - '+flights.retour.num+(flights.retour.compagnie?' - '+flights.retour.compagnie:''),description:flights.retour.depAero+' -> '+flights.retour.arrAero+(flights.retour.hArr?' arr. '+flights.retour.hArr:''),adresse:'',duree:'',type:'vol',budget:'',zone:'',isUserPlace:false,passName:null,astuce:'Aeroport 2-3h avant.'+(flights.retour.terminal?' Terminal: '+flights.retour.terminal:''),_injected:true});
@@ -1198,6 +1216,7 @@ async function improvePlan(){
     currentSummary,
     '',
     '=== PROBLEMES A CORRIGER ===',
+    '0. HEURES LOCALES: toutes les heures sont en heure locale de '+dest+'. Pas en heure du pays de depart.',
     '1. ORDRE: dans chaque jour respecter vol > voiture > hotel > activites > repos',
     '2. HORAIRES: varier les heures (pas tout a 09:00). Parcs a ouverture, musees 10h30, monuments golden hour 17h-19h',
     '3. GEO: lieux proches = meme jour, circuit logique, zero doublon',
@@ -1225,11 +1244,12 @@ async function improvePlan(){
     var data=await res.json();
     var raw=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
     raw=raw.replace(/```json|```/g,'').trim();
-    var js2=raw.indexOf('{'); if(js2>0) raw=raw.slice(js2);
+    var jsIdx=raw.indexOf('{'); if(jsIdx>0) raw=raw.slice(jsIdx);
     var parsed=JSON.parse(raw);
 
     // Appliquer les memes post-traitements
-    parsed.activites.forEach(function(a){ if(a.jour) a.date=jourToDate(a.jour,ds); });
+    var dsLocal=g('dateStart'), deLocal=g('dateEnd');
+    parsed.activites.forEach(function(a){ if(a.jour) a.date=jourToDate(a.jour,dsLocal); });
     parsed.activites.sort(function(a,b){
       if(a.jour!==b.jour) return (a.jour||0)-(b.jour||0);
       var oa=typeOrder(a.type), ob=typeOrder(b.type);
@@ -1250,8 +1270,8 @@ async function improvePlan(){
   }catch(e){
     btn.innerHTML='✨ Améliorer';
     btn.disabled=false;
-    alert('Erreur: '+e.message);
-    console.error(e);
+    console.error('improvePlan error:', e);
+    showError('Amelioration echouee: '+e.message);
   }
 }
 
