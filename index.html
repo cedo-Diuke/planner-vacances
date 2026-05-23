@@ -230,6 +230,22 @@ textarea{resize:vertical;min-height:75px;line-height:1.5}
 </div>
 
 <!-- MODELE + GENERER -->
+<!-- EXPORT/IMPORT -->
+<div style="display:flex;gap:7px;margin-bottom:9px">
+  <button class="btn btn-ghost" style="flex:1;justify-content:center;font-size:12px" onclick="exportData()">💾 Exporter mes données</button>
+  <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:transparent;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+    📂 Importer
+    <input type="file" accept=".json" onchange="importData(this)" style="display:none">
+  </label>
+</div>
+<!-- EXPORT/IMPORT -->
+<div style="display:flex;gap:7px;margin-bottom:9px">
+  <button class="btn btn-ghost" style="flex:1;justify-content:center;font-size:12px" onclick="exportData()">💾 Exporter</button>
+  <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;background:transparent;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:600">
+    📂 Importer
+    <input type="file" accept=".json" onchange="importData(this)" style="display:none">
+  </label>
+</div>
 <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-bottom:9px;display:flex;align-items:center;gap:8px">
   <span style="font-size:11px;color:var(--muted);flex-shrink:0">Modèle IA</span>
   <select id="modelSelect" style="flex:1;padding:4px 8px;font-size:12px">
@@ -830,6 +846,32 @@ function buildBlocPrompt(days,filledPasses,filledTrajets,interests,budget,dest,d
 // =======================================
 // GÉNÉRATION PAR BLOCS
 // =======================================
+// Tente de réparer un JSON tronqué
+function repairJson(raw){
+  if(!raw) return '{}';
+  // Trouver le dernier objet activite complet
+  var lastGood=raw.lastIndexOf('},');
+  var lastObj=raw.lastIndexOf('}]');
+  // Si le JSON est tronqué (pas de } final)
+  if(raw.trim().slice(-1)!=='}'){
+    // Couper au dernier objet complet et fermer
+    var cutAt=Math.max(lastGood, lastObj);
+    if(cutAt>0){
+      raw=raw.slice(0,cutAt+1);
+      // Compter les { et } pour fermer proprement
+      var depth=0;
+      for(var i=0;i<raw.length;i++){
+        if(raw[i]==='{') depth++;
+        if(raw[i]==='}') depth--;
+      }
+      // Fermer les tableaux et objets manquants
+      if(raw.lastIndexOf('}]')<raw.lastIndexOf('{')){ raw+=']'; }
+      while(depth>0){ raw+='}'; depth--; }
+    }
+  }
+  return raw;
+}
+
 async function generatePlan(){
   var dest=g('destination').trim(), ds=g('dateStart'), de=g('dateEnd');
   if(!dest||!ds||!de){ showError('Veuillez remplir destination et dates.'); return; }
@@ -892,7 +934,7 @@ async function generatePlan(){
       var prompt=buildBlocPrompt(bloc.days,filledPasses,filledTrajetsV,interests,budget,dest,ds,flights,reposFreq,reposType,bloc.addrs);
       var res, retries=0;
       while(retries<3){
-        res=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:model,max_tokens:4000,temperature:0.4,messages:[{role:'user',content:prompt}]})});
+        res=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:model,max_tokens:8000,temperature:0.4,messages:[{role:'user',content:prompt}]})});
         if(res.status===429){ retries++; btn.innerHTML='<span class="spinner"></span> Limite Groq, attente '+(retries*6)+'s...'; await new Promise(function(r){ setTimeout(r,retries*6000); }); }
         else break;
       }
@@ -901,6 +943,8 @@ async function generatePlan(){
       var raw=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
       raw=raw.replace(/```json|```/g,'').trim();
       var ji=raw.indexOf('{'); if(ji>0) raw=raw.slice(ji);
+      // Réparer JSON tronqué
+      raw=repairJson(raw);
       var parsed=JSON.parse(raw);
       if(parsed.activites) allActs=allActs.concat(parsed.activites);
       if(parsed.zones) parsed.zones.forEach(function(z){ if(allZones.indexOf(z)<0) allZones.push(z); });
@@ -1032,7 +1076,7 @@ async function improvePlan(){
   ].join('\n');
 
   try{
-    var res=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:model,max_tokens:6000,temperature:0.3,messages:[{role:'user',content:prompt}]})});
+    var res=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:model,max_tokens:8000,temperature:0.3,messages:[{role:'user',content:prompt}]})});
     if(!res.ok) throw new Error('HTTP '+res.status);
     var data=await res.json();
     var raw=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
@@ -1261,6 +1305,108 @@ async function addToCalendar(){
   document.getElementById('doneMsg').innerHTML='<strong>'+done.length+'</strong> événement(s) pour <strong>'+escHtml(dest)+'</strong>';
   document.getElementById('doneList').innerHTML=done.map(function(t){ return '<div style="display:flex;gap:8px;align-items:center;font-size:12px;margin-bottom:5px"><span style="color:var(--teal)">✓</span><span style="color:var(--muted)">'+escHtml(t)+'</span></div>'; }).join('');
   showStep(3);
+}
+
+function exportData(){
+  try{
+    var data=Object.assign({},getFormVals(),{
+      interests:interests,hotels:hotels,cars:cars,passes:passes,
+      addrs:addrs,reposDates:reposDates,trajetsV:trajetsV,
+      suggestions:suggestions,exportedAt:new Date().toISOString()
+    });
+    var dest=g('destination')||'voyage';
+    var date=new Date().toISOString().split('T')[0];
+    var json=JSON.stringify(data,null,2);
+    var blob=new Blob([json],{type:'application/json'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url; a.download='planner-'+dest.replace(/[^a-z0-9]/gi,'-').toLowerCase()+'-'+date+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){ alert('Erreur export: '+e.message); }
+}
+
+function importData(input){
+  var file=input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      // Restaurer champs simples
+      ['destination','dateStart','dateEnd','budget','reposFreq','reposType',
+       'vADA','vAAA','vAN','vAHD','vAHA','vAT','vAC',
+       'vRDA','vRAA','vRN','vRHD','vRHA','vRT','vRC'
+      ].forEach(function(f){ var el=document.getElementById(f); if(el&&data[f]!==undefined) el.value=data[f]; });
+      // Restaurer tableaux
+      if(Array.isArray(data.interests)){ interests=data.interests; renderInterests(); }
+      if(Array.isArray(data.hotels)){ hotels=data.hotels; renderHotels(); }
+      if(Array.isArray(data.cars)){ cars=data.cars; renderCars(); }
+      if(Array.isArray(data.passes)){ passes=data.passes; renderPasses(); }
+      if(Array.isArray(data.addrs)){ addrs=data.addrs; renderAddrs(); }
+      if(Array.isArray(data.reposDates)){ reposDates=data.reposDates; renderReposDates(); }
+      if(Array.isArray(data.trajetsV)){ trajetsV=data.trajetsV; renderTrajetsV(); }
+      if(data.suggestions){ suggestions=data.suggestions; selected=suggestions.activites.map(function(_,i){ return i; }).filter(function(i){ return ['repos','vol'].indexOf(suggestions.activites[i].type)<0; }); }
+      if(data.reposFreq==='manuel') onReposChange();
+      saveAll();
+      alert('✅ Données importées avec succès !');
+    }catch(e){ alert('Erreur import: '+e.message); }
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+function repairJson(raw){
+  if(!raw) return '{}';
+  if(raw.trim().slice(-1)==='}') return raw;
+  var lastGood=raw.lastIndexOf('},');
+  var lastObj=raw.lastIndexOf('}]');
+  var cutAt=Math.max(lastGood,lastObj);
+  if(cutAt>0){
+    raw=raw.slice(0,cutAt+1);
+    var depth=0;
+    for(var i=0;i<raw.length;i++){ if(raw[i]==='{') depth++; if(raw[i]==='}') depth--; }
+    if(raw.lastIndexOf('}]')<raw.lastIndexOf('{')) raw+=']';
+    while(depth>0){ raw+='}'; depth--; }
+  }
+  return raw;
+}
+
+function exportData(){
+  try{
+    var data=Object.assign({},getFormVals(),{interests:interests,hotels:hotels,cars:cars,passes:passes,addrs:addrs,reposDates:reposDates,trajetsV:trajetsV,suggestions:suggestions,exportedAt:new Date().toISOString()});
+    var dest=g('destination')||'voyage';
+    var date=new Date().toISOString().split('T')[0];
+    var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url; a.download='planner-'+dest.replace(/[^a-z0-9]/gi,'-').toLowerCase()+'-'+date+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){ alert('Erreur export: '+e.message); }
+}
+
+function importData(input){
+  var file=input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      ['destination','dateStart','dateEnd','budget','reposFreq','reposType','vADA','vAAA','vAN','vAHD','vAHA','vAT','vAC','vRDA','vRAA','vRN','vRHD','vRHA','vRT','vRC'].forEach(function(f){ var el=document.getElementById(f); if(el&&data[f]!==undefined) el.value=data[f]; });
+      if(Array.isArray(data.interests)){ interests=data.interests; renderInterests(); }
+      if(Array.isArray(data.hotels)){ hotels=data.hotels; renderHotels(); }
+      if(Array.isArray(data.cars)){ cars=data.cars; renderCars(); }
+      if(Array.isArray(data.passes)){ passes=data.passes; renderPasses(); }
+      if(Array.isArray(data.addrs)){ addrs=data.addrs; renderAddrs(); }
+      if(Array.isArray(data.reposDates)){ reposDates=data.reposDates; renderReposDates(); }
+      if(Array.isArray(data.trajetsV)){ trajetsV=data.trajetsV; renderTrajetsV(); }
+      if(data.suggestions){ suggestions=data.suggestions; selected=suggestions.activites.map(function(_,i){ return i; }).filter(function(i){ return ['repos','vol'].indexOf(suggestions.activites[i].type)<0; }); }
+      if(data.reposFreq==='manuel') onReposChange();
+      saveAll();
+      alert('Données importées !');
+    }catch(e){ alert('Erreur import: '+e.message); }
+  };
+  reader.readAsText(file);
+  input.value='';
 }
 
 function resetApp(){
