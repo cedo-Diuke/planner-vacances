@@ -163,8 +163,18 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
         <h2 style="color:var(--sky)">🚗 Location de voiture</h2>
         <button class="btn btn-ghost btn-sm" onclick="addCar()">+ Ajouter</button>
       </div>
-      <p class="hint" style="margin-bottom:14px">L'IA planifie les arrêts touristiques sur chaque trajet (Big Sur, Carmel, etc.)</p>
+      <p class="hint" style="margin-bottom:14px">Agence, dates de prise et restitution.</p>
       <div id="carsContainer"></div>
+    </div>
+
+    <!-- TRAJETS VOITURE -->
+    <div class="card" style="border-color:#38bdf822">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h2 style="color:var(--sky)">🗺️ Trajets en voiture</h2>
+        <button class="btn btn-ghost btn-sm" onclick="addTrajetVoiture()">+ Ajouter</button>
+      </div>
+      <p class="hint" style="margin-bottom:14px">L'IA planifie les arrêts touristiques sur chaque trajet (Big Sur, Carmel, etc.)</p>
+      <div id="trajetsVoitureContainer"></div>
     </div>
 
     <!-- HOTELS -->
@@ -258,10 +268,11 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
     </div>
     <div id="activitiesContainer"></div>
     <div id="tipsCard" class="card hidden" style="border-color:#f0a50033;margin-bottom:16px"></div>
-    <div style="display:flex;gap:10px">
+    <div style="display:flex;gap:10px;margin-bottom:10px">
       <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="goBack()">← Modifier</button>
-      <button class="btn btn-teal" style="flex:2;justify-content:center" id="addCalBtn" onclick="addToCalendar()">📅 Ajouter à l'agenda</button>
+      <button class="btn btn-ghost" style="flex:1;justify-content:center;border-color:#f0a50066;color:var(--gold)" id="improveBtn" onclick="improvePlan()">✨ Améliorer</button>
     </div>
+    <button class="btn btn-teal btn-full" id="addCalBtn" onclick="addToCalendar()">📅 Ajouter à l'agenda</button>
   </div>
 
   <!-- STEP 3 -->
@@ -294,14 +305,14 @@ var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 var SAVE_KEY = 'planner_v5';
 
 var interests=[], suggestions=null, selected=[], currentStep=1, flightsVisible=true;
-var hotels=[], cars=[], passes=[], addrs=[], reposDates=[];
+var hotels=[], cars=[], passes=[], addrs=[], reposDates=[], trajetsLD=[], trajetsVoiture=[];
 
 // Ordre visuel par type dans chaque jour
 var TYPE_ORDER = {vol:0, voiture:1, hotel:2, trajet:1, repos:99, attraction:4, visit:4, restaurant:5, activity:4};
 // vol en 1er, puis voiture/trajet, puis hotel checkin, puis activites, repos toujours en dernier
 function typeOrder(t){ return TYPE_ORDER[t]!==undefined ? TYPE_ORDER[t] : 4; }
 
-renderInterests(); renderAddrs(); renderHotels(); renderCars(); renderPasses(); renderSteps(); loadAll();
+renderInterests(); renderAddrs(); renderHotels(); renderCars(); renderPasses(); renderTrajetsVoiture(); renderTrajetsLD(); renderSteps(); loadAll();
 document.addEventListener('input', function(){ saveAll(); });
 document.addEventListener('change', function(){ saveAll(); });
 
@@ -395,6 +406,66 @@ function renderAddrs(){
   }).join('');
 }
 
+function addTrajetLD(){ trajetsLD.push({type:'train',villeDepart:'',villeArrivee:'',date:'',hDep:'',hArr:'',compagnie:'',numero:''}); renderTrajetsLD(); saveAll(); }
+function removeTrajetLD(i){ trajetsLD.splice(i,1); renderTrajetsLD(); saveAll(); }
+function updateTrajetLD(i,f,v){ if(trajetsLD[i]) trajetsLD[i][f]=v; saveAll(); }
+
+function renderTrajetsLD(){
+  var el=document.getElementById('trajetsLDContainer'); if(!el) return;
+  if(!trajetsLD.length){ el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun trajet — cliquez sur + Ajouter</p>'; return; }
+  el.innerHTML=trajetsLD.map(function(t,i){
+    var typeEmoji={train:'🚆',bus:'🚌',ferry:'⛴️',avion:'✈️',autre:'🚀'}[t.type]||'🚆';
+    return '<div style="background:var(--card2);border:1px solid #f0a50033;border-radius:10px;padding:14px;margin-bottom:10px;position:relative">'
+      +'<button onclick="removeTrajetLD('+i+')" style="position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">x</button>'
+      +'<div style="display:flex;flex-direction:column;gap:8px">'
+      +'<div><label class="label">Type</label>'
+      +'<select onchange="updateTrajetLD('+i+',\'type\',this.value)">'
+      +'<option value="train"'+(t.type==='train'?' selected':'')+'>🚆 Train</option>'
+      +'<option value="bus"'+(t.type==='bus'?' selected':'')+'>🚌 Bus / Car</option>'
+      +'<option value="ferry"'+(t.type==='ferry'?' selected':'')+'>⛴️ Ferry / Bateau</option>'
+      +'<option value="avion"'+(t.type==='avion'?' selected':'')+'>✈️ Vol intérieur</option>'
+      +'<option value="autre"'+(t.type==='autre'?' selected':'')+'>🚀 Autre</option>'
+      +'</select></div>'
+      +'<div class="row-2">'
+      +'<div><label class="label">Ville départ</label><input placeholder="Ex: Paris" value="'+escHtml(t.villeDepart)+'" oninput="updateTrajetLD('+i+',\'villeDepart\',this.value)"></div>'
+      +'<div><label class="label">Ville arrivée</label><input placeholder="Ex: Lyon" value="'+escHtml(t.villeArrivee)+'" oninput="updateTrajetLD('+i+',\'villeArrivee\',this.value)"></div>'
+      +'</div>'
+      +'<div class="row-2">'
+      +'<div><label class="label">Date</label><input type="date" value="'+escHtml(t.date)+'" oninput="updateTrajetLD('+i+',\'date\',this.value)"></div>'
+      +'<div><label class="label">Compagnie / N°</label><input placeholder="Ex: TGV 6201" value="'+escHtml(t.compagnie+(t.numero?' '+t.numero:''))+'" oninput="updateTrajetLD('+i+',\'compagnie\',this.value)"></div>'
+      +'</div>'
+      +'<div class="row-2">'
+      +'<div><label class="label">Heure départ</label><input type="time" value="'+escHtml(t.hDep)+'" oninput="updateTrajetLD('+i+',\'hDep\',this.value)"></div>'
+      +'<div><label class="label">Heure arrivée</label><input type="time" value="'+escHtml(t.hArr)+'" oninput="updateTrajetLD('+i+',\'hArr\',this.value)"></div>'
+      +'</div>'
+      +'</div></div>';
+  }).join('');
+}
+
+function addTrajetVoiture(){ trajetsVoiture.push({villeDepart:'',villeArrivee:'',date:'',arrets:''}); renderTrajetsVoiture(); saveAll(); }
+function removeTrajetVoiture(i){ trajetsVoiture.splice(i,1); renderTrajetsVoiture(); saveAll(); }
+function updateTrajetVoiture(i,f,v){ if(trajetsVoiture[i]) trajetsVoiture[i][f]=v; saveAll(); }
+
+function renderTrajetsVoiture(){
+  var el=document.getElementById('trajetsVoitureContainer'); if(!el) return;
+  if(!trajetsVoiture.length){ el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun trajet — cliquez sur + Ajouter</p>'; return; }
+  el.innerHTML=trajetsVoiture.map(function(t,i){
+    return '<div style="background:var(--card2);border:1px solid #38bdf833;border-radius:10px;padding:14px;margin-bottom:10px;position:relative">'
+      +'<button onclick="removeTrajetVoiture('+i+')" style="position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">x</button>'
+      +'<div style="display:flex;flex-direction:column;gap:8px">'
+      +'<div class="row-2">'
+      +'<div><label class="label">Ville départ</label><input placeholder="Ex: Los Angeles" value="'+escHtml(t.villeDepart)+'" oninput="updateTrajetVoiture('+i+',\'villeDepart\',this.value)"></div>'
+      +'<div><label class="label">Ville arrivée</label><input placeholder="Ex: San Francisco" value="'+escHtml(t.villeArrivee)+'" oninput="updateTrajetVoiture('+i+',\'villeArrivee\',this.value)"></div>'
+      +'</div>'
+      +'<div><label class="label">Date du trajet</label><input type="date" value="'+escHtml(t.date)+'" oninput="updateTrajetVoiture('+i+',\'date\',this.value)"></div>'
+      +'<div><label class="label">Arrêts souhaités <span style="color:var(--sky)">(optionnel)</span></label>'
+      +'<input placeholder="Ex: Big Sur, Carmel, Monterey" value="'+escHtml(t.arrets)+'" oninput="updateTrajetVoiture('+i+',\'arrets\',this.value)">'
+      +'<p style="font-size:10px;color:var(--sky);margin-top:3px">L\'IA planifie chaque arrêt comme une activité avec horaire et durée</p>'
+      +'</div>'
+      +'</div></div>';
+  }).join('');
+}
+
 function addHotel(){ hotels.push({nom:'',adresse:'',checkin:'',checkout:''}); renderHotels(); saveAll(); }
 function removeHotel(i){ hotels.splice(i,1); renderHotels(); saveAll(); }
 function updateHotel(i,f,v){ if(hotels[i]) hotels[i][f]=v; saveAll(); }
@@ -434,11 +505,7 @@ function renderCars(){
       +'<div><label class="label">Date prise</label><input type="date" value="'+car.datePrise+'" oninput="updateCar('+i+',\'datePrise\',this.value)"></div>'
       +'<div><label class="label">Date retour</label><input type="date" value="'+car.dateRetour+'" oninput="updateCar('+i+',\'dateRetour\',this.value)"></div>'
       +'</div>'
-      +'<div><label class="label">Trajets</label><input placeholder="Ex: LA - San Francisco - Las Vegas - LA" value="'+escHtml(car.trajets)+'" oninput="updateCar('+i+',\'trajets\',this.value)"></div>'
-      +'<div><label class="label">Route et arrets souhaites <span style="color:var(--sky)">(optionnel)</span></label>'
-      +'<input placeholder="Ex: Via Highway 1, Big Sur, Carmel" value="'+escHtml(car.arrets||'')+'" oninput="updateCar('+i+',\'arrets\',this.value)">'
-      +'<p style="font-size:10px;color:var(--sky);margin-top:3px">L\'IA planifie chaque arret comme une activite avec horaire</p>'
-      +'</div>'
+
       +'</div></div>';
   }).join('');
 }
@@ -491,7 +558,7 @@ function getFormVals(){
 
 function saveAll(){
   try{
-    localStorage.setItem(SAVE_KEY,JSON.stringify(Object.assign({},getFormVals(),{interests:interests,hotels:hotels,cars:cars,passes:passes,addrs:addrs,reposDates:reposDates,suggestions:suggestions,savedAt:new Date().toISOString()})));
+    localStorage.setItem(SAVE_KEY,JSON.stringify(Object.assign({},getFormVals(),{interests:interests,hotels:hotels,cars:cars,passes:passes,addrs:addrs,reposDates:reposDates,trajetsLD:trajetsLD,trajetsVoiture:trajetsVoiture,suggestions:suggestions,savedAt:new Date().toISOString()})));
     showSaveOk();
   }catch(e){ console.warn(e); }
 }
@@ -508,8 +575,12 @@ function loadAll(){
     if(Array.isArray(data.passes)){ passes=data.passes; renderPasses(); }
     if(Array.isArray(data.addrs)){ addrs=data.addrs; renderAddrs(); }
     if(Array.isArray(data.reposDates)){ reposDates=data.reposDates; renderReposDates(); }
+    if(Array.isArray(data.trajetsLD)){ trajetsLD=data.trajetsLD; renderTrajetsLD(); }
+    if(Array.isArray(data.trajetsVoiture)){ trajetsVoiture=data.trajetsVoiture; renderTrajetsVoiture(); }
     if(data.reposFreq==='manuel'){ onReposFreqChange(); }
     if(Array.isArray(data.reposDates)){ reposDates=data.reposDates; renderReposDates(); }
+    if(Array.isArray(data.trajetsLD)){ trajetsLD=data.trajetsLD; renderTrajetsLD(); }
+    if(Array.isArray(data.trajetsVoiture)){ trajetsVoiture=data.trajetsVoiture; renderTrajetsVoiture(); }
     if(data.reposFreq==='manuel'){ onReposFreqChange(); }
     if(data.suggestions){ suggestions=data.suggestions; selected=suggestions.activites.map(function(_,i){ return i; }).filter(function(i){ return ['repos','vol'].indexOf(suggestions.activites[i].type)<0; }); }
     if(data.savedAt) showRestoreBanner(data);
@@ -593,8 +664,7 @@ function buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flig
       lines.push('Voiture '+(i+1)+': '+(car.agence||'?')+' '+(car.type||''));
       lines.push('  PRISE: '+car.datePrise+' = JOUR '+jp+' | lieu: '+(car.lieuPrise||'?'));
       lines.push('  RESTITUTION: '+car.dateRetour+' = JOUR '+jr+' | lieu: '+(car.lieuRetour||'?'));
-      lines.push('  Trajets: '+(car.trajets||'non precises'));
-      lines.push('  Route et arrets souhaites: '+(car.arrets||'IA choisit les meilleurs arrets'));
+
     });
     lines.push('REGLES VOITURE:');
     lines.push('- Prise et restitution aux dates EXACTES ci-dessus - IMPOSSIBLE de les deplacer');
@@ -610,6 +680,45 @@ function buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flig
     lines.push('- New York vers Washington DC: Philadelphie (Liberty Bell)');
     lines.push('Format: type=voiture pour conduite, type=visit pour arrets touristiques');
     lines.push('Ne jamais ecrire juste "Trajet 6h" sans arrets - alterner conduite et visites');
+  }
+
+  var filledTrajetsVoiture=trajetsVoiture.filter(function(t){ return t.villeDepart||t.villeArrivee; });
+  if(filledTrajetsVoiture.length){
+    lines.push('');
+    lines.push('=== TRAJETS EN VOITURE - ARRETS OBLIGATOIRES ===');
+    filledTrajetsVoiture.forEach(function(t,i){
+      var jp=t.date?dateToJour(t.date,ds):'?';
+      lines.push((i+1)+'. '+t.villeDepart+' -> '+t.villeArrivee+(t.date?' | Date: '+t.date+' (JOUR '+jp+')':''));
+      if(t.arrets) lines.push('   Arrets souhaites: '+t.arrets);
+    });
+    lines.push('REGLES TRAJETS VOITURE:');
+    lines.push('- Chaque trajet = plusieurs activites: type=voiture pour conduite, type=visit pour arrets');
+    lines.push('- Exemples arrets selon trajet:');
+    lines.push('  LA->SF via Hwy1: Malibu, Santa Barbara, Big Sur (McWay Falls, Bixby Bridge), Carmel, Monterey');
+    lines.push('  LA->Vegas: Barstow, Calico Ghost Town, Baker');
+    lines.push('  SF->Yosemite: Livermore, Manteca, entree du parc');
+    lines.push('  Miami->Key West: Key Largo, Islamorada, Seven Mile Bridge');
+    lines.push('- Ne jamais ecrire juste Trajet 6h sans arrets');
+    lines.push('- Alterner: conduite (type=voiture, duree) -> arret (type=visit, duree) -> conduite...');
+  }
+
+  var filledTrajetsLD=trajetsLD.filter(function(t){ return t.villeDepart||t.villeArrivee; });
+  if(filledTrajetsLD.length){
+    lines.push('');
+    lines.push('=== TRAJETS LONGUE DISTANCE - DATES FIXES ===');
+    filledTrajetsLD.forEach(function(t,i){
+      var emoji={train:'Train',bus:'Bus',ferry:'Ferry',avion:'Vol interieur',autre:'Trajet'}[t.type]||'Trajet';
+      var jp=dateToJour(t.date,ds);
+      lines.push((i+1)+'. '+emoji+': '+t.villeDepart+' -> '+t.villeArrivee);
+      lines.push('   Date: '+t.date+' = JOUR '+jp+' du sejour');
+      if(t.hDep) lines.push('   Depart: '+t.hDep+(t.hArr?' | Arrivee: '+t.hArr:''));
+      if(t.compagnie) lines.push('   Compagnie/Numero: '+t.compagnie);
+    });
+    lines.push('REGLES TRAJETS LONGUE DISTANCE:');
+    lines.push('- Bloquer ces jours pour le trajet (type=trajet dans le JSON)');
+    lines.push('- Heure reelle du depart si fournie, sinon matin tot');
+    lines.push('- Si arrivee tot, possible demi-journee activites a destination');
+    lines.push('- Planifier selon logique: activites matinales si depart apres-midi, ou arrivee si matin');
   }
 
   if(filledHotels.length){
@@ -729,6 +838,40 @@ async function generatePlan(){
       }
       if(jco&&!parsed.activites.some(function(a){ return a.type==='hotel'&&a.jour===jco; })){
         parsed.activites.push({jour:jco,date:h.checkout,heure:'11:00',titre:'Check-out - '+(h.nom||'Hotel'),description:'Depart de '+(h.nom||'hotel')+'. Check-out avant 11h.',adresse:h.adresse||'',duree:'30min',type:'hotel',budget:'',zone:'',isUserPlace:false,passName:null,meilleurMoment:'Check-out avant 11h',astuce:'Demandez late checkout si vol en soiree.',_injected:true});
+      }
+    });
+
+    // 4c. Injecter trajets voiture manquants
+    var ftv=trajetsVoiture.filter(function(t){ return t.villeDepart&&t.date; });
+    ftv.forEach(function(t){
+      var jt=dateToJour(t.date,ds);
+      if(!jt) return;
+      if(!parsed.activites.some(function(a){ return a.jour===jt&&a.type==='voiture'; })){
+        parsed.activites.push({jour:jt,date:t.date,heure:'08:00',
+          titre:'🚗 Trajet '+t.villeDepart+' -> '+t.villeArrivee,
+          description:'Trajet en voiture de '+t.villeDepart+' a '+t.villeArrivee+(t.arrets?' avec arrets: '+t.arrets:'')+'.',
+          adresse:t.villeDepart,duree:'',type:'voiture',budget:'',zone:'',
+          isUserPlace:false,passName:null,
+          meilleurMoment:'Depart tot le matin pour profiter des arrets',
+          astuce:'Arrets recommandes selon itineraire.',_injected:true});
+      }
+    });
+
+    // 4b. Injecter trajets LD manquants
+    var filledTrajetsLD2=trajetsLD.filter(function(t){ return t.villeDepart||t.villeArrivee; });
+    filledTrajetsLD2.forEach(function(t){
+      var jt=dateToJour(t.date,ds);
+      if(!jt) return;
+      if(!parsed.activites.some(function(a){ return a.jour===jt&&(a.type==='trajet'||a.type==='voiture'); })){
+        var emoji={train:'🚆',bus:'🚌',ferry:'⛴️',avion:'✈️',autre:'🚀'}[t.type]||'🚆';
+        var label={train:'Train',bus:'Bus',ferry:'Ferry',avion:'Vol interieur',autre:'Trajet'}[t.type]||'Trajet';
+        parsed.activites.push({jour:jt,date:t.date,heure:t.hDep||'07:00',
+          titre:emoji+' '+label+' '+t.villeDepart+' -> '+t.villeArrivee,
+          description:label+' de '+t.villeDepart+' a '+t.villeArrivee+(t.compagnie?' ('+t.compagnie+')':'')+'.',
+          adresse:t.villeDepart,duree:'',type:'trajet',budget:'',zone:'',
+          isUserPlace:false,passName:null,
+          meilleurMoment:t.hDep?'Depart a '+t.hDep:'Depart le matin tot',
+          astuce:'Arriver a la gare/station 30min avant.',_injected:true});
       }
     });
 
@@ -1027,12 +1170,97 @@ async function addToCalendar(){
   showStep(3);
 }
 
+async function improvePlan(){
+  if(!suggestions) return;
+  var btn=document.getElementById('improveBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Amélioration...';
+
+  var dest=g('destination'), ds=g('dateStart'), de=g('dateEnd');
+  var nbJours=Math.max(1,Math.round((new Date(de)-new Date(ds))/86400000)+1);
+  var flights=getFlights();
+  var filledPasses=passes.filter(function(p){ return p.nom.trim(); });
+  var filledCars=cars.filter(function(c){ return c.lieuPrise||c.agence; });
+  var filledHotels=hotels.filter(function(h){ return h.nom||h.adresse; });
+  var addresses=addrs.filter(function(a){ return a.trim(); });
+
+  // Résumé du planning actuel
+  var currentSummary=suggestions.activites.map(function(a){
+    return 'Jour '+a.jour+' '+a.heure+' | '+a.type.toUpperCase()+' | '+a.titre+(a.adresse?' | '+a.adresse:'')+(a.passName?' | PASS:'+a.passName:'');
+  }).join('\n');
+
+  var prompt=[
+    'Tu es expert voyages famille. Voici un planning existant que tu dois AMELIORER.',
+    '',
+    'DESTINATION: '+dest+' | DATES: '+ds+' au '+de+' ('+nbJours+' jours)',
+    '',
+    '=== PLANNING ACTUEL A AMELIORER ===',
+    currentSummary,
+    '',
+    '=== PROBLEMES A CORRIGER ===',
+    '1. ORDRE: dans chaque jour respecter vol > voiture > hotel > activites > repos',
+    '2. HORAIRES: varier les heures (pas tout a 09:00). Parcs a ouverture, musees 10h30, monuments golden hour 17h-19h',
+    '3. GEO: lieux proches = meme jour, circuit logique, zero doublon',
+    '4. JOURS CREUX: parcs/attractions sur mardi ou mercredi si possible',
+    '5. PASS: chaque attraction avec passName et budget Inclus',
+    '6. DENSITE: max 4-5 activites par jour realiste en famille',
+    '7. TRANSITIONS: temps de trajet realiste entre activites',
+    '',
+    '=== INSTRUCTIONS ===',
+    '- Garde la structure generale mais ameliore les points ci-dessus',
+    '- Tu peux reorganiser les activites entre les jours si logique geo le justifie',
+    '- Ne supprime pas les lieux marques isUserPlace:true',
+    '- Ne supprime pas les activites avec passName',
+    '- Ajoute meilleurMoment et jourCreux pour parcs/attractions',
+    '',
+    'Reponds UNIQUEMENT en JSON valide sans markdown:',
+    '{"titre":"string","resume":"string","zones":["Zone A"],"activites":[{"jour":1,"date":"'+ds+'","heure":"09:00","titre":"string","description":"string","adresse":"Adresse, '+dest+'","duree":"2h","type":"visit","budget":"15 EUR","zone":"string","isUserPlace":false,"passName":null,"meilleurMoment":"string","jourCreux":null,"astuce":"string"}],"logique_geo":"string","conseils":["string"]}'
+  ].join('\n');
+
+  try{
+    var res=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:6000,temperature:0.3,
+        messages:[{role:'user',content:prompt}]})});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    var data=await res.json();
+    var raw=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+    raw=raw.replace(/```json|```/g,'').trim();
+    var js2=raw.indexOf('{'); if(js2>0) raw=raw.slice(js2);
+    var parsed=JSON.parse(raw);
+
+    // Appliquer les memes post-traitements
+    parsed.activites.forEach(function(a){ if(a.jour) a.date=jourToDate(a.jour,ds); });
+    parsed.activites.sort(function(a,b){
+      if(a.jour!==b.jour) return (a.jour||0)-(b.jour||0);
+      var oa=typeOrder(a.type), ob=typeOrder(b.type);
+      if(oa!==ob) return oa-ob;
+      return (a.heure||'00:00').localeCompare(b.heure||'00:00');
+    });
+
+    suggestions=parsed;
+    selected=suggestions.activites.map(function(_,i){ return i; }).filter(function(i){ return ['repos','vol'].indexOf(suggestions.activites[i].type)<0; });
+    renderPlan();
+    saveAll();
+
+    // Flash vert pour signaler l'amélioration
+    btn.innerHTML='✅ Amélioré !';
+    btn.style.borderColor='var(--teal)';
+    btn.style.color='var(--teal)';
+    setTimeout(function(){ btn.innerHTML='✨ Améliorer'; btn.style.borderColor=''; btn.style.color='var(--gold)'; btn.disabled=false; }, 2500);
+  }catch(e){
+    btn.innerHTML='✨ Améliorer';
+    btn.disabled=false;
+    alert('Erreur: '+e.message);
+    console.error(e);
+  }
+}
+
 function resetApp(){
   interests=[]; suggestions=null; selected=[];
   ['destination','dateStart','dateEnd','logement','vADA','vAAA','vAN','vAHD','vAHA','vAT','vAC','vRDA','vRAA','vRN','vRHD','vRHA','vRT','vRC'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('budget').value='moyen'; document.getElementById('reposFreq').value='auto';
-  addrs=[]; hotels=[]; cars=[]; passes=[]; reposDates=[];
-  renderAddrs(); renderHotels(); renderCars(); renderPasses(); renderInterests(); renderReposDates();
+  addrs=[]; hotels=[]; cars=[]; passes=[]; reposDates=[]; trajetsLD=[]; trajetsVoiture=[];
+  renderAddrs(); renderHotels(); renderCars(); renderPasses(); renderInterests(); renderReposDates(); renderTrajetsLD(); renderTrajetsVoiture();
   localStorage.removeItem(SAVE_KEY); showStep(1);
 }
 
