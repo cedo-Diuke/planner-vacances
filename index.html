@@ -466,9 +466,9 @@ function renderTrajetsVoiture(){
   }).join('');
 }
 
-function addHotel(){ hotels.push({nom:'',adresse:'',checkin:'',checkout:'',role:''}); renderHotels(); saveAll(); }
+function addHotel(){ hotels.push({nom:'',adresse:'',checkin:'',checkout:'',role:'',duree:'2'}); renderHotels(); saveAll(); }
 function removeHotel(i){ hotels.splice(i,1); renderHotels(); saveAll(); }
-function updateHotel(i,f,v){ if(hotels[i]) hotels[i][f]=v; saveAll(); }
+function updateHotel(i,f,v){ if(hotels[i]){ hotels[i][f]=v; if(f==='role') renderHotels(); else saveAll(); } }
 function renderHotels(){
   var c=document.getElementById('hotelsContainer');
   if(!hotels.length){ c.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Aucun hôtel — cliquez sur + Ajouter</p>'; return; }
@@ -490,6 +490,17 @@ function renderHotels(){
       +'</select>'
       +'<p style="font-size:10px;color:var(--muted);margin-top:3px">Base = logement fixe toute la durée. Excursion = IA choisit les jours selon logique du voyage.</p>'
       +'</div>'
+      +(h.role==="excursion"?
+        '<div><label class="label">Durée du séjour <span style="color:var(--sky)">★</span></label>'
+        +'<select onchange="updateHotel('+i+',\'duree\',this.value)">'
+        +'<option value="1"'+(h.duree==="1"?' selected':'')+'>1 nuit (2 jours)</option>'
+        +'<option value="2"'+((!h.duree||h.duree==="2")?' selected':'')+'>2 nuits (3 jours)</option>'
+        +'<option value="3"'+(h.duree==="3"?' selected':'')+'>3 nuits (4 jours)</option>'
+        +'<option value="4"'+(h.duree==="4"?' selected':'')+'>4 nuits (5 jours)</option>'
+        +'<option value="5"'+(h.duree==="5"?' selected':'')+'>5 nuits (6 jours)</option>'
+        +'<option value="7"'+(h.duree==="7"?' selected':'')+'>1 semaine</option>'
+        +'</select></div>'
+        :'')
       +'</div></div></div>';
   }).join('');
 }
@@ -751,7 +762,12 @@ function buildPrompt(dest,ds,de,nbJours,logement,budget,reposFreq,reposType,flig
     if(hotelExcursion.length){
       lines.push('HOTELS EXCURSION (IA choisit les dates selon logique du voyage):');
       hotelExcursion.forEach(function(h,i){ lines.push('  '+(i+1)+'. '+h.nom+' - '+h.adresse+(h.checkin?' | dates preferees: '+h.checkin+' au '+h.checkout:' | IA decide quand')); });
-      lines.push('  -> Planifie un aller depuis la base, sejour, puis retour a la base. Choisir les meilleurs jours selon geo et activites.');
+      hotelExcursion.forEach(function(h){
+        var nuits=parseInt(h.duree||'2');
+        lines.push('  -> Duree du sejour: '+nuits+' nuit(s) / '+(nuits+1)+' jour(s) sur place');
+      });
+      lines.push('  -> Planifie: jour depart (trajet base->excursion), '+(hotelExcursion[0]?parseInt(hotelExcursion[0].duree||2):2)+' nuit(s) sur place avec activites, jour retour (trajet excursion->base)');
+      lines.push('  -> Choisir les meilleurs jours dans le sejour selon logique geo et activites disponibles');
     }
     if(hotelAuto.length){
       lines.push('AUTRES HOTELS:');
