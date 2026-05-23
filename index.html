@@ -740,7 +740,7 @@ function calcSkeleton(ds, de, nbJours, flights, filledHotels, filledCars, filled
   return days;
 }
 
-function skeletonToPrompt(days, filledPasses, filledTrajets, interests, budget, dest, ds, flights, reposFreq, reposType){
+function skeletonToPrompt(days, filledPasses, filledTrajets, interests, budget, dest, ds, flights, reposFreq, reposType, blocAddrs){
   var lines = [];
   lines.push('Tu es expert voyages famille. Voici le SQUELETTE du planning deja calcule.');
   lines.push('Ta tache: remplir UNIQUEMENT les activites pour chaque jour selon la ville assignee.');
@@ -772,9 +772,60 @@ function skeletonToPrompt(days, filledPasses, filledTrajets, interests, budget, 
     // Trajets voiture ce jour
     var tj = filledTrajets.filter(function(t){ return t.date && dateToJour(t.date,ds)===d.jour; });
     tj.forEach(function(t){
-      var arrets = t.arrets ? 'Arrets: '+t.arrets : 'Choisir les meilleurs arrets (2-4 obligatoires)';
-      lines.push('  [TRAJET VOITURE] '+t.villeDepart+' -> '+t.villeArrivee+' | '+arrets);
-      lines.push('  -> Creer UNE activite type=voiture par segment + UNE activite type=visit par arret');
+      // Calculer les arrêts selon la route
+      var arretsList = [];
+      if(t.arrets && t.arrets.trim()){
+        arretsList = t.arrets.split(/[,;]+/).map(function(a){ return a.trim(); }).filter(Boolean);
+      } else {
+        // Arrêts automatiques selon la route
+        var from = normStr(t.villeDepart), to = normStr(t.villeArrivee);
+        var routeKey = from.slice(0,4)+'->'+to.slice(0,4);
+        var autoArrets = {
+          'losangeles->sanfrancisco': ['Malibu - Point Dume Beach','Santa Barbara - State Street (dejeuner)','Pismo Beach','Big Sur - McWay Falls Julia Pfeiffer','Bixby Creek Bridge (photo stop)','Carmel-by-the-Sea','Monterey - Fishermans Wharf'],
+          'sanf->losangeles': ['Monterey - Fishermans Wharf','Big Sur - McWay Falls','Santa Barbara (dejeuner)','Malibu Beach'],
+          'losangeles->lasvegas': ['Victorville','Barstow - Calico Ghost Town','Baker - thermometre geant','Primm - Nevada state line'],
+          'lasv->losangeles': ['Primm','Barstow (cafe)','Victorville'],
+          'sanfrancisco->yosemite': ['Livermore - Outlets','Manteca','Mariposa - entree du parc','Tunnel View point de vue'],
+          'yose->sanfrancisco': ['Tunnel View','Mariposa','Turlock (dejeuner)','Livermore'],
+          'miami->keywest': ['Key Largo - John Pennekamp','Islamorada - Theatre of the Sea','Marathon - Seven Mile Bridge photo','Bahia Honda State Park','Key West - Duval Street'],
+          'newyork->washington': ['Princeton NJ','Philadelphie - Liberty Bell - cheesesteak Pat King'],
+          'paris->nice': ['Lyon - Vieux Lyon dejeuner','Orange - Arc de Triomphe','Avignon - Pont'],
+        };
+        // Chercher correspondance
+        var found = false;
+        Object.keys(autoArrets).forEach(function(k){
+          var parts = k.split('->');
+          if(!found && from.indexOf(parts[0].slice(0,5))>=0 && to.indexOf(parts[1].slice(0,5))>=0){
+            arretsList = autoArrets[k];
+            found = true;
+          }
+        });
+        if(!found) arretsList = ['Arret 1 (IA choisit selon la route)','Arret 2 (IA choisit selon la route)','Arret 3 (IA choisit selon la route)'];
+      }
+
+      // Générer les activités séparées dans le prompt
+      lines.push('  [TRAJET VOITURE OBLIGATOIRE] '+t.villeDepart+' -> '+t.villeArrivee+' = '+(arretsList.length+arretsList.length+1)+' activites separees:');
+      var heure = 8; var min = 0;
+      var fmtH = function(h,m){ return (h<10?'0':'')+h+':'+(m<10?'0':'')+m; };
+
+      // Départ
+      lines.push('    {type:voiture, heure:'+fmtH(heure,min)+', titre:Depart '+t.villeDepart+' vers premier arret, duree:1h}');
+      heure++;
+
+      // Alterner conduite + arrêt
+      arretsList.forEach(function(arret, idx){
+        lines.push('    {type:visit ou restaurant, heure:'+fmtH(heure,min)+', titre:'+arret+', duree:45min a 1h30}');
+        heure++;
+        if(idx < arretsList.length-1){
+          lines.push('    {type:voiture, heure:'+fmtH(heure,min)+', titre:Route vers '+(arretsList[idx+1]||t.villeArrivee)+', duree:30min a 2h}');
+          heure++;
+        }
+      });
+
+      // Arrivée
+      lines.push('    {type:voiture, heure:'+fmtH(heure,min)+', titre:Arrivee '+t.villeArrivee+' et check-in hotel, duree:1h}');
+      lines.push('  REPRODUIS EXACTEMENT cette structure avec les vrais titres, adresses et horaires.');
+      lines.push('  INTERDIT: une seule activite type=voiture pour tout le trajet.');
     });
 
     // Pass disponibles ce jour
@@ -799,6 +850,11 @@ function skeletonToPrompt(days, filledPasses, filledTrajets, interests, budget, 
   lines.push('6. PASS: utiliser les attractions assignees par le squelette - ne pas les deplacer dans dautres villes');
   lines.push('7. TRAJETS: chaque arret = activite separee avec heure, titre, adresse propres');
   if(reposFreq!=='aucun' && reposFreq!=='manuel') lines.push('8. REPOS: inserer jours de repos tous les '+reposFreq+' jours. Type: '+reposType);
+  if(blocAddrs && blocAddrs.length){
+    lines.push('9. LIEUX OBLIGATOIRES pour ce bloc (tous avec isUserPlace:true):');
+    blocAddrs.forEach(function(a,i){ lines.push('   '+(i+1)+'. '+a); });
+    lines.push('   -> Tous ces lieux doivent apparaitre dans les activites de ce bloc.');
+  }
   lines.push('');
   lines.push('Reponds UNIQUEMENT en JSON valide sans markdown:');
   lines.push('{"titre":"string","resume":"string","zones":["Zone A"],"activites":[{"jour":1,"date":"'+ds+'","heure":"09:00","titre":"string","description":"string","adresse":"Adresse, '+dest+'","duree":"2h","type":"visit","budget":"15 EUR","zone":"string","isUserPlace":false,"passName":null,"meilleurMoment":"string","jourCreux":null,"astuce":"string"}],"logique_geo":"string","conseils":["string"]}');
@@ -1035,12 +1091,93 @@ async function generatePlan(){
   var filledCars=cars.filter(function(c){ return c.lieuPrise||c.agence; });
   var filledHotels=hotels.filter(function(h){ return h.nom||h.adresse; });
 
-  // Calculer le squelette JS-side
+  // Calcul squelette JS-side
   var filledTrajetsV=trajetsVoiture.filter(function(t){ return t.villeDepart||t.villeArrivee; });
   var skeleton=calcSkeleton(ds,de,nbJours,flights,filledHotels,filledCars,filledTrajetsV,filledPasses,reposFreq,reposDates);
-  var prompt=skeletonToPrompt(skeleton,filledPasses,filledTrajetsV,interests,budget,dest,ds,flights,reposFreq,reposType);
+
+  // Assigner les lieux perso au bon bloc de jours (par ville)
+  var addrByVille = {};
+  addresses.forEach(function(addr){
+    // Chercher dans quelle ville ce lieu se trouve
+    var matched = false;
+    skeleton.forEach(function(d){
+      if(!matched && d.ville && normStr(addr).indexOf(normStr(d.ville).slice(0,5))>=0){
+        if(!addrByVille[d.ville]) addrByVille[d.ville]=[];
+        if(addrByVille[d.ville].indexOf(addr)<0) addrByVille[d.ville].push(addr);
+        matched=true;
+      }
+    });
+    if(!matched){
+      // Pas de ville trouvée = assigner à la ville principale
+      var vp = skeleton[0]?skeleton[0].ville:'principal';
+      if(!addrByVille[vp]) addrByVille[vp]=[];
+      addrByVille[vp].push(addr);
+    }
+  });
+
+  // Découper le squelette en blocs par ville/phase
+  var blocs = [];
+  var currentBloc = null;
+  skeleton.forEach(function(d){
+    var blocKey = d.ville+'-'+(['trajet-aller','trajet-retour'].indexOf(d.type)>=0?'trajet':d.type==='repos'?'repos':'normal');
+    if(!currentBloc || currentBloc.key!==blocKey || currentBloc.days.length>=8){
+      if(currentBloc) blocs.push(currentBloc);
+      currentBloc={key:blocKey, ville:d.ville, type:d.type, days:[], addrs:addrByVille[d.ville]||[]};
+    }
+    currentBloc.days.push(d);
+  });
+  if(currentBloc) blocs.push(currentBloc);
+
+  btn.innerHTML='<span class="spinner"></span> Generation (0/'+blocs.length+' blocs)...';
 
   try{
+    var allActivites=[];
+    var allZones=[];
+    var allConseils=[];
+    var lastTitre='', lastResume='';
+
+    for(var bi=0; bi<blocs.length; bi++){
+      var bloc=blocs[bi];
+      btn.innerHTML='<span class="spinner"></span> Bloc '+(bi+1)+'/'+blocs.length+' — '+bloc.ville+'...';
+
+      var blocPrompt=skeletonToPrompt(
+        bloc.days, filledPasses, filledTrajetsV, interests, budget, dest, ds, flights, reposFreq, reposType, bloc.addrs
+      );
+
+      var res=await fetch(GROQ_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+        body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:4000,temperature:0.4,
+          messages:[{role:'user',content:blocPrompt}]})
+      });
+      if(!res.ok) throw new Error('HTTP '+res.status+' bloc '+(bi+1));
+      var data=await res.json();
+      var raw=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
+      raw=raw.replace(/```json|```/g,'').trim();
+      var jsIdx=raw.indexOf('{'); if(jsIdx>0) raw=raw.slice(jsIdx);
+      var parsed=JSON.parse(raw);
+
+      if(parsed.activites) allActivites=allActivites.concat(parsed.activites);
+      if(parsed.zones) parsed.zones.forEach(function(z){ if(allZones.indexOf(z)<0) allZones.push(z); });
+      if(parsed.conseils) allConseils=allConseils.concat(parsed.conseils);
+      if(!lastTitre && parsed.titre) lastTitre=parsed.titre;
+      if(!lastResume && parsed.resume) lastResume=parsed.resume;
+      if(parsed.logique_geo && !lastResume) lastResume=parsed.logique_geo;
+    }
+
+    var parsedFinal={
+      titre: lastTitre||('Voyage a '+dest),
+      resume: lastResume||('Planning optimise sur '+nbJours+' jours'),
+      zones: allZones,
+      activites: allActivites,
+      logique_geo: 'Planning genere par blocs geographiques — chaque ville planifiee separement.',
+      conseils: allConseils.slice(0,6)
+    };
+
+    // Post-traitements sur parsedFinal
+    var parsed=parsedFinal;
+
+
     var res=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:6000,temperature:0.4,messages:[{role:'user',content:prompt}]})});
     if(!res.ok) throw new Error('HTTP '+res.status);
     var data=await res.json();
