@@ -1120,7 +1120,7 @@ async function generatePlan(){
   var currentBloc = null;
   skeleton.forEach(function(d){
     var blocKey = d.ville+'-'+(['trajet-aller','trajet-retour'].indexOf(d.type)>=0?'trajet':d.type==='repos'?'repos':'normal');
-    if(!currentBloc || currentBloc.key!==blocKey || currentBloc.days.length>=8){
+    if(!currentBloc || currentBloc.key!==blocKey || currentBloc.days.length>=10){
       if(currentBloc) blocs.push(currentBloc);
       currentBloc={key:blocKey, ville:d.ville, type:d.type, days:[], addrs:addrByVille[d.ville]||[]};
     }
@@ -1144,12 +1144,23 @@ async function generatePlan(){
         bloc.days, filledPasses, filledTrajetsV, interests, budget, dest, ds, flights, reposFreq, reposType, bloc.addrs
       );
 
-      var res=await fetch(GROQ_URL,{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
-        body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:4000,temperature:0.4,
-          messages:[{role:'user',content:blocPrompt}]})
-      });
+      // Délai entre blocs pour éviter rate limit Groq
+      if(bi>0) await new Promise(function(r){ setTimeout(r, 2000); });
+
+      var res, retries=0;
+      while(retries<3){
+        res=await fetch(GROQ_URL,{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+          body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:4000,temperature:0.4,
+            messages:[{role:'user',content:blocPrompt}]})
+        });
+        if(res.status===429){
+          retries++;
+          btn.innerHTML='<span class="spinner"></span> Limite atteinte, attente '+(retries*5)+'s...';
+          await new Promise(function(r){ setTimeout(r, retries*5000); });
+        } else { break; }
+      }
       if(!res.ok) throw new Error('HTTP '+res.status+' bloc '+(bi+1));
       var data=await res.json();
       var raw=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
