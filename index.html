@@ -737,71 +737,40 @@ function getAutoArrets(from,to){
 }
 
 function buildBlocPrompt(days,filledPasses,filledTrajets,interests,budget,dest,ds,flights,reposFreq,reposType,blocAddrs){
-  var lines=[];
-  lines.push('Planning vacances. Destination:'+dest+' Budget:'+budget+' Interets:'+(interests.join(',')||'general')+' Heures locales '+dest);
-  if(flights.aller.hArr) lines.push('Arrivee:'+flights.aller.hArr+' activites apres seulement');
-  if(flights.retour.hDep) lines.push('Depart:'+flights.retour.hDep+' activites avant '+(parseInt(flights.retour.hDep)-3)+'h');
-  lines.push('');
-  lines.push('=== SQUELETTE DU BLOC ===');
-
+  var L=[];
+  L.push('Planning famille '+dest+' budget:'+budget+' interets:'+(interests.join(','))+' heures locales');
+  if(flights.aller.hArr) L.push('Vol arrivee:'+flights.aller.hArr+' activites apres seulement');
+  if(flights.retour.hDep) L.push('Vol depart:'+flights.retour.hDep+' finir '+(parseInt(flights.retour.hDep)-3)+'h avant');
+  L.push('JOURS:');
   days.forEach(function(d){
-    var tl={
-      normal:'Activités libres — 3-4 max en famille',
-      repos:'REPOS — type=repos uniquement, rien dautre',
-      'vol-arrivee':'Arrivée — peu dactivités, seulement après '+flights.aller.hArr,
-      'vol-depart':'Départ — activités SEULEMENT avant '+(parseInt(flights.retour.hDep)-3)+'h',
-      'trajet-aller':'TRAJET ALLER vers '+d.ville+' (matin) + arrêts touristiques + check-in soir',
-      'trajet-retour':'Dernier jour à '+d.ville+' (visites matin) + trajet retour après-midi',
-      excursion:'Visites à '+d.ville+' — 3-4 activités max',
-      'parc-bloque':'JOURNÉE ENTIÈRE '+d.parcNom+' (08h00 fermeture) — RIEN dautre ce jour'
-    }[d.type]||'Activités';
-
-    var passInfo=d.passes.length?'|PASS:'+d.passes.join(','):'';
-    lines.push('J'+d.jour+'('+d.date+')'+d.ville+'|'+tl+passInfo);
-    d.events.forEach(function(ev){ lines.push('['+ev.heure+']'+ev.label); });
-
-    // Trajets voiture ce jour
-    var tj=filledTrajets.filter(function(t){ return t.date&&dateToJour(t.date,ds)===d.jour; });
-    tj.forEach(function(t){
-      var arrets=t.arrets&&t.arrets.trim()?t.arrets.split(/[,;]+/).map(function(a){ return a.trim(); }).filter(Boolean):getAutoArrets(t.villeDepart,t.villeArrivee);
-      lines.push('  [TRAJET VOITURE] '+t.villeDepart+' -> '+t.villeArrivee);
-      var h=8;
-      lines.push('  ARRETS(chacun=activite separee):depart(voiture,08h)->'+arrets.map(function(a,idx){ return a+'(visit,'+String(h+++idx*2).padStart(2,'0')+'h)->route(voiture)->'; }).join('')+'arrivee '+t.villeArrivee+'(voiture). PAS une seule carte pour tout.');
+    var tl={normal:'activites libres',repos:'REPOS uniquement','vol-arrivee':'arrivee peu activites','vol-depart':'depart finir tot','trajet-aller':'TRAJET vers '+d.ville+' avec arrets touristiques','trajet-retour':'retour vers base via arrets','excursion':'visites '+d.ville,'parc-bloque':'JOURNEE ENTIERE '+d.parcNom}[d.type]||'activites';
+    var pass=d.passes.length?'|pass:'+d.passes.join(','):'';
+    L.push('J'+d.jour+'('+d.date+')'+d.ville+'|'+tl+pass);
+    d.events.forEach(function(ev){ L.push('['+ev.heure+']'+ev.label); });
+    filledTrajets.filter(function(t){ return t.date&&dateToJour(t.date,ds)===d.jour; }).forEach(function(t){
+      var ar=t.arrets&&t.arrets.trim()?'arrets:'+t.arrets:'';
+      L.push('TRAJET '+t.villeDepart+'->'+t.villeArrivee+' '+(ar||'choisir meilleurs arrets')+' chaque-arret=activite-separee');
     });
-
-    // Pass ce jour
     if(d.passes.length&&['normal','excursion'].indexOf(d.type)>=0){
-      filledPasses.filter(function(p){ return d.passes.indexOf(p.nom)>=0; }).forEach(function(p){
-        if(p.inclus.trim()){
-          var attrs=p.inclus.split(/[\n,]+/).map(function(a){ return a.trim(); }).filter(Boolean);
-          lines.push('  [PASS '+p.nom+'] Attractions: '+attrs.join(', '));
-          lines.push('  -> 1 attraction de ce pass ce jour, type=attraction, budget="Inclus '+p.nom+'", passName="'+p.nom+'"');
-        }
+      filledPasses.filter(function(p){ return d.passes.indexOf(p.nom)>=0&&p.inclus; }).forEach(function(p){
+        L.push('PASS '+p.nom+':'+p.inclus.replace(/\n/g,',').split(',').map(function(a){ return a.trim(); }).filter(Boolean).join(',')+'|type=attraction budget=Inclus passName='+p.nom);
       });
     }
   });
-
-  // Pass multi-jours bloqués
   filledPasses.forEach(function(p){
-    var nj=parseInt(p.nbJours||1);
-    if(nj>1){
-      var jd=p.datePref?dateToJour(p.datePref,ds):null;
-      var daysBlocked=days.filter(function(d){ return d.type==='parc-bloque'&&d.parcNom===p.nom; });
-      if(daysBlocked.length){
-        lines.push('PASS '+p.nom+' = '+nj+' JOURS COMPLETS CONSECUTIFS (08h ouverture-fermeture):');
-        daysBlocked.forEach(function(d){
-          lines.push('  JOUR '+d.jour+' ('+d.date+'): UNIQUEMENT '+p.nom+', rien dautre, type=attraction, budget="Inclus '+p.nom+'", passName="'+p.nom+'"');
-        });
-      }
+    if(parseInt(p.nbJours||1)>1){
+      var bl=days.filter(function(d){ return d.type==='parc-bloque'&&d.parcNom===p.nom; });
+      if(bl.length) L.push('PARC '+p.nom+' '+bl.length+'j complets:'+bl.map(function(d){ return 'J'+d.jour; }).join(',')+'|UNIQUEMENT ce parc type=attraction budget=Inclus');
     }
   });
-
-  lines.push('');
-  lines.push('REGLES: 1)ordre:vol>voiture>hotel>activites>repos 2)parcs 08h mardi/mercredi 3)max 3-4 activites/jour 4)lieux proches=meme jour 5)TRAJETS:chaque arret=activite separee 6)repartir sur toute la duree');
-  if(reposFreq!=='aucun'&&reposFreq!=='manuel') lines.push('REPOS: tous les '+reposFreq+' jours type:'+reposType);
-  if(blocAddrs&&blocAddrs.length){ lines.push('LIEUX(isUserPlace:true):'); blocAddrs.forEach(function(a,i){ lines.push((i+1)+'.'+a); }); }
-  lines.push('JSON sans markdown:{"titre":"","resume":"","zones":[],"activites":[{"jour":1,"date":"'+ds+'","heure":"09:00","titre":"","description":"","adresse":"","duree":"","type":"visit","budget":"","zone":"","isUserPlace":false,"passName":null,"meilleurMoment":"","jourCreux":null,"astuce":""}],"logique_geo":"","conseils":[]}');
-  return lines.join('\n');
+  if(reposFreq!=='aucun'&&reposFreq!=='manuel') L.push('repos tous les '+reposFreq+'j type:'+reposType);
+  if(blocAddrs&&blocAddrs.length) L.push('LIEUX(isUserPlace:true):'+blocAddrs.map(function(a,i){
+    // Tronquer l'adresse à 60 chars max
+    return (i+1)+'.'+a.slice(0,60);
+  }).join('|'));
+  L.push('REGLES:ordre vol>voiture>hotel>activites>repos|parcs 8h mardi/mercredi|max 3-4 acti/j|lieux proches=meme j|trajets=chaque arret separee|repartir duree|soiree si "soiree" dans titre');
+  L.push('JSON:{"titre":"","resume":"","zones":[],"activites":[{"jour":1,"date":"'+ds+'","heure":"09:00","titre":"","description":"","adresse":"","duree":"","type":"visit","budget":"","zone":"","isUserPlace":false,"passName":null,"meilleurMoment":"","jourCreux":null,"astuce":""}],"logique_geo":"","conseils":[]}');
+  return L.join('\n');
 }
 
 // =======================================
@@ -902,7 +871,7 @@ async function generatePlan(mode){
   skeleton.forEach(function(d){
     var isTrajet=['trajet-aller','trajet-retour'].indexOf(d.type)>=0;
     var key=d.ville+'-'+(isTrajet?'trajet':d.type==='repos'?'repos':d.type==='parc-bloque'?'parc':d.type==='vol-arrivee'?'vol-arr':d.type==='vol-depart'?'vol-dep':'normal');
-    if(!cur||cur.key!==key||cur.days.length>=10){
+    if(!cur||cur.key!==key||cur.days.length>=5){
       if(cur) blocs.push(cur);
       cur={key:key,ville:d.ville,days:[],addrs:addrByVille[d.ville]||[]};
     }
@@ -918,7 +887,7 @@ async function generatePlan(mode){
     for(var bi=0; bi<blocs.length; bi++){
       var bloc=blocs[bi];
       btn.innerHTML='<span class="spinner"></span> Bloc '+(bi+1)+'/'+blocs.length+' — '+bloc.ville+'...';
-      if(bi>0) await new Promise(function(r){ setTimeout(r,2500); });
+      if(bi>0) await new Promise(function(r){ setTimeout(r,4000); });
 
       var prompt=buildBlocPrompt(bloc.days,filledPassesFiltered,filledTrajetsFiltered,interests,budget,dest,ds,flights,reposFreq,reposType,bloc.addrs);
       var res, retries=0;
@@ -987,7 +956,7 @@ async function generatePlan(mode){
     var missAttr=[];
     filledPassesFiltered.forEach(function(p){
       if(!p.inclus.trim()) return;
-      p.inclus.split(/[\n,]+/).map(function(a){ return a.trim(); }).filter(Boolean).forEach(function(attr){
+      p.inclus.replace(/\n/g,',').split(',').map(function(a){ return a.trim(); }).filter(Boolean).forEach(function(attr){
         var n=normStr(attr).slice(0,12);
         if(!parsed.activites.some(function(a){ return a.passName===p.nom||normStr(a.titre).indexOf(n)>=0; }))
           missAttr.push({attr:attr,passNom:p.nom,moment:p.moment});
