@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>🌍 Planner Vacances</title>
-<link href="https://googleapis.com" rel="stylesheet">
+<link href="https://googleapis.com family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0f1117;--card:#1a1d2e;--card2:#222640;--gold:#f0a500;--teal:#00c9a7;--purple:#a78bfa;--rose:#fb7185;--sky:#38bdf8;--green:#4ade80;--text:#f0f0f0;--muted:#7a7f9a;--border:#2a2d45;--danger:#ff6b6b}
@@ -12,8 +12,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 #app{max-width:660px;margin:0 auto}
 h1{font-family:'Playfair Display',serif;font-size:24px;font-weight:900}
 h2{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold)}
-input,select,textarea{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;width:100%}
-input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+input{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:100%}
+input:focus{border-color:var(--gold)}
 input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-calendar-picker-indicator{filter:invert(.6)}
 .btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
 .btn-gold{background:var(--gold);color:#1a1100}.btn-gold:hover{background:#ffc333;transform:translateY(-1px)}
@@ -32,8 +32,7 @@ input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-ca
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .35s ease forwards}
 .act-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px 15px;display:flex;align-items:flex-start;gap:11px;transition:border-color .2s;margin-bottom:7px}
-.checkbox{width:19px;height:19px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
-.checkbox.checked{background:var(--teal);border-color:var(--teal)}
+.checkbox{width:19px;height:19px;border-radius:5px;border:2px solid var(--teal);background:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .r2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .lbl{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
 .divider{display:flex;align-items:center;gap:8px;margin:14px 0 10px}
@@ -41,7 +40,7 @@ input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-ca
 .time-selector{margin-top:8px;display:flex;align-items:center;gap:8px;background:var(--card);padding:6px 10px;border-radius:6px;border:1px solid var(--border);width:100%}
 .time-selector input[type="time"]{width:90px;padding:4px 6px;font-size:13px}
 .trajet-row{background:var(--card2);border:1px solid #38bdf833;border-radius:10px;padding:13px;display:flex;align-items:flex-start;gap:10px;margin-bottom:7px}
-.tip-row{font-size:12px;color:var(--muted);display:flex;gap:7px;margin-bottom:5px}
+.tip-row{font-size:12px;color:var(--muted);display:flex;gap:7px;margin-bottom:5px;border-bottom:1px solid var(--border);padding-bottom:4px}
 .hidden{display:none}.error{color:var(--danger);font-size:13px;margin-bottom:10px}
 .steps{display:flex;gap:6px;align-items:center;margin:14px 0 22px}
 .rest-banner{background:linear-gradient(135deg,#fb718515,#7c3aed15);border:1px solid #fb718533;border-radius:10px;padding:14px;text-align:center;margin-bottom:7px}
@@ -95,7 +94,7 @@ input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-ca
   <div class="flight-banner">
     <div class="flight-row">
       <div class="f-airport"><div class="iata" id="preview-from">---</div><div class="city">Départ</div></div>
-      <div class="f-arrow"><span style="font-size:11px" id="preview-duration">✈️ Chargement...</span><div class="f-line"></div></div>
+      <div class="f-arrow"><span style="font-size:11px" id="preview-duration">✈️ Swiss LX040</span><div class="f-line"></div></div>
       <div class="f-airport"><div class="iata" id="preview-to">---</div><div class="city">Destination</div></div>
     </div>
   </div>
@@ -138,7 +137,6 @@ const tripData = {
   "destination": "Los Angeles, San Francisco, Las Vegas",
   "dateStart": "2026-06-30",
   "dateEnd": "2026-07-31",
-  "budget": "grand",
   "vADA": "ZRH",
   "vAAA": "LAX",
   "vAN": "LX040",
@@ -147,9 +145,9 @@ const tripData = {
   "vAC": "Swiss",
   "hotels": [
     {"nom": "Diamond Bar Residence","adresse": "Diamond Bar, Los Angeles, CA","role": "base"},
-    {"nom": "RIU Plaza Fisherman's Wharf","adresse": "2500 Mason Street, San Francisco, CA","checkin": "2026-07-14","checkout": "2026-07-16","role": "excursion"},
-    {"nom": "Flamingo Las Vegas","adresse": "3555 Las Vegas Blvd South, Las Vegas","checkin": "2026-07-20","checkout": "2026-07-22","role": "excursion"}
+    {"nom": "RIU Plaza Fisherman's Wharf","adresse": "2500 Mason Street, San Francisco, CA 94133","checkin": "2026-07-14","checkout": "2026-07-16","role": "excursion"},
+    {"nom": "Flamingo Las Vegas","adresse": "3555 Las Vegas Boulevard South Las Vegas, NV 89109","checkin": "2026-07-20","checkout": "2026-07-22","role": "excursion"}
   ],
   "passes": [
-    {"id": "raging", "nom": "Raging Waters","ville": "San Dimas, LA", "datePref": "2026-07-02", "dureeH": 4, "heureDebut": "11:00"},
-    {"id": "universal", "nom": "Universal Studios Hollywood","ville": "Universal City, LA", "datePref": "2026-07-07", "dureeH": 8, "heureDebut": "09:00"},
+    {"id": "raging", "nom": "Raging Waters (8 Entrées)","ville": "San Dimas, Los Angeles, CA", "datePref": "2026-06-30", "dureeH": 4, "heureDebut": "11:00"},
+    {"id": "universal", "nom": "Universal Studios Hollywood","ville": "Universal City, Los Angeles, CA", "datePref": "2026-07-07", "dureeH": 8, "heureDebut": "09:00"},
