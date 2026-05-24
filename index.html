@@ -479,44 +479,60 @@ function renderPasses(){
   if(!passes.length){ el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:7px">Aucun pass — + Ajouter</p>'; return; }
   el.innerHTML=passes.map(function(p,i){
     var nj=parseInt(p.nbJours||1);
+    var isSimple=(p.type==='limite'&&parseInt(p.nbEntrees||1)===1)||p.type==='illimite';
+    // Mode simple : 1 entrée ou illimité → juste nom, ville, date, heure
+    if(isSimple){
+      return '<div class="item-card pass-c">'
+        +'<button class="rm" onclick="removePass('+i+')">x</button>'
+        +'<div style="display:flex;flex-direction:column;gap:7px">'
+        +'<div><label class="lbl">Nom du pass / activité</label><input placeholder="Ex: Fremont Street SlotZilla" value="'+escHtml(p.nom)+'" oninput="updatePass('+i+',\'nom\',this.value)"></div>'
+        +'<div><label class="lbl">Type</label>'
+        +'<select onchange="updatePass('+i+',\'type\',this.value)">'
+        +'<option value="illimite"'+(p.type==='illimite'?' selected':'')+'>♾️ Pass illimité</option>'
+        +'<option value="limite"'+(p.type==='limite'?' selected':'')+'>🎟️ Billet unique (1 entrée)</option>'
+        +'<option value="multi"'+(p.type==='multi'?' selected':'')+'>🎡 Multi-attractions</option>'
+        +'</select></div>'
+        +'<div><label class="lbl">Adresse / Ville</label><input placeholder="Ex: Las Vegas, NV" value="'+escHtml(p.ville||'')+'" oninput="updatePass('+i+',\'ville\',this.value)"></div>'
+        +'<div class="r2">'
+        +'<div><label class="lbl">Date</label><input type="date" value="'+(p.datePref||p.dateDebut||'')+'" oninput="updatePass('+i+',\'datePref\',this.value)"></div>'
+        +'<div><label class="lbl">Heure</label><input type="time" value="'+(p.hDeb||'09:00')+'" oninput="updatePass('+i+',\'hDeb\',this.value)"></div>'
+        +'</div>'
+        +'</div></div>';
+    }
+    // Mode complet : multi-attractions ou pass complexe
     var nbField='';
-    if(p.type!=='illimite') nbField='<div><label class="lbl">'+(p.type==='limite'?"Nb d'entrées":"Nb d'attractions")+'</label><input type="number" placeholder="Ex: 3" value="'+(p.nbEntrees||'')+'" oninput="updatePass('+i+',\'nbEntrees\',this.value)" min="1"></div>';
+    if(p.type!=='illimite') nbField='<div><label class="lbl">'+(p.type==='limite'?'Nb entrees':'Nb attractions')+'</label><input type="number" placeholder="Ex: 3" value="'+(p.nbEntrees||'')+'" oninput="updatePass('+i+',\'nbEntrees\',this.value)" min="1"></div>';
     return '<div class="item-card pass-c">'
       +'<button class="rm" onclick="removePass('+i+')">x</button>'
       +'<div style="display:flex;flex-direction:column;gap:7px">'
       +'<div><label class="lbl">Nom du pass</label><input placeholder="Ex: Go Los Angeles Card" value="'+escHtml(p.nom)+'" oninput="updatePass('+i+',\'nom\',this.value)"></div>'
       +'<div><label class="lbl">Type</label>'
       +'<select onchange="updatePass('+i+',\'type\',this.value)">'
-      +'<option value="illimite"'+(p.type==='illimite'?' selected':'')+'>♾️ Illimité</option>'
+      +'<option value="illimite"'+(p.type==='illimite'?' selected':'')+'>♾️ Pass illimité</option>'
       +'<option value="limite"'+(p.type==='limite'?' selected':'')+'>🎟️ Limité (nb entrées fixe)</option>'
       +'<option value="multi"'+(p.type==='multi'?' selected':'')+'>🎡 Multi-attractions</option>'
       +'</select></div>'
       +nbField
-      +'<div><label class="lbl">Ville / Lieu <span style="color:var(--green);font-size:10px">★ important</span></label>'
-      +'<input placeholder="Ex: Los Angeles, San Francisco..." value="'+escHtml(p.ville||'')+'" oninput="updatePass('+i+',\'ville\',this.value)">'
-      +'<p style="font-size:10px;color:var(--green);margin-top:3px">L\'IA planifie ce pass uniquement quand vous êtes dans cette ville</p>'
-      +'</div>'
+      +'<div><label class="lbl">Ville / Lieu</label>'
+      +'<input placeholder="Ex: Los Angeles, San Francisco..." value="'+escHtml(p.ville||'')+'" oninput="updatePass('+i+',\'ville\',this.value)"></div>'
       +'<div class="r2"><div><label class="lbl">Valable du</label><input type="date" value="'+(p.dateDebut||'')+'" oninput="updatePass('+i+',\'dateDebut\',this.value)"></div><div><label class="lbl">Au</label><input type="date" value="'+(p.dateFin||'')+'" oninput="updatePass('+i+',\'dateFin\',this.value)"></div></div>'
-      +'<div><label class="lbl">Attractions incluses <span style="color:var(--green)">★ liste complète</span></label>'
-      +'<textarea placeholder="Ex: Universal Studios&#10;Getty Museum&#10;Warner Bros Studio..." oninput="updatePass('+i+',\'inclus\',this.value)">'+escHtml(p.inclus)+'</textarea>'
-      +'<p style="font-size:10px;color:var(--green);margin-top:3px">Chaque attraction = une activité dans le planning</p>'
-      +'</div>'
+      +'<div><label class="lbl">Attractions incluses</label>'
+      +'<textarea placeholder="Ex: Universal Studios&#10;Getty Museum..." oninput="updatePass('+i+',\'inclus\',this.value)">'+escHtml(p.inclus)+'</textarea></div>'
       +'<div><label class="lbl">Durée de visite</label>'
       +'<select onchange="updatePass('+i+',\'nbJours\',this.value)">'
       +'<option value="1"'+(nj===1?' selected':'')+'>1 jour</option>'
       +'<option value="2"'+(nj===2?' selected':'')+'>2 jours complets</option>'
       +'<option value="3"'+(nj===3?' selected':'')+'>3 jours complets</option>'
       +'</select></div>'
-      +(p.datePref!==undefined?('<div class="r2" style="margin-top:0">'  
+      +(p.datePref!==undefined?('<div class="r2">'
         +'<div><label class="lbl">Date préférée</label><input type="date" value="'+(p.datePref||'')+'" oninput="updatePass('+i+',\'datePref\',this.value)"></div>'
         +'<div><label class="lbl">Heure début</label><input type="time" value="'+(p.hDeb||'09:00')+'" oninput="updatePass('+i+',\'hDeb\',this.value)"></div>'
         +'</div>'
-        +(nj>1?'<p style="font-size:10px;color:var(--sky);margin-top:3px">'+nj+' jours complets — journée entière</p>':'')
-        ):'')  
+        +(nj>1?'<p style="font-size:10px;color:var(--sky);margin-top:3px">'+nj+' jours complets</p>':'')):'')
       +'<div><label class="lbl">Meilleur moment</label>'
       +'<select onchange="updatePass('+i+',\'moment\',this.value)">'
       +'<option value=""'+(!p.moment?' selected':'')+'>IA décide</option>'
-      +'<option value="matin"'+(p.moment==='matin'?' selected':'')+'>🌅 Matin (ouverture)</option>'
+      +'<option value="matin"'+(p.moment==='matin'?' selected':'')+'>🌅 Matin</option>'
       +'<option value="aprem"'+(p.moment==='aprem'?' selected':'')+'>☀️ Après-midi</option>'
       +'<option value="journee"'+(p.moment==='journee'?' selected':'')+'>🌞 Journée entière</option>'
       +'<option value="soir"'+(p.moment==='soir'?' selected':'')+'>🌆 Soirée</option>'
