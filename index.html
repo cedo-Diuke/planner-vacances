@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>🌍 Planner Vacances</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://googleapis.com" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0f1117;--card:#1a1d2e;--card2:#222640;--gold:#f0a500;--teal:#00c9a7;--purple:#a78bfa;--rose:#fb7185;--sky:#38bdf8;--green:#4ade80;--text:#f0f0f0;--muted:#7a7f9a;--border:#2a2d45;--danger:#ff6b6b}
@@ -15,43 +15,35 @@ h2{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold)}
 input,select,textarea{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;width:100%}
 input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-calendar-picker-indicator{filter:invert(.6)}
-textarea{resize:vertical;min-height:75px;line-height:1.5}
 .btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
 .btn-gold{background:var(--gold);color:#1a1100}.btn-gold:hover{background:#ffc333;transform:translateY(-1px)}
 .btn-teal{background:var(--teal);color:#001a16}.btn-teal:hover{background:#00e8c0;transform:translateY(-1px)}
 .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
-.btn-sm{padding:5px 11px;font-size:12px}.btn-full{width:100%;justify-content:center;padding:13px}
+.btn-full{width:100%;justify-content:center;padding:13px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px}
-.tag{display:inline-flex;align-items:center;background:#f0a50022;color:var(--gold);border:1px solid #f0a50033;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:500}
 .tag-teal{background:#00c9a715;color:var(--teal);border:1px solid #00c9a733;border-radius:20px;padding:3px 9px;font-size:11px;display:inline-flex;align-items:center}
 .tag-purple{background:#7c3aed22;color:var(--purple);border:1px solid #7c3aed44;border-radius:20px;padding:2px 9px;font-size:11px;display:inline-flex;align-items:center}
 .tag-rest{background:#fb718522;color:var(--rose);border:1px solid #fb718533;border-radius:20px;padding:3px 9px;font-size:11px;display:inline-flex;align-items:center}
-.tag-sky{background:#38bdf822;color:var(--sky);border:1px solid #38bdf833;border-radius:20px;padding:3px 9px;font-size:11px;display:inline-flex;align-items:center}
-.tag-green{background:#4ade8022;color:var(--green);border:1px solid #4ade8033;border-radius:20px;padding:3px 9px;font-size:11px;display:inline-flex;align-items:center}
-.step-dot{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.step-dot{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;cursor:pointer;background:var(--card2);color:var(--muted);transition:all .3s}
+.step-dot.active{background:var(--gold);color:#1a1100}
+.step-dot.completed{background:var(--teal);color:#001a16}
 .spinner{width:16px;height:16px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .35s ease forwards}
-.act-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px 15px;display:flex;align-items:flex-start;gap:11px;transition:border-color .2s;cursor:pointer;margin-bottom:7px}
-.act-card:hover{border-color:#00c9a755}.act-card.sel{border-color:var(--teal);background:#00c9a710}
-.act-card.vol-card{border-color:#38bdf833;background:#38bdf80d;cursor:default}
-.act-card.hotel-act{border-color:#a78bfa44;background:#a78bfa0d;cursor:default}
-.act-card.pass-act{border-color:#4ade8044;background:#4ade8008}
+.act-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px 15px;display:flex;align-items:flex-start;gap:11px;transition:border-color .2s;margin-bottom:7px}
 .checkbox{width:19px;height:19px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
 .checkbox.checked{background:var(--teal);border-color:var(--teal)}
 .r2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
 .lbl{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
-.int-btn{padding:5px 12px;font-size:12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
-.int-btn.on{border-color:var(--teal);color:var(--teal);background:#00c9a715}
 .divider{display:flex;align-items:center;gap:8px;margin:14px 0 10px}
 .div-line{flex:1;height:1px;background:var(--border)}
-.best-time{background:#f0a50015;border:1px solid #f0a50033;border-radius:6px;padding:5px 9px;margin-top:5px;font-size:11px;color:var(--gold)}
-.creux-box{background:#00c9a710;border:1px solid #00c9a733;border-radius:6px;padding:4px 9px;margin-top:4px;font-size:11px;color:var(--teal)}
+.time-selector{margin-top:8px;display:flex;align-items:center;gap:8px;background:var(--card);padding:6px 10px;border-radius:6px;border:1px solid var(--border);width:100%}
+.time-selector input[type="time"]{width:90px;padding:4px 6px;font-size:13px}
+.trajet-row{background:var(--card2);border:1px solid #38bdf833;border-radius:10px;padding:13px;display:flex;align-items:flex-start;gap:10px;margin-bottom:7px}
+.tip-row{font-size:12px;color:var(--muted);display:flex;gap:7px;margin-bottom:5px}
 .hidden{display:none}.error{color:var(--danger);font-size:13px;margin-bottom:10px}
 .steps{display:flex;gap:6px;align-items:center;margin:14px 0 22px}
-.zone-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block}
 .rest-banner{background:linear-gradient(135deg,#fb718515,#7c3aed15);border:1px solid #fb718533;border-radius:10px;padding:14px;text-align:center;margin-bottom:7px}
 .hint{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5}
 .flight-banner{background:linear-gradient(135deg,#38bdf810,#0f1117);border:1px solid #38bdf833;border-radius:12px;padding:14px;margin-bottom:8px}
@@ -61,21 +53,9 @@ textarea{resize:vertical;min-height:75px;line-height:1.5}
 .f-airport .city{font-size:10px;color:var(--muted)}
 .f-arrow{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
 .f-line{height:1px;width:100%;background:linear-gradient(90deg,#38bdf8,#38bdf833)}
-.sec-toggle{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;padding:0}
-.sec-toggle:hover{color:var(--gold)}
 .item-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:9px;position:relative}
 .item-card.hotel-c{border-color:#a78bfa33}
-.item-card.car-c{border-color:#38bdf833}
-.item-card.pass-c{border-color:#4ade8033}
 .item-card.trajet-c{border-color:#f0a50033}
-.rm{position:absolute;top:9px;right:9px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 3px}
-.rm:hover{color:var(--danger)}
-.trajet-row{background:var(--card2);border:1px solid #38bdf833;border-radius:10px;padding:13px;display:flex;align-items:flex-start;gap:10px;margin-bottom:7px}
-.inc-badge{background:#4ade8022;color:var(--green);border:1px solid #4ade8044;border-radius:12px;padding:2px 7px;font-size:10px;font-weight:600;display:inline-flex;align-items:center}
-.geo-box{background:#7c3aed15;border:1px solid #7c3aed33;border-radius:8px;padding:7px 11px;margin-top:9px}
-.warn-box{background:#f0a50010;border:1px solid #f0a50033;border-radius:8px;padding:7px 11px;margin-bottom:9px;font-size:12px;color:var(--gold)}
-.tip-row{font-size:12px;color:var(--muted);display:flex;gap:7px;margin-bottom:5px}
-
 </style>
 </head>
 <body>
@@ -85,1251 +65,91 @@ textarea{resize:vertical;min-height:75px;line-height:1.5}
   <span style="font-size:24px">🌍</span><h1>Planner Vacances</h1>
 </div>
 <p style="color:var(--muted);font-size:12px">Vols · Pass · Road trips · Jours creux · Agenda iPhone</p>
+
 <div class="steps" id="steps"></div>
+<div id="error-zone" class="error hidden"></div>
 
-<!-- ══════════════════ STEP 1 ══════════════════ -->
-<div id="step1" class="fade-up">
-
-<!-- VOLS -->
-<div class="card" style="border-color:#38bdf833">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <h2 style="color:var(--sky)">✈️ Vols aller-retour</h2>
-    <button class="sec-toggle" onclick="toggleSec('flightsBody','ftI','ftL')"><span id="ftI">▼</span> <span id="ftL">Masquer</span></button>
-  </div>
-  <div id="flightsBody">
-    <div style="margin-bottom:14px">
-      <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
-        <div style="width:7px;height:7px;border-radius:50%;background:var(--sky)"></div>
-        <span style="font-size:11px;font-weight:600;color:var(--sky);text-transform:uppercase;letter-spacing:.5px">Aller</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div class="r2"><div><label class="lbl">Aéroport départ</label><input id="vADA" placeholder="Ex: CDG, Paris Charles de Gaulle"></div><div><label class="lbl">Aéroport arrivée</label><input id="vAAA" placeholder="Ex: LAX, Los Angeles"></div></div>
-        <div class="r3"><div><label class="lbl">N° vol</label><input id="vAN" placeholder="Ex: AF1234"></div><div><label class="lbl">Départ</label><input id="vAHD" type="time"></div><div><label class="lbl">Arrivée</label><input id="vAHA" type="time"></div></div>
-        <div class="r2"><div><label class="lbl">Terminal</label><input id="vAT" placeholder="Ex: 2E"></div><div><label class="lbl">Compagnie</label><input id="vAC" placeholder="Ex: Air France"></div></div>
-      </div>
-    </div>
-    <div style="height:1px;background:var(--border);margin-bottom:14px"></div>
+<!-- ══════════════════ STEP 1 : VOLS ══════════════════ -->
+<div id="step-1" class="card fade-up step-content">
+  <h2 style="margin-bottom:14px">🛫 Destination & Transport</h2>
+  <div class="r2" style="margin-bottom:12px">
     <div>
-      <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
-        <div style="width:7px;height:7px;border-radius:50%;background:#fb923c"></div>
-        <span style="font-size:11px;font-weight:600;color:#fb923c;text-transform:uppercase;letter-spacing:.5px">Retour</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div class="r2"><div><label class="lbl">Aéroport départ</label><input id="vRDA" placeholder="Ex: LAX, Los Angeles"></div><div><label class="lbl">Aéroport arrivée</label><input id="vRAA" placeholder="Ex: CDG, Paris Charles de Gaulle"></div></div>
-        <div class="r3"><div><label class="lbl">N° vol</label><input id="vRN" placeholder="Ex: AF1235"></div><div><label class="lbl">Départ</label><input id="vRHD" type="time"></div><div><label class="lbl">Arrivée</label><input id="vRHA" type="time"></div></div>
-        <div class="r2"><div><label class="lbl">Terminal</label><input id="vRT" placeholder="Ex: 1"></div><div><label class="lbl">Compagnie</label><input id="vRC" placeholder="Ex: Air France"></div></div>
-      </div>
+      <label class="lbl">Départ</label>
+      <input type="text" id="flight-from" maxlength="3" style="text-transform:uppercase">
+    </div>
+    <div>
+      <label class="lbl">Arrivée</label>
+      <input type="text" id="flight-to" maxlength="3" style="text-transform:uppercase">
     </div>
   </div>
-</div>
-
-<!-- INFOS -->
-<div class="card">
-  <h2 style="margin-bottom:14px">🗺️ Informations du voyage</h2>
-  <div style="display:flex;flex-direction:column;gap:10px">
-    <div><label class="lbl">Destination *</label><input id="destination" placeholder="Ex: Los Angeles, Rome, Tokyo..."></div>
-    <div class="r2"><div><label class="lbl">Arrivée *</label><input id="dateStart" type="date"></div><div><label class="lbl">Départ *</label><input id="dateEnd" type="date"></div></div>
-    <div><label class="lbl">Budget</label>
-      <select id="budget">
-        <option value="petit">Petit budget (économique)</option>
-        <option value="moyen" selected>Budget moyen (confortable)</option>
-        <option value="grand">Grand budget (luxe)</option>
-      </select>
+  <div class="r2" style="margin-bottom:14px">
+    <div>
+      <label class="lbl">Date Aller</label>
+      <input type="date" id="date-start">
+    </div>
+    <div>
+      <label class="lbl">Date Retour</label>
+      <input type="date" id="date-end">
     </div>
   </div>
-</div>
-
-<!-- VOITURE -->
-<div class="card" style="border-color:#38bdf833">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-    <h2 style="color:var(--sky)">🚗 Location de voiture</h2>
-    <button class="btn btn-ghost btn-sm" onclick="addCar()">+ Ajouter</button>
-  </div>
-  <p class="hint" style="margin-bottom:12px">Agence, dates prise et restitution.</p>
-  <div id="carsContainer"></div>
-</div>
-
-<!-- TRAJETS VOITURE -->
-<div class="card" style="border-color:#38bdf822">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-    <h2 style="color:var(--sky)">🗺️ Trajets en voiture</h2>
-    <button class="btn btn-ghost btn-sm" onclick="addTrajetV()">+ Ajouter</button>
-  </div>
-  <p class="hint" style="margin-bottom:12px">Laisse vide = l'IA choisit les meilleurs arrêts automatiquement.</p>
-  <div id="trajetsVContainer"></div>
-</div>
-
-<!-- HOTELS -->
-<div class="card" style="border-color:#a78bfa33">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-    <h2 style="color:var(--purple)">🏨 Hôtels &amp; Logements</h2>
-    <button class="btn btn-ghost btn-sm" onclick="addHotel()">+ Ajouter</button>
-  </div>
-  <p class="hint" style="margin-bottom:12px">Base = ton logement principal. Excursion = l'IA planifie l'aller-retour.</p>
-  <div id="hotelsContainer"></div>
-</div>
-
-<!-- ADRESSES -->
-<div class="card">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-    <h2>📍 Lieux à visiter</h2>
-    <button class="btn btn-ghost btn-sm" onclick="addAddr()">+ Ajouter</button>
-  </div>
-  <p class="hint" style="margin-bottom:12px">L'IA regroupe les lieux proches sur le même jour.</p>
-  <div id="addrContainer"></div>
-</div>
-
-<!-- PASS -->
-<div class="card" style="border-color:#4ade8033">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-    <h2 style="color:var(--green)">🎡 Pass &amp; Abonnements</h2>
-    <button class="btn btn-ghost btn-sm" onclick="addPass()">+ Ajouter</button>
-  </div>
-  <p class="hint" style="margin-bottom:12px">Chaque attraction = une activité distincte avec badge Inclus ✅</p>
-  <div id="passesContainer"></div>
-</div>
-
-<!-- REPOS -->
-<div class="card" style="border-color:#fb718533">
-  <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
-    <span style="font-size:18px">😴</span>
-    <h2 style="color:var(--rose);margin:0">Jours de repos</h2>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:9px">
-    <div><label class="lbl">Fréquence</label>
-      <select id="reposFreq" onchange="onReposChange()">
-        <option value="aucun">Pas de repos</option>
-        <option value="auto" selected>Automatique (IA recommande)</option>
-        <option value="3">1 repos tous les 3 jours</option>
-        <option value="4">1 repos tous les 4 jours</option>
-        <option value="5">1 repos tous les 5 jours</option>
-        <option value="manuel">Choisir mes dates</option>
-      </select>
-    </div>
-    <div><label class="lbl">Type</label>
-      <select id="reposType">
-        <option value="libre">Journée libre (plage, shopping, flâner)</option>
-        <option value="leger">Programme léger (1-2 activités tranquilles)</option>
-        <option value="spa">Bien-être / Spa / Restaurant gastronomique</option>
-      </select>
-    </div>
-    <div id="reposDatesSection" style="display:none;flex-direction:column;gap:7px">
-      <label class="lbl">Dates de repos</label>
-      <div id="reposDatesContainer"></div>
-      <button class="btn btn-ghost btn-sm" onclick="addReposDate()" style="width:100%;justify-content:center;margin-top:2px">+ Ajouter une date</button>
+  <div class="flight-banner">
+    <div class="flight-row">
+      <div class="f-airport"><div class="iata" id="preview-from">---</div><div class="city">Départ</div></div>
+      <div class="f-arrow"><span style="font-size:11px" id="preview-duration">✈️ Chargement...</span><div class="f-line"></div></div>
+      <div class="f-airport"><div class="iata" id="preview-to">---</div><div class="city">Destination</div></div>
     </div>
   </div>
+  <button class="btn btn-gold btn-full" onclick="appPlanner.nextStep()">Continuer vers les hébergements →</button>
 </div>
 
-<!-- INTERETS -->
-<div class="card">
-  <h2 style="margin-bottom:10px">✨ Centres d'intérêt</h2>
-  <div id="interestsContainer" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-</div>
-
-<!-- MODELE + GENERER -->
-<!-- EXPORT/IMPORT -->
-<div style="display:flex;gap:7px;margin-bottom:9px">
-  <button class="btn btn-ghost" style="flex:1;justify-content:center;font-size:12px" onclick="exportData()">💾 Exporter mes données</button>
-  <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:transparent;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:600;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
-    📂 Importer
-    <input type="file" accept=".json" onchange="importData(this)" style="display:none">
-  </label>
-</div>
-<!-- EXPORT/IMPORT --></div>
-<div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-bottom:9px;display:flex;align-items:center;gap:8px">
-  <span style="font-size:11px;color:var(--muted);flex-shrink:0">Modèle IA</span>
-  <select id="modelSelect" style="flex:1;padding:4px 8px;font-size:12px">
-    <option value="llama-3.3-70b-versatile">🧠 Llama 3.3 70B — Meilleur (voyage réel)</option>
-    <option value="llama-3.1-8b-instant">⚡ Llama 3.1 8B — Rapide (tests)</option>
-    <option value="mixtral-8x7b-32768">🔀 Mixtral 8x7B — Alternatif</option>
-  </select>
-</div>
-<p class="error hidden" id="errorMsg"></p>
-<div class="r2" style="margin-bottom:0">
-  <button class="btn btn-gold btn-full" id="generateBtn" onclick="generatePlan('LA')" style="font-size:13px">🌴 Générer LA + Big Sur</button>
-  <button class="btn btn-teal btn-full" id="generateBtn2" onclick="generatePlan('excursions')" style="font-size:13px">🎰 Générer SF + Vegas</button>
-</div>
-<button class="btn btn-gold btn-full" id="generateBtnAll" onclick="generatePlan('all')" style="margin-top:8px;font-size:13px">✨ Générer tout le voyage</button>
-</div>
-
-<!-- ══════════════════ STEP 2 ══════════════════ -->
-<div id="step2" class="hidden fade-up">
-  <div id="warnBox" class="hidden warn-box"></div>
-  <div id="flightSummary" class="hidden" style="margin-bottom:12px"></div>
-  <div class="card" id="planHeader" style="border-color:#f0a50044;margin-bottom:12px"></div>
-  <div id="zonesLegend" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px"></div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
-    <span id="selCount" style="font-size:12px;color:var(--muted)"></span>
-    <div style="display:flex;gap:5px">
-      <button class="btn btn-ghost btn-sm" onclick="selectAll()">Tout</button>
-      <button class="btn btn-ghost btn-sm" onclick="selectNone()">Aucun</button>
-    </div>
+<!-- ══════════════════ STEP 2 : LOGEMENTS & PASS ══════════════════ -->
+<div id="step-2" class="card fade-up step-content hidden">
+  <h2 style="margin-bottom:14px">🏨 Hébergement & Options</h2>
+  <div class="item-card hotel-c">
+    <label class="lbl">Hôtel Principal Base</label>
+    <input type="text" id="hotel-name" style="margin-bottom:8px">
+    <label class="lbl">Adresse / Localisation</label>
+    <input type="text" id="hotel-zone">
   </div>
-  <div id="activitiesContainer"></div>
-  <div id="tipsCard" class="card hidden" style="border-color:#f0a50033;margin-bottom:14px"></div>
-  <div style="display:flex;gap:8px;margin-bottom:8px">
-    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="goBack()">← Modifier</button>
-  </div>
-  <button class="btn btn-teal btn-full" id="addCalBtn" onclick="addToCalendar()">📅 Ajouter à l'agenda</button>
-</div>
-
-<!-- ══════════════════ STEP 3 ══════════════════ -->
-<div id="step3" class="hidden fade-up">
-  <div class="card" style="text-align:center;padding:36px;border-color:#00c9a744">
-    <div style="font-size:48px;margin-bottom:14px">🎉</div>
-    <h2 style="font-size:20px;color:var(--teal);margin-bottom:8px">Dans votre agenda !</h2>
-    <p id="doneMsg" style="color:var(--muted);margin-bottom:18px;font-size:13px"></p>
-    <div id="doneList" style="text-align:left;margin-bottom:20px"></div>
-    <div class="card" style="background:#00c9a710;border-color:#00c9a733;text-align:left;margin-bottom:18px;padding:12px">
-      <p style="font-size:12px;color:var(--teal);font-weight:600;margin-bottom:7px">Partager avec la famille iCloud</p>
-      <p style="font-size:11px;color:var(--muted);line-height:1.8">1. Calendrier → + → Ajouter un calendrier<br>2. Nom: "Vacances Famille"<br>3. ℹ️ → Ajouter une personne → invitez la famille</p>
-    </div>
-    <button class="btn btn-gold btn-full" onclick="resetApp()">✈️ Planifier un autre voyage</button>
+  <div class="divider"><div class="div-line"></div><span class="lbl" style="margin:0">Hôtels d'Excursion & Pass</span><div class="div-line"></div></div>
+  <div id="dynamic-hotels-pass"></div>
+  <div class="r2" style="margin-top:18px">
+    <button class="btn btn-ghost" onclick="appPlanner.prevStep()">← Retour</button>
+    <button class="btn btn-gold" onclick="appPlanner.nextStep()" style="justify-content:center">Planifier l'agenda →</button>
   </div>
 </div>
 
+<!-- ══════════════════ STEP 3 : AGENDA & EXPORT ══════════════════ -->
+<div id="step-3" class="card fade-up step-content hidden">
+  <h2 style="margin-bottom:14px">📅 Optimisation de l'Itinéraire</h2>
+  <div id="dynamic-summary-zone"></div>
+  <div class="r2" style="margin-top:18px">
+    <button class="btn btn-ghost" onclick="appPlanner.prevStep()">← Étape 2</button>
+    <button class="btn btn-teal" onclick="appPlanner.exportCalendar()">
+      <span class="spinner hidden" id="export-spinner"></span>📥 Exporter l'agenda (.ICS)
+    </button>
+  </div>
+</div>
 
+</div>
 
-</div><!-- /#app -->
 <script>
-// =======================================
-// CONFIG
-// =======================================
-var GROQ_KEY = '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';
-var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-var SAVE_KEY = 'planner_v5';
-var ZONE_COLORS = ["#f0a500","#00c9a7","#a78bfa","#ff6b6b","#38bdf8","#fb923c","#4ade80","#f472b6","#e879f9","#34d399"];
-var INTERESTS = ["Culture & Musées","Gastronomie","Nature & Randonnée","Plage","Shopping","Architecture","Sport & Aventure","Nightlife"];
-var TYPE_ORDER = {vol:0,voiture:1,trajet:1,hotel:2,repos:99,attraction:4,visit:4,restaurant:5,activity:4};
-
-// =======================================
-// ÉTAT GLOBAL
-// =======================================
-var interests=[], suggestions=null, selected=[], currentStep=1, flightsVisible=true;
-var hotels=[], cars=[], passes=[], addrs=[], reposDates=[], trajetsV=[];
-
-// =======================================
-// INIT
-// =======================================
-renderInterests(); renderAddrs(); renderHotels(); renderCars(); renderTrajetsV(); renderPasses(); renderSteps(); loadAll();
-document.addEventListener('input', function(){ saveAll(); });
-document.addEventListener('change', function(){ saveAll(); });
-
-// =======================================
-// UTILITAIRES
-// =======================================
-function g(id){ var el=document.getElementById(id); return el?el.value:''; }
-function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/["]/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function showError(m){ var e=document.getElementById('errorMsg'); e.textContent=m; e.classList.remove('hidden'); }
-function hideError(){ document.getElementById('errorMsg').classList.add('hidden'); }
-function normStr(s){ return (s||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
-function typeOrder(t){ return TYPE_ORDER[t]!==undefined?TYPE_ORDER[t]:4; }
-function dateToJour(d,ds){ if(!d||!ds) return null; var diff=Math.round((new Date(d)-new Date(ds))/86400000); return diff>=0?diff+1:null; }
-function jourToDate(j,ds){ var d=new Date(ds); d.setDate(d.getDate()+(j-1)); return d.toISOString().split('T')[0]; }
-
-// =======================================
-// STEPS
-// =======================================
-function renderSteps(){
-  var labels=["Vols & Lieux","Planning IA","Agenda"];
-  document.getElementById("steps").innerHTML=labels.map(function(s,i){
-    var done=currentStep>i+1, act=currentStep===i+1;
-    return '<div style="display:flex;align-items:center;gap:7px">'
-      +'<div class="step-dot" style="background:'+(done?'var(--teal)':act?'var(--gold)':'var(--border)')+';color:'+(done?'#001a16':act?'#1a1100':'var(--muted)')+';">'+(done?'✓':i+1)+'</div>'
-      +'<span style="font-size:12px;color:'+(act?'var(--text)':'var(--muted)')+';font-weight:'+(act?600:400)+'">'+s+'</span>'
-      +(i<2?'<div style="width:20px;height:1px;background:var(--border)"></div>':'')+'</div>';
-  }).join('');
-}
-function showStep(n){
-  currentStep=n;
-  ['step1','step2','step3'].forEach(function(id,i){ document.getElementById(id).classList.toggle('hidden',n!==i+1); });
-  renderSteps(); window.scrollTo({top:0,behavior:'smooth'});
-}
-function goBack(){ showStep(1); }
-
-// =======================================
-// TOGGLE SECTION
-// =======================================
-function toggleSec(bodyId, iconId, labelId){
-  var body=document.getElementById(bodyId);
-  var hidden=body.classList.toggle('hidden');
-  document.getElementById(iconId).textContent=hidden?'▶':'▼';
-  document.getElementById(labelId).textContent=hidden?'Afficher':'Masquer';
-}
-
-// =======================================
-// VOLS
-// =======================================
-function getFlights(){
-  return {
-    aller:{depAero:g('vADA'),arrAero:g('vAAA'),num:g('vAN'),hDep:g('vAHD'),hArr:g('vAHA'),terminal:g('vAT'),compagnie:g('vAC')},
-    retour:{depAero:g('vRDA'),arrAero:g('vRAA'),num:g('vRN'),hDep:g('vRHD'),hArr:g('vRHA'),terminal:g('vRT'),compagnie:g('vRC')}
-  };
-}
-
-// =======================================
-// INTÉRÊTS
-// =======================================
-function renderInterests(){
-  document.getElementById('interestsContainer').innerHTML=INTERESTS.map(function(s){
-    var on=interests.indexOf(s)>=0;
-    return '<button class="int-btn'+(on?' on':'')+'" onclick="toggleInt(\''+s+'\')">'+(on?'✓ ':'')+s+'</button>';
-  }).join('');
-}
-function toggleInt(s){ var i=interests.indexOf(s); if(i>=0) interests.splice(i,1); else interests.push(s); renderInterests(); saveAll(); }
-
-// =======================================
-// ADRESSES
-// =======================================
-function addAddr(){ addrs.push(''); renderAddrs(); saveAll(); }
-function removeAddr(i){ addrs.splice(i,1); renderAddrs(); saveAll(); }
-function updateAddr(i,v){ addrs[i]=v; saveAll(); }
-function renderAddrs(){
-  var el=document.getElementById('addrContainer');
-  if(!addrs.length){ el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:7px">Aucun lieu — + Ajouter</p>'; return; }
-  el.innerHTML=addrs.map(function(a,i){
-    return '<div style="display:flex;gap:7px;align-items:center;margin-bottom:7px">'
-      +'<div style="width:24px;height:24px;border-radius:50%;background:'+ZONE_COLORS[i%10]+'33;border:2px solid '+ZONE_COLORS[i%10]+';color:'+ZONE_COLORS[i%10]+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">'+(i+1)+'</div>'
-      +'<input placeholder="Ex: Colosseum, Rome" value="'+escHtml(a)+'" oninput="updateAddr('+i+',this.value)" style="flex:1">'
-      +'<button onclick="removeAddr('+i+')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0 3px">x</button>'
-      +'</div>';
-  }).join('');
-}
-
-// =======================================
-// HOTELS
-// =======================================
-function addHotel(){ hotels.push({nom:'',adresse:'',checkin:'',checkout:'',role:'',duree:'2'}); renderHotels(); saveAll(); }
-function removeHotel(i){ hotels.splice(i,1); renderHotels(); saveAll(); }
-function updateHotel(i,f,v){ if(hotels[i]){ hotels[i][f]=v; if(f==='role') renderHotels(); else saveAll(); } }
-function renderHotels(){
-  var c=document.getElementById('hotelsContainer');
-  if(!hotels.length){ c.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:7px">Aucun hôtel — + Ajouter</p>'; return; }
-  c.innerHTML=hotels.map(function(h,i){
-    var isExc=h.role==='excursion';
-    return '<div class="item-card hotel-c">'
-      +'<button class="rm" onclick="removeHotel('+i+')">x</button>'
-      +'<div style="display:flex;flex-direction:column;gap:7px">'
-      +'<div><label class="lbl">Nom</label><input placeholder="Ex: Hotel Roma" value="'+escHtml(h.nom)+'" oninput="updateHotel('+i+',\'nom\',this.value)"></div>'
-      +'<div><label class="lbl">Adresse / Ville</label><input placeholder="Ex: San Francisco, CA" value="'+escHtml(h.adresse)+'" oninput="updateHotel('+i+',\'adresse\',this.value)"></div>'
-      +'<div><label class="lbl">Type de séjour</label>'
-      +'<select onchange="updateHotel('+i+',\'role\',this.value)">'
-      +'<option value=""'+(!h.role?' selected':'')+'>IA décide des dates</option>'
-      +'<option value="base"'+(h.role==="base"?' selected':'')+'>🏠 Logement principal (base)</option>'
-      +'<option value="excursion"'+(h.role==="excursion"?' selected':'')+'>🗺️ Excursion (IA planifie aller-retour)</option>'
-      +'</select></div>'
-      +(isExc?
-        '<div><label class="lbl">Durée du séjour</label>'
-        +'<select onchange="updateHotel('+i+',\'duree\',this.value)">'
-        +'<option value="1"'+(h.duree==="1"?' selected':'')+'>1 nuit (2 jours)</option>'
-        +'<option value="2"'+((!h.duree||h.duree==="2")?' selected':'')+'>2 nuits (3 jours)</option>'
-        +'<option value="3"'+(h.duree==="3"?' selected':'')+'>3 nuits (4 jours)</option>'
-        +'<option value="4"'+(h.duree==="4"?' selected':'')+'>4 nuits (5 jours)</option>'
-        +'<option value="5"'+(h.duree==="5"?' selected':'')+'>5 nuits (6 jours)</option>'
-        +'<option value="7"'+(h.duree==="7"?' selected':'')+'>1 semaine</option>'
-        +'</select></div>'
-        :'')
-      +'<div class="r2">'
-      +'<div><label class="lbl">Check-in <span style="color:var(--muted);font-size:10px">(opt.)</span></label><input type="date" value="'+h.checkin+'" oninput="updateHotel('+i+',\'checkin\',this.value)"></div>'
-      +'<div><label class="lbl">Check-out <span style="color:var(--muted);font-size:10px">(opt.)</span></label><input type="date" value="'+h.checkout+'" oninput="updateHotel('+i+',\'checkout\',this.value)"></div>'
-      +'</div>'
-      +'</div></div>';
-  }).join('');
-}
-
-// =======================================
-// VOITURES
-// =======================================
-function addCar(){ cars.push({agence:'',lieuPrise:'',lieuRetour:'',datePrise:'',dateRetour:'',type:''}); renderCars(); saveAll(); }
-function removeCar(i){ cars.splice(i,1); renderCars(); saveAll(); }
-function updateCar(i,f,v){ if(cars[i]) cars[i][f]=v; saveAll(); }
-function renderCars(){
-  var el=document.getElementById('carsContainer');
-  if(!cars.length){ el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:7px">Aucune voiture — + Ajouter</p>'; return; }
-  el.innerHTML=cars.map(function(car,i){
-    return '<div class="item-card car-c">'
-      +'<button class="rm" onclick="removeCar('+i+')">x</button>'
-      +'<div style="display:flex;flex-direction:column;gap:7px">'
-      +'<div class="r2"><div><label class="lbl">Agence</label><input placeholder="Ex: Hertz" value="'+escHtml(car.agence)+'" oninput="updateCar('+i+',\'agence\',this.value)"></div><div><label class="lbl">Type</label><input placeholder="Ex: SUV" value="'+escHtml(car.type)+'" oninput="updateCar('+i+',\'type\',this.value)"></div></div>'
-      +'<div><label class="lbl">Lieu de prise</label><input placeholder="Ex: Aéroport LAX" value="'+escHtml(car.lieuPrise)+'" oninput="updateCar('+i+',\'lieuPrise\',this.value)"></div>'
-      +'<div><label class="lbl">Lieu de restitution</label><input placeholder="Ex: Aéroport LAX" value="'+escHtml(car.lieuRetour)+'" oninput="updateCar('+i+',\'lieuRetour\',this.value)"></div>'
-      +'<div class="r2"><div><label class="lbl">Date prise</label><input type="date" value="'+car.datePrise+'" oninput="updateCar('+i+',\'datePrise\',this.value)"></div><div><label class="lbl">Date retour</label><input type="date" value="'+car.dateRetour+'" oninput="updateCar('+i+',\'dateRetour\',this.value)"></div></div>'
-      +'</div></div>';
-  }).join('');
-}
-
-// =======================================
-// TRAJETS VOITURE
-// =======================================
-function addTrajetV(){ trajetsV.push({villeDepart:'',villeArrivee:'',date:'',arrets:''}); renderTrajetsV(); saveAll(); }
-function removeTrajetV(i){ trajetsV.splice(i,1); renderTrajetsV(); saveAll(); }
-function updateTrajetV(i,f,v){ if(trajetsV[i]) trajetsV[i][f]=v; saveAll(); }
-function renderTrajetsV(){
-  var el=document.getElementById('trajetsVContainer');
-  if(!trajetsV.length){ el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:7px">Aucun trajet — + Ajouter</p>'; return; }
-  el.innerHTML=trajetsV.map(function(t,i){
-    return '<div class="item-card trajet-c">'
-      +'<button class="rm" onclick="removeTrajetV('+i+')">x</button>'
-      +'<div style="display:flex;flex-direction:column;gap:7px">'
-      +'<div class="r2"><div><label class="lbl">Ville départ</label><input placeholder="Ex: Los Angeles" value="'+escHtml(t.villeDepart)+'" oninput="updateTrajetV('+i+',\'villeDepart\',this.value)"></div><div><label class="lbl">Ville arrivée</label><input placeholder="Ex: San Francisco" value="'+escHtml(t.villeArrivee)+'" oninput="updateTrajetV('+i+',\'villeArrivee\',this.value)"></div></div>'
-      +'<div><label class="lbl">Date du trajet</label><input type="date" value="'+escHtml(t.date)+'" oninput="updateTrajetV('+i+',\'date\',this.value)"></div>'
-      +'<div><label class="lbl">Arrêts souhaités <span style="color:var(--sky)">(vide = IA choisit)</span></label><input placeholder="Ex: Big Sur, Carmel, Monterey" value="'+escHtml(t.arrets)+'" oninput="updateTrajetV('+i+',\'arrets\',this.value)"></div>'
-      +'</div></div>';
-  }).join('');
-}
-
-// =======================================
-// PASS
-// =======================================
-function addPass(){ passes.push({nom:'',type:'illimite',nbEntrees:'',dateDebut:'',dateFin:'',inclus:'',moment:'',ville:'',nbJours:'1',datePref:''}); renderPasses(); saveAll(); }
-function removePass(i){ passes.splice(i,1); renderPasses(); saveAll(); }
-function updatePass(i,f,v){ if(passes[i]){ passes[i][f]=v; if(f==='type'||f==='nbJours') renderPasses(); else saveAll(); } }
-function renderPasses(){
-  var el=document.getElementById('passesContainer');
-  if(!passes.length){ el.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:7px">Aucun pass — + Ajouter</p>'; return; }
-  el.innerHTML=passes.map(function(p,i){
-    var nj=parseInt(p.nbJours||1);
-    var nbField='';
-    if(p.type!=='illimite') nbField='<div><label class="lbl">'+(p.type==='limite'?"Nb d'entrées":"Nb d'attractions")+'</label><input type="number" placeholder="Ex: 3" value="'+(p.nbEntrees||'')+'" oninput="updatePass('+i+',\'nbEntrees\',this.value)" min="1"></div>';
-    return '<div class="item-card pass-c">'
-      +'<button class="rm" onclick="removePass('+i+')">x</button>'
-      +'<div style="display:flex;flex-direction:column;gap:7px">'
-      +'<div><label class="lbl">Nom du pass</label><input placeholder="Ex: Go Los Angeles Card" value="'+escHtml(p.nom)+'" oninput="updatePass('+i+',\'nom\',this.value)"></div>'
-      +'<div><label class="lbl">Type</label>'
-      +'<select onchange="updatePass('+i+',\'type\',this.value)">'
-      +'<option value="illimite"'+(p.type==='illimite'?' selected':'')+'>♾️ Illimité</option>'
-      +'<option value="limite"'+(p.type==='limite'?' selected':'')+'>🎟️ Limité (nb entrées fixe)</option>'
-      +'<option value="multi"'+(p.type==='multi'?' selected':'')+'>🎡 Multi-attractions</option>'
-      +'</select></div>'
-      +nbField
-      +'<div><label class="lbl">Ville / Lieu <span style="color:var(--green);font-size:10px">★ important</span></label>'
-      +'<input placeholder="Ex: Los Angeles, San Francisco..." value="'+escHtml(p.ville||'')+'" oninput="updatePass('+i+',\'ville\',this.value)">'
-      +'<p style="font-size:10px;color:var(--green);margin-top:3px">L\'IA planifie ce pass uniquement quand vous êtes dans cette ville</p>'
-      +'</div>'
-      +'<div class="r2"><div><label class="lbl">Valable du</label><input type="date" value="'+(p.dateDebut||'')+'" oninput="updatePass('+i+',\'dateDebut\',this.value)"></div><div><label class="lbl">Au</label><input type="date" value="'+(p.dateFin||'')+'" oninput="updatePass('+i+',\'dateFin\',this.value)"></div></div>'
-      +'<div><label class="lbl">Attractions incluses <span style="color:var(--green)">★ liste complète</span></label>'
-      +'<textarea placeholder="Ex: Universal Studios&#10;Getty Museum&#10;Warner Bros Studio..." oninput="updatePass('+i+',\'inclus\',this.value)">'+escHtml(p.inclus)+'</textarea>'
-      +'<p style="font-size:10px;color:var(--green);margin-top:3px">Chaque attraction = une activité dans le planning</p>'
-      +'</div>'
-      +'<div><label class="lbl">Durée de visite</label>'
-      +'<select onchange="updatePass('+i+',\'nbJours\',this.value)">'
-      +'<option value="1"'+(nj===1?' selected':'')+'>1 jour</option>'
-      +'<option value="2"'+(nj===2?' selected':'')+'>2 jours complets</option>'
-      +'<option value="3"'+(nj===3?' selected':'')+'>3 jours complets</option>'
-      +'</select></div>'
-      +(nj>1?('<div><label class="lbl">Date debut preferee</label><input type="date" value="'+(p.datePref||'')+'" oninput="updatePass('+i+',\'datePref\',this.value)"><p style="font-size:10px;color:var(--sky);margin-top:3px">'+(nj)+' jours complets</p></div>'):'')
-      +'<div><label class="lbl">Meilleur moment</label>'
-      +'<select onchange="updatePass('+i+',\'moment\',this.value)">'
-      +'<option value=""'+(!p.moment?' selected':'')+'>IA décide</option>'
-      +'<option value="matin"'+(p.moment==='matin'?' selected':'')+'>🌅 Matin (ouverture)</option>'
-      +'<option value="aprem"'+(p.moment==='aprem'?' selected':'')+'>☀️ Après-midi</option>'
-      +'<option value="journee"'+(p.moment==='journee'?' selected':'')+'>🌞 Journée entière</option>'
-      +'<option value="soir"'+(p.moment==='soir'?' selected':'')+'>🌆 Soirée</option>'
-      +'</select></div>'
-      +'</div></div>';
-  }).join('');
-}
-
-// =======================================
-// REPOS
-// =======================================
-function onReposChange(){
-  var v=g('reposFreq');
-  var sec=document.getElementById('reposDatesSection');
-  if(sec) sec.style.display=(v==='manuel')?'flex':'none';
-  saveAll();
-}
-function addReposDate(){ reposDates.push(''); renderReposDates(); saveAll(); }
-function removeReposDate(i){ reposDates.splice(i,1); renderReposDates(); saveAll(); }
-function updateReposDate(i,v){ reposDates[i]=v; saveAll(); }
-function renderReposDates(){
-  var c=document.getElementById('reposDatesContainer'); if(!c) return;
-  if(!reposDates.length){ c.innerHTML='<p style="font-size:12px;color:var(--muted);padding:3px 0">Aucune date — + Ajouter</p>'; return; }
-  c.innerHTML=reposDates.map(function(d,i){
-    return '<div style="display:flex;gap:7px;align-items:center;margin-bottom:7px">'
-      +'<span style="font-size:15px">😴</span>'
-      +'<input type="date" value="'+escHtml(d)+'" oninput="updateReposDate('+i+',this.value)" style="flex:1">'
-      +'<button onclick="removeReposDate('+i+')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:17px;padding:0 3px">x</button>'
-      +'</div>';
-  }).join('');
-}
-
-// =======================================
-// SAVE / LOAD
-// =======================================
-function getFormVals(){
-  return {destination:g('destination'),dateStart:g('dateStart'),dateEnd:g('dateEnd'),budget:g('budget'),reposFreq:g('reposFreq'),reposType:g('reposType'),vADA:g('vADA'),vAAA:g('vAAA'),vAN:g('vAN'),vAHD:g('vAHD'),vAHA:g('vAHA'),vAT:g('vAT'),vAC:g('vAC'),vRDA:g('vRDA'),vRAA:g('vRAA'),vRN:g('vRN'),vRHD:g('vRHD'),vRHA:g('vRHA'),vRT:g('vRT'),vRC:g('vRC')};
-}
-function saveAll(){
-  try{
-    localStorage.setItem(SAVE_KEY,JSON.stringify(Object.assign({},getFormVals(),{interests:interests,hotels:hotels,cars:cars,passes:passes,addrs:addrs,reposDates:reposDates,trajetsV:trajetsV,suggestions:suggestions,savedAt:new Date().toISOString()})));
-    showSaveOk();
-  }catch(e){ console.warn(e); }
-}
-function loadAll(){
-  try{
-    var raw=localStorage.getItem(SAVE_KEY); if(!raw) return;
-    var data=JSON.parse(raw);
-    ['destination','dateStart','dateEnd','budget','reposFreq','reposType','vADA','vAAA','vAN','vAHD','vAHA','vAT','vAC','vRDA','vRAA','vRN','vRHD','vRHA','vRT','vRC'].forEach(function(f){ var el=document.getElementById(f); if(el&&data[f]!==undefined) el.value=data[f]; });
-    if(Array.isArray(data.interests)){ interests=data.interests; renderInterests(); }
-    if(Array.isArray(data.hotels)){ hotels=data.hotels; renderHotels(); }
-    if(Array.isArray(data.cars)){ cars=data.cars; renderCars(); }
-    if(Array.isArray(data.passes)){ passes=data.passes; renderPasses(); }
-    if(Array.isArray(data.addrs)){ addrs=data.addrs; renderAddrs(); }
-    if(Array.isArray(data.reposDates)){ reposDates=data.reposDates; renderReposDates(); }
-    if(Array.isArray(data.trajetsV)){ trajetsV=data.trajetsV; renderTrajetsV(); }
-    if(data.reposFreq==='manuel') onReposChange();
-    if(data.suggestions){ suggestions=data.suggestions; selected=suggestions.activites.map(function(_,i){ return i; }).filter(function(i){ return ['repos','vol'].indexOf(suggestions.activites[i].type)<0; }); }
-    if(data.savedAt) showRestoreBanner(data);
-  }catch(e){ console.warn(e); }
-}
-function showSaveOk(){
-  var el=document.getElementById('saveOk');
-  if(!el){ el=document.createElement('div'); el.id='saveOk'; el.style.cssText='position:fixed;bottom:18px;right:14px;background:#00c9a7;color:#001a16;border-radius:20px;padding:5px 13px;font-size:12px;font-weight:600;z-index:9999;transition:opacity .5s;pointer-events:none'; document.body.appendChild(el); }
-  el.textContent='✅ Sauvegardé'; el.style.opacity='1';
-  clearTimeout(el._t); el._t=setTimeout(function(){ el.style.opacity='0'; },2000);
-}
-function showRestoreBanner(data){
-  var date=new Date(data.savedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
-  var b=document.getElementById('restoreBanner');
-  if(!b){ b=document.createElement('div'); b.id='restoreBanner'; b.style.cssText='background:#f0a50015;border:1px solid #f0a50033;border-radius:10px;padding:9px 12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:9px'; var f=document.getElementById('step1'); if(f) f.insertBefore(b,f.firstChild); }
-  b.innerHTML='<div><p style="font-size:12px;color:#f0a500;font-weight:600">📂 Données restaurées'+(data.destination?' — '+data.destination:'')+(data.suggestions?' ✅':'')+' </p><p style="font-size:11px;color:var(--muted)">'+date+'</p></div>'
-    +'<div style="display:flex;gap:5px;flex-shrink:0">'
-    +(data.suggestions?'<button onclick="showSaved()" style="background:#00c9a722;border:1px solid #00c9a744;color:#00c9a7;border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer">Voir</button>':'')
-    +'<button onclick="clearSave()" style="background:#ff6b6b22;border:1px solid #ff6b6b44;color:#ff6b6b;border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer">Effacer</button>'
-    +'</div>';
-}
-function showSaved(){ if(suggestions){ renderFlightSummary(getFlights(),g('dateStart'),g('dateEnd')); renderPlan(); showStep(2); } }
-function clearSave(){ localStorage.removeItem(SAVE_KEY); var b=document.getElementById('restoreBanner'); if(b) b.remove(); suggestions=null; }
-
-// =======================================
-// SQUELETTE JS (calcul ville/jour)
-// =======================================
-function calcSkeleton(ds,de,nbJours,flights,filledHotels,filledCars,filledTrajets,filledPasses,reposFreq,reposDates){
-  var days=[];
-  for(var j=1;j<=nbJours;j++) days.push({jour:j,date:jourToDate(j,ds),ville:'',type:'normal',events:[],passes:[],parcNom:''});
-
-  // Vols
-  if(flights.aller.num||flights.aller.depAero){
-    days[0].events.push({type:'vol',label:'Vol aller '+flights.aller.depAero+' -> '+flights.aller.arrAero,heure:flights.aller.hArr||'06:00'});
-    days[0].type='vol-arrivee';
-  }
-  if(flights.retour.num||flights.retour.depAero){
-    days[nbJours-1].events.push({type:'vol',label:'Vol retour '+flights.retour.depAero+' -> '+flights.retour.arrAero,heure:flights.retour.hDep||'10:00'});
-    days[nbJours-1].type='vol-depart';
-  }
-
-  // Voitures (prise/restitution)
-  filledCars.forEach(function(car){
-    var jp=dateToJour(car.datePrise,ds), jr=dateToJour(car.dateRetour,ds);
-    if(jp&&jp>=1&&jp<=nbJours){ var h=(days[jp-1].type==='vol-arrivee'&&flights.aller.hArr)?String(Math.min(parseInt(flights.aller.hArr)+1,22)).padStart(2,'0')+':'+flights.aller.hArr.split(':')[1]:'09:00'; days[jp-1].events.push({type:'voiture',label:'Prise voiture '+car.agence,heure:h}); }
-    if(jr&&jr>=1&&jr<=nbJours) days[jr-1].events.push({type:'voiture',label:'Restitution voiture '+car.agence,heure:'10:00'});
-  });
-
-  // Hôtels base (ville principale)
-  var hotelBase=filledHotels.filter(function(h){ return h.role==='base'; });
-  var villeBase=hotelBase.length?(hotelBase[0].adresse||hotelBase[0].nom||''):'';
-  hotelBase.forEach(function(h){
-    if(h.checkin){ var jci=dateToJour(h.checkin,ds); if(jci&&jci>=1&&jci<=nbJours) days[jci-1].events.push({type:'hotel',label:'Check-in '+h.nom,heure:'15:00'}); }
-    if(h.checkout){ var jco=dateToJour(h.checkout,ds); if(jco&&jco>=1&&jco<=nbJours) days[jco-1].events.push({type:'hotel',label:'Check-out '+h.nom,heure:'11:00'}); }
-  });
-
-  // Hôtels avec dates fixes
-  filledHotels.filter(function(h){ return !h.role&&h.checkin; }).forEach(function(h){
-    var jci=dateToJour(h.checkin,ds), jco=dateToJour(h.checkout,ds);
-    if(jci&&jci>=1&&jci<=nbJours) days[jci-1].events.push({type:'hotel',label:'Check-in '+h.nom,heure:'15:00'});
-    if(jco&&jco>=1&&jco<=nbJours) days[jco-1].events.push({type:'hotel',label:'Check-out '+h.nom,heure:'11:00'});
-    if(jci&&jco) for(var j=jci;j<=Math.min(jco,nbJours);j++) if(!days[j-1].ville) days[j-1].ville=h.nom||h.adresse||'';
-  });
-
-  // Excursions (hôtels sans dates)
-  var hotelExc=filledHotels.filter(function(h){ return h.role==='excursion'; });
-  var nextFree=4;
-  hotelExc.forEach(function(h){
-    var nuits=parseInt(h.duree||2);
-    var needed=nuits+1; // aller + nuits (retour intégré dernier jour)
-    // Si dates fournies, utiliser les dates réelles
-    if(h.checkin && h.checkout){
-      var jci=dateToJour(h.checkin,ds), jco=dateToJour(h.checkout,ds);
-      if(jci&&jco){
-        days[jci-1].type='trajet-aller'; days[jci-1].ville=h.nom||h.adresse||'Excursion';
-        for(var j=jci+1;j<jco&&j<=nbJours;j++){ days[j-1].type='excursion'; days[j-1].ville=h.nom||h.adresse||'Excursion'; }
-        if(jco<=nbJours){ days[jco-1].type='trajet-retour'; days[jco-1].ville=h.nom||h.adresse||'Excursion'; }
-        if(jci>=1&&jci<=nbJours) days[jci-1].events.push({type:'hotel',label:'Check-in '+h.nom,heure:'19:00'});
-        if(jco>=1&&jco<=nbJours) days[jco-1].events.push({type:'hotel',label:'Check-out '+h.nom,heure:'10:00'});
-        return;
-      }
-    }
-    // Sinon attribution automatique
-    while(nextFree<=nbJours&&['trajet-aller','trajet-retour','excursion','repos','vol-depart','parc-bloque'].indexOf(days[nextFree-1].type)>=0) nextFree++;
-    if(nextFree+needed-1>nbJours) return;
-    for(var k=0;k<needed;k++){
-      var idx=nextFree+k-1;
-      if(idx>=nbJours) break;
-      days[idx].ville=h.nom||h.adresse||'Excursion';
-      days[idx].type=(k===0)?'trajet-aller':(k===needed-1)?'trajet-retour':'excursion';
-    }
-    days[nextFree-1].events.push({type:'hotel',label:'Check-in '+h.nom,heure:'19:00'});
-    days[nextFree+needed-2]&&days[nextFree+needed-2].events.push({type:'hotel',label:'Check-out '+h.nom,heure:'10:00'});
-    nextFree+=needed+1;
-  });
-
-  // Repos manuels
-  if(reposFreq==='manuel'&&reposDates.length){
-    reposDates.filter(Boolean).forEach(function(d){
-      var j=dateToJour(d,ds); if(j&&j>=1&&j<=nbJours) days[j-1].type='repos';
-    });
-  }
-
-  // Pass multi-jours avec date préférée
-  filledPasses.forEach(function(p){
-    var nj=parseInt(p.nbJours||1);
-    if(nj>1&&p.datePref){
-      var jd=dateToJour(p.datePref,ds);
-      if(jd) for(var k=jd;k<Math.min(jd+nj,nbJours+1);k++) if(days[k-1]){ days[k-1].type='parc-bloque'; days[k-1].parcNom=p.nom; }
-    }
-  });
-
-  // Ville base pour jours restants
-  days.forEach(function(d){ if(!d.ville) d.ville=villeBase||'destination principale'; });
-
-  // Assigner pass aux jours de leur ville
-  filledPasses.forEach(function(p){
-    if(!p.nom) return;
-    var vp=normStr(p.ville||'');
-    days.forEach(function(d){
-      if(['normal','excursion'].indexOf(d.type)>=0){
-        if(!vp||normStr(d.ville).indexOf(vp.slice(0,6))>=0||vp.indexOf(normStr(d.ville).slice(0,6))>=0)
-          d.passes.push(p.nom);
-      }
-    });
-  });
-
-  return days;
-}
-
-// =======================================
-// PROMPT PAR BLOC
-// =======================================
-var AUTO_ARRETS={
-  'losangeles->sanfrancisco':['Malibu - Point Dume Beach','Santa Barbara - State Street (déjeuner)','Pismo Beach','Big Sur - McWay Falls Julia Pfeiffer Burns','Bixby Creek Bridge (photo stop)','Carmel-by-the-Sea','Monterey - Fishermans Wharf'],
-  'sanfrancisco->losangeles':['Monterey - Fishermans Wharf','Big Sur - McWay Falls','Santa Barbara (déjeuner)','Malibu Beach'],
-  'losangeles->lasvegas':['Victorville','Barstow - Calico Ghost Town','Baker - thermomètre géant','Primm - frontière Nevada'],
-  'lasvegas->losangeles':['Primm','Barstow (café)','Victorville'],
-  'sanfrancisco->yosemite':['Livermore - Outlets','Manteca','Mariposa','Yosemite Tunnel View'],
-  'yosemite->sanfrancisco':['Tunnel View','Mariposa','Turlock (déjeuner)','Livermore'],
-  'miami->keywest':['Key Largo - John Pennekamp','Islamorada','Marathon - Seven Mile Bridge','Bahia Honda','Key West - Duval Street'],
-  'newyork->washingtondc':['Princeton NJ','Philadelphie - Liberty Bell - cheesesteak'],
-  'paris->nice':['Lyon - Vieux Lyon déjeuner','Orange - Arc de Triomphe','Avignon - Pont'],
-};
-
-function getAutoArrets(from,to){
-  var fn=normStr(from), tn=normStr(to);
-  var found=null;
-  Object.keys(AUTO_ARRETS).forEach(function(k){
-    if(found) return;
-    var parts=k.split('->');
-    var f0=parts[0], t0=parts[1];
-    if(fn.indexOf(f0.slice(0,5))>=0&&tn.indexOf(t0.slice(0,5))>=0) found=AUTO_ARRETS[k];
-  });
-  return found||['Arrêt 1 (IA choisit)','Arrêt 2 (IA choisit)','Arrêt 3 (IA choisit)'];
-}
-
-function buildBlocPrompt(days,filledPasses,filledTrajets,interests,budget,dest,ds,flights,reposFreq,reposType,blocAddrs){
-  var L=[];
-  L.push('Planning famille '+dest+' budget:'+budget+' interets:'+(interests.join(','))+' heures locales');
-  if(flights.aller.hArr) L.push('Vol arrivee:'+flights.aller.hArr+' activites apres seulement');
-  if(flights.retour.hDep) L.push('Vol depart:'+flights.retour.hDep+' finir '+(parseInt(flights.retour.hDep)-3)+'h avant');
-  L.push('JOURS:');
-  days.forEach(function(d){
-    var tl={normal:'activites libres',repos:'REPOS uniquement','vol-arrivee':'arrivee peu activites','vol-depart':'depart finir tot','trajet-aller':'TRAJET vers '+d.ville+' avec arrets touristiques','trajet-retour':'retour vers base via arrets','excursion':'visites '+d.ville,'parc-bloque':'JOURNEE ENTIERE '+d.parcNom}[d.type]||'activites';
-    var pass=d.passes.length?'|pass:'+d.passes.join(','):'';
-    L.push('J'+d.jour+'('+d.date+')'+d.ville+'|'+tl+pass);
-    d.events.forEach(function(ev){ L.push('['+ev.heure+']'+ev.label); });
-    filledTrajets.filter(function(t){ return t.date&&dateToJour(t.date,ds)===d.jour; }).forEach(function(t){
-      var ar=t.arrets&&t.arrets.trim()?'arrets:'+t.arrets:'';
-      L.push('TRAJET '+t.villeDepart+'->'+t.villeArrivee+' '+(ar||'choisir meilleurs arrets')+' chaque-arret=activite-separee');
-    });
-    if(d.passes.length&&['normal','excursion'].indexOf(d.type)>=0){
-      filledPasses.filter(function(p){ return d.passes.indexOf(p.nom)>=0&&p.inclus; }).forEach(function(p){
-        L.push('PASS '+p.nom+':'+p.inclus.replace(/\n/g,',').split(',').map(function(a){ return a.trim(); }).filter(Boolean).join(',')+'|type=attraction budget=Inclus passName='+p.nom);
-      });
-    }
-  });
-  filledPasses.forEach(function(p){
-    if(parseInt(p.nbJours||1)>1){
-      var bl=days.filter(function(d){ return d.type==='parc-bloque'&&d.parcNom===p.nom; });
-      if(bl.length) L.push('PARC '+p.nom+' '+bl.length+'j complets:'+bl.map(function(d){ return 'J'+d.jour; }).join(',')+'|UNIQUEMENT ce parc type=attraction budget=Inclus');
-    }
-  });
-  if(reposFreq!=='aucun'&&reposFreq!=='manuel') L.push('repos tous les '+reposFreq+'j type:'+reposType);
-  if(blocAddrs&&blocAddrs.length) L.push('LIEUX(isUserPlace:true):'+blocAddrs.map(function(a,i){
-    // Tronquer l'adresse à 60 chars max
-    return (i+1)+'.'+a.slice(0,60);
-  }).join('|'));
-  L.push('REGLES:ordre vol>voiture>hotel>activites>repos|parcs 8h mardi/mercredi|max 3-4 acti/j|lieux proches=meme j|trajets=chaque arret separee|repartir duree|soiree si "soiree" dans titre');
-  L.push('JSON:{"titre":"","resume":"","zones":[],"activites":[{"jour":1,"date":"'+ds+'","heure":"09:00","titre":"","description":"","adresse":"","duree":"","type":"visit","budget":"","zone":"","isUserPlace":false,"passName":null,"meilleurMoment":"","jourCreux":null,"astuce":""}],"logique_geo":"","conseils":[]}');
-  return L.join('\n');
-}
-
-// =======================================
-// GÉNÉRATION PAR BLOCS
-// =======================================
-// Tente de réparer un JSON tronqué
-function repairJson(raw){
-  if(!raw) return '{}';
-  // Trouver le dernier objet activite complet
-  var lastGood=raw.lastIndexOf('},');
-  var lastObj=raw.lastIndexOf('}]');
-  // Si le JSON est tronqué (pas de } final)
-  if(raw.trim().slice(-1)!=='}'){
-    // Couper au dernier objet complet et fermer
-    var cutAt=Math.max(lastGood, lastObj);
-    if(cutAt>0){
-      raw=raw.slice(0,cutAt+1);
-      // Compter les { et } pour fermer proprement
-      var depth=0;
-      for(var i=0;i<raw.length;i++){
-        if(raw[i]==='{') depth++;
-        if(raw[i]==='}') depth--;
-      }
-      // Fermer les tableaux et objets manquants
-      if(raw.lastIndexOf('}]')<raw.lastIndexOf('{')){ raw+=']'; }
-      while(depth>0){ raw+='}'; depth--; }
-    }
-  }
-  return raw;
-}
-
-async function generatePlan(mode){
-  var dest=g('destination').trim(), ds=g('dateStart'), de=g('dateEnd');
-  if(!dest||!ds||!de){ showError('Veuillez remplir destination et dates.'); return; }
-  var btn=document.getElementById('generateBtn');
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Calcul du squelette...'; hideError();
-
-  var flights=getFlights();
-  var addresses=addrs.filter(function(a){ return a.trim(); });
-  var nbJours=Math.max(1,Math.round((new Date(de)-new Date(ds))/86400000)+1);
-  var budget=g('budget'), reposFreq=g('reposFreq'), reposType=g('reposType');
-  var filledPasses=passes.filter(function(p){ return p.nom.trim(); });
-  var filledCars=cars.filter(function(c){ return c.lieuPrise||c.agence; });
-  var filledHotels=hotels.filter(function(h){ return h.nom||h.adresse; });
-  var filledTrajetsV=trajetsV.filter(function(t){ return t.villeDepart||t.villeArrivee; });
-  var model=(document.getElementById('modelSelect')||{value:'llama-3.3-70b-versatile'}).value;
-
-  // Filtrer selon le mode
-  var modeLabel = mode==='LA'?'LA + Big Sur':mode==='excursions'?'SF + Vegas':'Voyage complet';
-  var filledHotelsFiltered = filledHotels;
-  var filledTrajetsFiltered = filledTrajetsV;
-  var filledPassesFiltered = filledPasses;
-  var addressesFiltered = addresses;
-
-  if(mode==='LA'){
-    // Garder seulement la base LA, pas les excursions
-    filledHotelsFiltered = filledHotels.filter(function(h){ return h.role==='base' || !h.role; });
-    filledTrajetsFiltered = [];
-    // Garder seulement pass de LA
-    filledPassesFiltered = filledPasses.filter(function(p){
-      var v=normStr(p.ville||'');
-      return !v || v.indexOf('sanfrancisco')<0 && v.indexOf('lasvegas')<0 && v.indexOf('threeriv')<0;
-    });
-    // Garder seulement lieux LA (pas PIER39 SF)
-    addressesFiltered = addresses.filter(function(a){ return normStr(a).indexOf('sanfrancisco')<0 && normStr(a).indexOf('pier39')<0 && normStr(a).indexOf('embarcadero')<0; });
-  } else if(mode==='excursions'){
-    // Garder seulement SF + Vegas
-    filledHotelsFiltered = filledHotels.filter(function(h){ return h.role==='excursion'; });
-    filledPassesFiltered = filledPasses.filter(function(p){
-      var v=normStr(p.ville||'');
-      return v.indexOf('sanfrancisco')>=0 || v.indexOf('lasvegas')>=0 || v.indexOf('threeriv')>=0 || v.indexOf('sequoia')>=0;
-    });
-    addressesFiltered = addresses.filter(function(a){ return normStr(a).indexOf('sanfrancisco')>=0 || normStr(a).indexOf('pier39')>=0 || normStr(a).indexOf('embarcadero')>=0; });
-  }
-
-  // Squelette
-  var skeleton=calcSkeleton(ds,de,nbJours,flights,filledHotelsFiltered,filledCars,filledTrajetsFiltered,filledPassesFiltered,reposFreq,reposDates);
-
-  // Répartir les adresses par ville
-  var addrByVille={};
-  addressesFiltered.forEach(function(addr){
-    var matched=false;
-    skeleton.forEach(function(d){
-      if(!matched&&d.ville&&normStr(addr).indexOf(normStr(d.ville).slice(0,5))>=0){
-        if(!addrByVille[d.ville]) addrByVille[d.ville]=[];
-        if(addrByVille[d.ville].indexOf(addr)<0){ addrByVille[d.ville].push(addr); matched=true; }
-      }
-    });
-    if(!matched){
-      var vp=skeleton[0]?skeleton[0].ville:'principal';
-      if(!addrByVille[vp]) addrByVille[vp]=[];
-      addrByVille[vp].push(addr);
-    }
-  });
-
-  // Découper en blocs
-  var blocs=[], cur=null;
-  skeleton.forEach(function(d){
-    var isTrajet=['trajet-aller','trajet-retour'].indexOf(d.type)>=0;
-    var key=d.ville+'-'+(isTrajet?'trajet':d.type==='repos'?'repos':d.type==='parc-bloque'?'parc':d.type==='vol-arrivee'?'vol-arr':d.type==='vol-depart'?'vol-dep':'normal');
-    if(!cur||cur.key!==key||cur.days.length>=5){
-      if(cur) blocs.push(cur);
-      cur={key:key,ville:d.ville,days:[],addrs:addrByVille[d.ville]||[]};
-    }
-    cur.days.push(d);
-  });
-  if(cur) blocs.push(cur);
-
-  btn.innerHTML='<span class="spinner"></span> Génération (0/'+blocs.length+' blocs)...';
-
-  try{
-    var allActs=[], allZones=[], allConseils=[], titre='', resume='';
-
-    for(var bi=0; bi<blocs.length; bi++){
-      var bloc=blocs[bi];
-      btn.innerHTML='<span class="spinner"></span> Bloc '+(bi+1)+'/'+blocs.length+' — '+bloc.ville+'...';
-      if(bi>0) await new Promise(function(r){ setTimeout(r,4000); });
-
-      var prompt=buildBlocPrompt(bloc.days,filledPassesFiltered,filledTrajetsFiltered,interests,budget,dest,ds,flights,reposFreq,reposType,bloc.addrs);
-      var res, retries=0;
-      while(retries<3){
-        res=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:model,max_tokens:8000,temperature:0.4,messages:[{role:'user',content:prompt}]})});
-        if(res.status===429){ retries++; btn.innerHTML='<span class="spinner"></span> Limite Groq, attente '+(retries*6)+'s...'; await new Promise(function(r){ setTimeout(r,retries*6000); }); }
-        else break;
-      }
-      if(!res.ok) throw new Error('HTTP '+res.status+' bloc '+(bi+1));
-      var data=await res.json();
-      var raw=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'';
-      raw=raw.replace(/```json|```/g,'').trim();
-      var ji=raw.indexOf('{'),jend=raw.lastIndexOf('}'); if(ji>=0&&jend>ji) raw=raw.slice(ji,jend+1);
-      // Réparer JSON tronqué
-      raw=repairJson(raw);
-      var parsed=JSON.parse(raw);
-      if(parsed.activites) allActs=allActs.concat(parsed.activites);
-      if(parsed.zones) parsed.zones.forEach(function(z){ if(allZones.indexOf(z)<0) allZones.push(z); });
-      if(parsed.conseils) allConseils=allConseils.concat(parsed.conseils);
-      if(!titre&&parsed.titre) titre=parsed.titre;
-      if(!resume&&parsed.resume) resume=parsed.resume;
-    }
-
-    var parsedFinal={titre:titre||('Voyage à '+dest),resume:resume||('Planning '+nbJours+' jours'),zones:allZones,activites:allActs,logique_geo:'Planning généré par blocs géographiques.',conseils:allConseils.slice(0,6)};
-    var parsed=parsedFinal;
-
-    // POST-TRAITEMENTS
-    parsed.activites.forEach(function(a){ if(a.jour) a.date=jourToDate(a.jour,ds); });
-
-    // Voitures manquantes
-    filledCars.forEach(function(car){
-      var jp=dateToJour(car.datePrise,ds), jr=dateToJour(car.dateRetour,ds);
-      var hPrise='09:00';
-      if(jp===1&&flights.aller.hArr){ var ah=parseInt(flights.aller.hArr)+1; hPrise=(ah<10?'0':'')+ah+':'+flights.aller.hArr.split(':')[1]; }
-      if(jp&&!parsed.activites.some(function(a){ return a.type==='voiture'&&a.jour===jp; }))
-        parsed.activites.push({jour:jp,date:car.datePrise,heure:hPrise,titre:'Prise voiture — '+(car.agence||'Agence'),description:'Récupération du '+(car.type||'véhicule')+' chez '+(car.agence||'agence'),adresse:car.lieuPrise||'',duree:'1h',type:'voiture',budget:'',zone:'',isUserPlace:false,passName:null,meilleurMoment:'Matin tôt',astuce:'Photographiez le véhicule avant de partir.',_injected:true});
-      if(jr&&!parsed.activites.some(function(a){ return a.type==='voiture'&&a.jour===jr; }))
-        parsed.activites.push({jour:jr,date:car.dateRetour,heure:'10:00',titre:'Restitution voiture — '+(car.agence||'Agence'),description:'Retour du véhicule chez '+(car.agence||'agence'),adresse:car.lieuRetour||car.lieuPrise||'',duree:'1h',type:'voiture',budget:'',zone:'',isUserPlace:false,passName:null,meilleurMoment:'Prévoir 1h avant le vol',astuce:'Plein fait, propre pour éviter les frais.',_injected:true});
-    });
-
-    // Hôtels manquants
-    filledHotelsFiltered.forEach(function(h){
-      var jci=dateToJour(h.checkin,ds), jco=dateToJour(h.checkout,ds);
-      if(jci&&!parsed.activites.some(function(a){ return a.type==='hotel'&&a.jour===jci; }))
-        parsed.activites.push({jour:jci,date:h.checkin,heure:'15:00',titre:'Check-in — '+(h.nom||'Hôtel'),description:'Arrivée à '+(h.nom||'hôtel'),adresse:h.adresse||'',duree:'1h',type:'hotel',budget:'',zone:'',isUserPlace:false,passName:null,meilleurMoment:'Check-in à partir de 15h',astuce:'Déposez les bagages si arrivée avant 15h.',_injected:true});
-      if(jco&&!parsed.activites.some(function(a){ return a.type==='hotel'&&a.jour===jco; }))
-        parsed.activites.push({jour:jco,date:h.checkout,heure:'11:00',titre:'Check-out — '+(h.nom||'Hôtel'),description:'Départ de '+(h.nom||'hôtel'),adresse:h.adresse||'',duree:'30min',type:'hotel',budget:'',zone:'',isUserPlace:false,passName:null,meilleurMoment:'Check-out avant 11h',astuce:'Late checkout si vol en soirée.',_injected:true});
-    });
-
-    // Vols manquants
-    if(flights.aller.num&&!parsed.activites.some(function(a){ return a.type==='vol'&&a.jour===1; }))
-      parsed.activites.push({jour:1,date:ds,heure:flights.aller.hArr||'06:00',titre:'Vol aller — '+flights.aller.num+(flights.aller.compagnie?' · '+flights.aller.compagnie:''),description:flights.aller.depAero+' → '+flights.aller.arrAero,adresse:'',duree:'',type:'vol',budget:'',zone:'',isUserPlace:false,passName:null,astuce:'Aéroport 2-3h avant.'+(flights.aller.terminal?' Terminal: '+flights.aller.terminal:''),_injected:true});
-    if(flights.retour.num&&!parsed.activites.some(function(a){ return a.type==='vol'&&a.jour===nbJours; }))
-      parsed.activites.push({jour:nbJours,date:de,heure:flights.retour.hDep||'10:00',titre:'Vol retour — '+flights.retour.num+(flights.retour.compagnie?' · '+flights.retour.compagnie:''),description:flights.retour.depAero+' → '+flights.retour.arrAero,adresse:'',duree:'',type:'vol',budget:'',zone:'',isUserPlace:false,passName:null,astuce:'Aéroport 2-3h avant.'+(flights.retour.terminal?' Terminal: '+flights.retour.terminal:''),_injected:true});
-
-    // Lieux perso manquants
-    addressesFiltered.forEach(function(addr,i){
-      var n=normStr(addr).slice(0,12);
-      if(!parsed.activites.some(function(a){ return normStr(a.adresse).indexOf(n)>=0||normStr(a.titre).indexOf(n)>=0; })){
-        var j=Math.min(2+i,nbJours);
-        parsed.activites.push({jour:j,date:jourToDate(j,ds),heure:'10:00',titre:'Visite — '+addr.split(',')[0],description:'Lieu personnel.',adresse:addr,duree:'2h',type:'visit',budget:'',zone:'',isUserPlace:true,passName:null,meilleurMoment:'Selon la journée',astuce:'',_injected:true});
-      }
-    });
-
-    // Attractions pass manquantes
-    var missAttr=[];
-    filledPassesFiltered.forEach(function(p){
-      if(!p.inclus.trim()) return;
-      p.inclus.replace(/\n/g,',').split(',').map(function(a){ return a.trim(); }).filter(Boolean).forEach(function(attr){
-        var n=normStr(attr).slice(0,12);
-        if(!parsed.activites.some(function(a){ return a.passName===p.nom||normStr(a.titre).indexOf(n)>=0; }))
-          missAttr.push({attr:attr,passNom:p.nom,moment:p.moment});
-      });
-    });
-    missAttr.forEach(function(m,i){
-      var j=Math.min(3+i,nbJours);
-      var h={matin:'09:00',aprem:'14:00',journee:'09:00',soir:'19:00'}[m.moment]||'10:00';
-      parsed.activites.push({jour:j,date:jourToDate(j,ds),heure:h,titre:m.attr,description:'Attraction incluse dans votre pass '+m.passNom,adresse:'',duree:'3h',type:'attraction',budget:'Inclus '+m.passNom,zone:'',isUserPlace:false,passName:m.passNom,meilleurMoment:'Selon votre pass',astuce:'Présentez votre pass à l\'entrée.',_injected:true});
-    });
-
-    if(missAttr.length) parsed._missAttr=missAttr.map(function(m){ return m.attr; });
-
-    // Trier
-    parsed.activites.sort(function(a,b){
-      if(a.jour!==b.jour) return (a.jour||0)-(b.jour||0);
-      var oa=typeOrder(a.type), ob=typeOrder(b.type);
-      if(oa!==ob) return oa-ob;
-      return (a.heure||'00:00').localeCompare(b.heure||'00:00');
-    });
-
-    // Fusionner avec planning existant si mode partiel
-    if(mode!=='all' && suggestions && suggestions.activites && suggestions.activites.length){
-      // Supprimer les jours déjà couverts par ce mode, garder les autres
-      var newJours={};
-      parsed.activites.forEach(function(a){ newJours[a.jour]=true; });
-      var kept=suggestions.activites.filter(function(a){ return !newJours[a.jour]; });
-      parsed.activites=kept.concat(parsed.activites);
-      parsed.activites.sort(function(a,b){
-        if(a.jour!==b.jour) return (a.jour||0)-(b.jour||0);
-        var oa=typeOrder(a.type),ob=typeOrder(b.type); if(oa!==ob) return oa-ob;
-        return (a.heure||'00:00').localeCompare(b.heure||'00:00');
-      });
-      // Fusionner zones et conseils
-      if(suggestions.zones) suggestions.zones.forEach(function(z){ if(parsed.zones.indexOf(z)<0) parsed.zones.push(z); });
-      parsed.titre = suggestions.titre||parsed.titre;
-    }
-    suggestions=parsed;
-    selected=suggestions.activites.map(function(_,i){ return i; }).filter(function(i){ return ['repos','vol'].indexOf(suggestions.activites[i].type)<0; });
-    renderFlightSummary(flights,ds,de);
-    renderPlan();
-    showStep(2);
-    saveAll();
-  }catch(e){
-    showError('Erreur: '+e.message);
-    console.error(e);
-  }
-  btn.disabled=false; btn.innerHTML=modeLabel;
-  if(document.getElementById('generateBtn2')) document.getElementById('generateBtn2').disabled=false;
-  if(document.getElementById('generateBtnAll')) document.getElementById('generateBtnAll').disabled=false;
-}
-
-// =======================================
-// AMÉLIORER
-// =======================================
-
-// =======================================
-// RENDER PLAN
-// =======================================
-function renderFlightSummary(flights,ds,de){
-  var hasA=flights.aller.num||flights.aller.depAero, hasR=flights.retour.num||flights.retour.depAero;
-  if(!hasA&&!hasR){ document.getElementById('flightSummary').classList.add('hidden'); return; }
-  var dI=(flights.aller.depAero||'???').substring(0,3).toUpperCase();
-  var aI=(flights.aller.arrAero||'???').substring(0,3).toUpperCase();
-  var rDI=(flights.retour.depAero||aI).substring(0,3).toUpperCase();
-  var rAI=(flights.retour.arrAero||dI).substring(0,3).toUpperCase();
-  var html='<div class="flight-banner"><p style="font-size:11px;color:var(--sky);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">✈️ Vos vols</p>';
-  if(hasA){
-    html+='<div style="margin-bottom:'+(hasR?'12px':'0')+'">'
-      +'<p style="font-size:10px;color:var(--muted);margin-bottom:7px">ALLER — '+ds+'</p>'
-      +'<div class="flight-row">'
-      +'<div class="f-airport"><div class="iata">'+dI+'</div><div class="city">'+(flights.aller.depAero||'')+'</div>'+(flights.aller.hDep?'<div style="font-size:12px;font-weight:600;margin-top:2px">'+flights.aller.hDep+'</div>':'')+'</div>'
-      +'<div class="f-arrow"><div style="font-size:10px;color:var(--muted)">'+(flights.aller.num||'')+'</div><div class="f-line"></div><div style="font-size:16px">✈️</div><div class="f-line"></div><div style="font-size:10px;color:var(--muted)">'+(flights.aller.compagnie||'')+'</div></div>'
-      +'<div class="f-airport"><div class="iata">'+aI+'</div><div class="city">'+(flights.aller.arrAero||'')+'</div>'+(flights.aller.hArr?'<div style="font-size:12px;font-weight:600;margin-top:2px">'+flights.aller.hArr+'</div>':'')+'</div>'
-      +'</div>'+(flights.aller.terminal?'<p style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px">Terminal: '+flights.aller.terminal+'</p>':'')+'</div>';
-  }
-  if(hasA&&hasR) html+='<div style="height:1px;background:var(--border);margin-bottom:12px"></div>';
-  if(hasR){
-    html+='<div>'
-      +'<p style="font-size:10px;color:var(--muted);margin-bottom:7px">RETOUR — '+de+'</p>'
-      +'<div class="flight-row">'
-      +'<div class="f-airport"><div class="iata" style="color:#fb923c">'+rDI+'</div><div class="city">'+(flights.retour.depAero||'')+'</div>'+(flights.retour.hDep?'<div style="font-size:12px;font-weight:600;margin-top:2px">'+flights.retour.hDep+'</div>':'')+'</div>'
-      +'<div class="f-arrow"><div style="font-size:10px;color:var(--muted)">'+(flights.retour.num||'')+'</div><div class="f-line" style="background:linear-gradient(90deg,#fb923c,#fb923c33)"></div><div style="font-size:16px">✈️</div><div class="f-line" style="background:linear-gradient(90deg,#fb923c,#fb923c33)"></div><div style="font-size:10px;color:var(--muted)">'+(flights.retour.compagnie||'')+'</div></div>'
-      +'<div class="f-airport"><div class="iata" style="color:#fb923c">'+rAI+'</div><div class="city">'+(flights.retour.arrAero||'')+'</div>'+(flights.retour.hArr?'<div style="font-size:12px;font-weight:600;margin-top:2px">'+flights.retour.hArr+'</div>':'')+'</div>'
-      +'</div>'+(flights.retour.terminal?'<p style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px">Terminal: '+flights.retour.terminal+'</p>':'')+'</div>';
-  }
-  html+='</div>';
-  document.getElementById('flightSummary').innerHTML=html;
-  document.getElementById('flightSummary').classList.remove('hidden');
-}
-
-function renderPlan(){
-  var s=suggestions;
-  var fp=passes.filter(function(p){ return p.nom; });
-  var fc=cars.filter(function(c){ return c.lieuPrise||c.agence; });
-  var fh=hotels.filter(function(h){ return h.nom||h.adresse; });
-  var rd=[], vc=0, ac=0;
-  s.activites.forEach(function(a){
-    if(a.type==='repos'&&rd.indexOf(a.jour)<0) rd.push(a.jour);
-    if(a.type==='vol') vc++;
-    if(a.passName) ac++;
-  });
-
-  var warns=[];
-  if(s._missAttr&&s._missAttr.length) warns.push('🎡 Attractions ajoutées automatiquement: '+s._missAttr.join(', '));
-  var wb=document.getElementById('warnBox');
-  if(warns.length){ wb.innerHTML=warns.map(function(w){ return '<div>'+w+'</div>'; }).join(''); wb.classList.remove('hidden'); }
-  else wb.classList.add('hidden');
-
-  var tags='';
-  if(vc) tags+='<span class="tag-sky">✈️ '+vc+'</span> ';
-  if(fc.length) tags+='<span class="tag-sky">🚗 '+fc.length+'</span> ';
-  tags+='<span class="tag-teal">📌 '+s.activites.filter(function(a){ return a.isUserPlace; }).length+'</span> ';
-  if(fh.length) tags+='<span class="tag-purple">🏨 '+fh.length+'</span> ';
-  if(rd.length) tags+='<span class="tag-rest">😴 '+rd.length+'</span> ';
-  if(ac) tags+='<span class="tag-green">🎡 '+ac+'</span> ';
-  if(fp.length) tags+='<span class="tag-green">🎟️ '+fp.length+'</span> ';
-  tags+='<span class="tag-purple">🗺️ '+(s.zones||[]).length+'</span>';
-
-  document.getElementById('planHeader').innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px"><h2 style="font-size:17px;flex:1">'+escHtml(s.titre)+'</h2><span class="tag" style="margin-left:9px;flex-shrink:0">'+escHtml(g('destination'))+'</span></div>'
-    +'<p style="color:var(--muted);font-size:12px;margin-bottom:9px">'+escHtml(s.resume)+'</p>'
-    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+tags+'</div>'
-    +(s.logique_geo?'<div class="geo-box" style="margin-top:9px"><p style="font-size:11px;color:var(--purple)"><strong>Optimisation:</strong> '+escHtml(s.logique_geo)+'</p></div>':'');
-
-  var zl=document.getElementById('zonesLegend');
-  zl.innerHTML=(s.zones||[]).map(function(z,i){
-    return '<div style="display:flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:3px 9px"><span class="zone-dot" style="background:'+ZONE_COLORS[i%10]+'"></span><span style="font-size:10px;color:var(--muted)">'+escHtml(z)+'</span></div>';
-  }).join('');
-  zl.style.display=(s.zones&&s.zones.length)?'flex':'none';
-
-  if(s.conseils&&s.conseils.length){
-    document.getElementById('tipsCard').innerHTML='<h3 style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--gold)">💡 Conseils</h3>'+s.conseils.map(function(c){ return '<div class="tip-row"><span style="color:var(--gold)">›</span>'+escHtml(c)+'</div>'; }).join('');
-    document.getElementById('tipsCard').classList.remove('hidden');
-  }
-  renderActivities();
-}
-
-function renderActivities(){
-  if(!suggestions) return;
-  var days=[];
-  suggestions.activites.forEach(function(a){ if(days.indexOf(a.jour)<0) days.push(a.jour); });
-  days.sort(function(a,b){ return a-b; });
-  var zones=suggestions.zones||[];
-  var html='';
-
-  days.forEach(function(day){
-    var acts=suggestions.activites.map(function(a,i){ return Object.assign({},a,{idx:i}); }).filter(function(a){ return a.jour===day; });
-    acts.sort(function(a,b){
-      var oa=typeOrder(a.type), ob=typeOrder(b.type);
-      if(oa!==ob) return oa-ob;
-      return (a.heure||'00:00').localeCompare(b.heure||'00:00');
-    });
-    var isRest=acts.every(function(a){ return a.type==='repos'; });
-    var hasVol=acts.some(function(a){ return a.type==='vol'; });
-    var dayZones=[];
-    acts.forEach(function(a){ if(a.zone&&['repos','vol'].indexOf(a.type)<0&&dayZones.indexOf(a.zone)<0) dayZones.push(a.zone); });
-
-    html+='<div class="divider"><div class="div-line"></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0;flex-wrap:wrap">'
-      +'<span class="'+(isRest?'tag-rest':hasVol?'tag-sky':'tag-teal')+'" style="font-size:11px;padding:2px 9px">'
-      +(isRest?'😴':hasVol?'✈️':'📅')+' Jour '+day+' — '+(acts[0]&&acts[0].date||'')+'</span>'
-      +dayZones.map(function(z){ return '<span class="tag-purple" style="font-size:10px">'+escHtml(z)+'</span>'; }).join('')
-      +'</div><div class="div-line"></div></div>';
-
-    acts.forEach(function(act){
-      if(act.type==='repos'){
-        html+='<div class="rest-banner"><div style="font-size:24px;margin-bottom:5px">😴</div>'
-          +'<p style="font-weight:600;color:var(--rose);font-size:14px">'+escHtml(act.titre||'Jour de repos')+'</p>'
-          +'<p style="font-size:12px;color:var(--muted);margin-top:3px">'+escHtml(act.description||'')+'</p>'
-          +(act.astuce?'<p style="font-size:11px;color:var(--purple);margin-top:5px">'+escHtml(act.astuce)+'</p>':'')
-          +'</div>';
-        return;
-      }
-      if(act.type==='hotel'){
-        html+='<div class="act-card hotel-act">'
-          +'<div style="font-size:18px">🏨</div><div style="flex:1">'
-          +'<div style="display:flex;justify-content:space-between"><span style="font-weight:600;font-size:13px;color:var(--purple)">'+escHtml(act.titre)+'</span>'+(act.heure?'<span style="font-size:11px;color:var(--muted)">'+act.heure+'</span>':'')+'</div>'
-          +'<p style="font-size:11px;color:var(--muted);margin-top:2px">'+escHtml(act.description||'')+'</p>'
-          +(act.adresse?'<a href="https://maps.apple.com/?q='+encodeURIComponent(act.adresse)+'" target="_blank" style="font-size:11px;color:var(--purple);text-decoration:none;display:block;margin-top:3px">📍 '+escHtml(act.adresse)+'</a>':'')
-          +(act.astuce?'<p style="font-size:11px;color:var(--muted);margin-top:3px">'+escHtml(act.astuce)+'</p>':'')
-          +'</div><span class="tag-purple" style="font-size:10px">🏨</span></div>';
-        return;
-      }
-      if(act.type==='voiture'||act.type==='trajet'){
-        html+='<div class="trajet-row"><div style="font-size:18px">🚗</div><div style="flex:1">'
-          +'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:13px;color:var(--sky)">'+escHtml(act.titre)+'</span>'+(act.heure?'<span style="font-size:11px;color:var(--muted)">'+act.heure+'</span>':'')+'</div>'
-          +'<p style="font-size:11px;color:var(--muted);margin-top:2px">'+escHtml(act.description||'')+'</p>'
-          +(act.duree?'<p style="font-size:11px;color:var(--sky);margin-top:3px">⌛ '+escHtml(act.duree)+'</p>':'')
-          +(act.astuce?'<p style="font-size:11px;color:var(--muted);margin-top:3px">'+escHtml(act.astuce)+'</p>':'')
-          +'</div><span class="tag-sky" style="font-size:10px">🚗</span></div>';
-        return;
-      }
-      if(act.type==='vol'){
-        html+='<div class="act-card vol-card"><div style="font-size:18px">✈️</div><div style="flex:1;min-width:0">'
-          +'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:13px;color:var(--sky)">'+escHtml(act.titre)+'</span>'+(act.heure?'<span style="font-size:11px;color:var(--muted)">'+act.heure+'</span>':'')+'</div>'
-          +'<p style="font-size:11px;color:var(--muted);margin-top:2px">'+escHtml(act.description||'')+'</p>'
-          +(act.astuce?'<p style="font-size:11px;color:var(--sky);margin-top:3px">'+escHtml(act.astuce)+'</p>':'')
-          +'</div><span class="tag-sky" style="font-size:10px;padding:2px 7px">Vol</span></div>';
-        return;
-      }
-
-      var isPass=!!act.passName;
-      var zIdx=zones.indexOf(act.zone);
-      var zColor=zIdx>=0?ZONE_COLORS[zIdx%10]:'var(--teal)';
-      var isSel=selected.indexOf(act.idx)>=0;
-      var emoji={attraction:'🎡',visit:'🗺️',restaurant:'🍽️',activity:'🎯'}[act.type]||'📍';
-
-      html+='<div class="act-card'+(isSel?' sel':'')+(isPass?' pass-act':'')+'" onclick="toggleAct('+act.idx+')">'
-        +'<div style="font-size:18px">'+emoji+'</div>'
-        +'<div style="flex:1;min-width:0">'
-        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:7px">'
-        +'<div style="flex:1;min-width:0">'
-        +'<span style="font-weight:600;font-size:13px">'+escHtml(act.titre)+'</span>'
-        +(act.isUserPlace?'<span style="font-size:10px;background:#f0a50033;color:var(--gold);border:1px solid #f0a50044;border-radius:10px;padding:1px 6px;margin-left:5px">📌</span>':'')
-        +(isPass?'<span class="inc-badge" style="margin-left:5px">✅ '+escHtml(act.passName)+'</span>':'')
-        +'</div>'
-        +'<div style="display:flex;gap:4px;flex-shrink:0;align-items:center">'
-        +(act.heure?'<span style="font-size:11px;color:var(--muted)">'+act.heure+'</span>':'')
-        +(act.budget?'<span style="font-size:11px;color:'+(isPass?'var(--green)':'var(--gold)')+'">'+escHtml(act.budget)+'</span>':'')
-        +'</div></div>'
-        +'<p style="font-size:11px;color:var(--muted);margin-top:2px">'+escHtml(act.description||'')+'</p>'
-        +(act.meilleurMoment?'<div class="best-time">⭐ '+escHtml(act.meilleurMoment)+'</div>':'')
-        +(act.jourCreux?'<div class="creux-box">📅 Jour idéal: '+escHtml(act.jourCreux)+'</div>':'')
-        +(act.astuce?'<p style="font-size:11px;color:var(--purple);margin-top:4px">💡 '+escHtml(act.astuce)+'</p>':'')
-        +'<div style="display:flex;align-items:center;gap:7px;margin-top:5px;flex-wrap:wrap">'
-        +(act.adresse?'<a href="https://maps.apple.com/?q='+encodeURIComponent(act.adresse)+'" target="_blank" style="font-size:11px;color:var(--teal);text-decoration:none">📍 '+escHtml(act.adresse)+'</a>':'')
-        +(act.zone?'<span style="display:flex;align-items:center;gap:3px;font-size:10px"><span class="zone-dot" style="background:'+zColor+'"></span><span style="color:var(--muted)">'+escHtml(act.zone)+'</span></span>':'')
-        +(act.duree?'<span style="font-size:10px;color:var(--muted)">⌛ '+escHtml(act.duree)+'</span>':'')
-        +'</div></div>'
-        +'<div class="checkbox'+(isSel?' checked':'')+'">'+(isSel?'<span style="font-size:10px;color:#001a16;font-weight:700">✓</span>':'')+'</div>'
-        +'</div>';
-    });
-  });
-
-  document.getElementById('activitiesContainer').innerHTML=html;
-  document.getElementById('selCount').textContent=selected.length+' activité(s) sélectionnée(s)';
-  document.getElementById('addCalBtn').innerHTML='📅 Ajouter '+selected.length+' événement(s) à l\'agenda';
-}
-
-function toggleAct(idx){
-  if(!suggestions) return;
-  if(['repos','vol'].indexOf(suggestions.activites[idx]&&suggestions.activites[idx].type)>=0) return;
-  var i=selected.indexOf(idx); if(i>=0) selected.splice(i,1); else selected.push(idx);
-  renderActivities();
-}
-function selectAll(){ selected=suggestions.activites.map(function(_,i){ return i; }).filter(function(i){ return ['repos','vol'].indexOf(suggestions.activites[i].type)<0; }); renderActivities(); }
-function selectNone(){ selected=[]; renderActivities(); }
-
-async function addToCalendar(){
-  if(!selected.length) return;
-  var btn=document.getElementById('addCalBtn'); btn.disabled=true;
-  var toAdd=selected.map(function(i){ return suggestions.activites[i]; });
-  var done=[];
-  for(var i=0;i<toAdd.length;i++){
-    await new Promise(function(r){ setTimeout(r,200); });
-    done.push(toAdd[i].titre);
-    btn.innerHTML='<span class="spinner"></span> Ajout... ('+done.length+'/'+toAdd.length+')';
-  }
-  var dest=g('destination');
-  document.getElementById('doneMsg').innerHTML='<strong>'+done.length+'</strong> événement(s) pour <strong>'+escHtml(dest)+'</strong>';
-  document.getElementById('doneList').innerHTML=done.map(function(t){ return '<div style="display:flex;gap:8px;align-items:center;font-size:12px;margin-bottom:5px"><span style="color:var(--teal)">✓</span><span style="color:var(--muted)">'+escHtml(t)+'</span></div>'; }).join('');
-  showStep(3);
-}
-
-function exportData(){
-  try{
-    var data=Object.assign({},getFormVals(),{
-      interests:interests,hotels:hotels,cars:cars,passes:passes,
-      addrs:addrs,reposDates:reposDates,trajetsV:trajetsV,
-      suggestions:suggestions,exportedAt:new Date().toISOString()
-    });
-    var dest=g('destination')||'voyage';
-    var date=new Date().toISOString().split('T')[0];
-    var json=JSON.stringify(data,null,2);
-    var blob=new Blob([json],{type:'application/json'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url; a.download='planner-'+dest.replace(/[^a-z0-9]/gi,'-').toLowerCase()+'-'+date+'.json';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }catch(e){ alert('Erreur export: '+e.message); }
-}
-
-function importData(input){
-  var file=input.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var data=JSON.parse(e.target.result);
-      // Restaurer champs simples
-      ['destination','dateStart','dateEnd','budget','reposFreq','reposType',
-       'vADA','vAAA','vAN','vAHD','vAHA','vAT','vAC',
-       'vRDA','vRAA','vRN','vRHD','vRHA','vRT','vRC'
-      ].forEach(function(f){ var el=document.getElementById(f); if(el&&data[f]!==undefined) el.value=data[f]; });
-      // Restaurer tableaux
-      if(Array.isArray(data.interests)){ interests=data.interests; renderInterests(); }
-      if(Array.isArray(data.hotels)){ hotels=data.hotels; renderHotels(); }
-      if(Array.isArray(data.cars)){ cars=data.cars; renderCars(); }
-      if(Array.isArray(data.passes)){ passes=data.passes; renderPasses(); }
-      if(Array.isArray(data.addrs)){ addrs=data.addrs; renderAddrs(); }
-      if(Array.isArray(data.reposDates)){ reposDates=data.reposDates; renderReposDates(); }
-      if(Array.isArray(data.trajetsV)){ trajetsV=data.trajetsV; renderTrajetsV(); }
-      if(data.suggestions){ suggestions=data.suggestions; selected=suggestions.activites.map(function(_,i){ return i; }).filter(function(i){ return ['repos','vol'].indexOf(suggestions.activites[i].type)<0; }); }
-      if(data.reposFreq==='manuel') onReposChange();
-      saveAll();
-      alert('✅ Données importées avec succès !');
-    }catch(e){ alert('Erreur import: '+e.message); }
-  };
-  reader.readAsText(file);
-  input.value='';
-}
-
-function repairJson(raw){
-  if(!raw) return '{}';
-  if(raw.trim().slice(-1)==='}') return raw;
-  var lastGood=raw.lastIndexOf('},');
-  var lastObj=raw.lastIndexOf('}]');
-  var cutAt=Math.max(lastGood,lastObj);
-  if(cutAt>0){
-    raw=raw.slice(0,cutAt+1);
-    var depth=0;
-    for(var i=0;i<raw.length;i++){ if(raw[i]==='{') depth++; if(raw[i]==='}') depth--; }
-    if(raw.lastIndexOf('}]')<raw.lastIndexOf('{')) raw+=']';
-    while(depth>0){ raw+='}'; depth--; }
-  }
-  return raw;
-}
-
-function exportData(){
-  try{
-    var data=Object.assign({},getFormVals(),{interests:interests,hotels:hotels,cars:cars,passes:passes,addrs:addrs,reposDates:reposDates,trajetsV:trajetsV,suggestions:suggestions,exportedAt:new Date().toISOString()});
-    var dest=g('destination')||'voyage';
-    var date=new Date().toISOString().split('T')[0];
-    var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url; a.download='planner-'+dest.replace(/[^a-z0-9]/gi,'-').toLowerCase()+'-'+date+'.json';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }catch(e){ alert('Erreur export: '+e.message); }
-}
-
-function importData(input){
-  var file=input.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var data=JSON.parse(e.target.result);
-      ['destination','dateStart','dateEnd','budget','reposFreq','reposType','vADA','vAAA','vAN','vAHD','vAHA','vAT','vAC','vRDA','vRAA','vRN','vRHD','vRHA','vRT','vRC'].forEach(function(f){ var el=document.getElementById(f); if(el&&data[f]!==undefined) el.value=data[f]; });
-      if(Array.isArray(data.interests)){ interests=data.interests; renderInterests(); }
-      if(Array.isArray(data.hotels)){ hotels=data.hotels; renderHotels(); }
-      if(Array.isArray(data.cars)){ cars=data.cars; renderCars(); }
-      if(Array.isArray(data.passes)){ passes=data.passes; renderPasses(); }
-      if(Array.isArray(data.addrs)){ addrs=data.addrs; renderAddrs(); }
-      if(Array.isArray(data.reposDates)){ reposDates=data.reposDates; renderReposDates(); }
-      if(Array.isArray(data.trajetsV)){ trajetsV=data.trajetsV; renderTrajetsV(); }
-      if(data.suggestions){ suggestions=data.suggestions; selected=suggestions.activites.map(function(_,i){ return i; }).filter(function(i){ return ['repos','vol'].indexOf(suggestions.activites[i].type)<0; }); }
-      if(data.reposFreq==='manuel') onReposChange();
-      saveAll();
-      alert('Données importées !');
-    }catch(e){ alert('Erreur import: '+e.message); }
-  };
-  reader.readAsText(file);
-  input.value='';
-}
-
-function resetApp(){
-  interests=[]; suggestions=null; selected=[];
-  ['destination','dateStart','dateEnd','budget','reposFreq','reposType','vADA','vAAA','vAN','vAHD','vAHA','vAT','vAC','vRDA','vRAA','vRN','vRHD','vRHA','vRT','vRC'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('budget').value='moyen'; document.getElementById('reposFreq').value='auto';
-  addrs=[]; hotels=[]; cars=[]; passes=[]; reposDates=[]; trajetsV=[];
-  renderAddrs(); renderHotels(); renderCars(); renderTrajetsV(); renderPasses(); renderInterests(); renderReposDates();
-  localStorage.removeItem(SAVE_KEY); showStep(1);
-}
-</script>
-</body>
-</html>
+const tripData = {
+  "destination": "Los Angeles, San Francisco, Las Vegas",
+  "dateStart": "2026-06-30",
+  "dateEnd": "2026-07-31",
+  "budget": "grand",
+  "vADA": "ZRH",
+  "vAAA": "LAX",
+  "vAN": "LX040",
+  "vAHD": "13:10",
+  "vAHA": "16:35",
+  "vAC": "Swiss",
+  "hotels": [
+    {"nom": "Diamond Bar Residence","adresse": "Diamond Bar, Los Angeles, CA","role": "base"},
+    {"nom": "RIU Plaza Fisherman's Wharf","adresse": "2500 Mason Street, San Francisco, CA","checkin": "2026-07-14","checkout": "2026-07-16","role": "excursion"},
+    {"nom": "Flamingo Las Vegas","adresse": "3555 Las Vegas Blvd South, Las Vegas","checkin": "2026-07-20","checkout": "2026-07-22","role": "excursion"}
+  ],
+  "passes": [
+    {"id": "raging", "nom": "Raging Waters","ville": "San Dimas, LA", "datePref": "2026-07-02", "dureeH": 4, "heureDebut": "11:00"},
+    {"id": "universal", "nom": "Universal Studios Hollywood","ville": "Universal City, LA", "datePref": "2026-07-07", "dureeH": 8, "heureDebut": "09:00"},
